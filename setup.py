@@ -9,7 +9,7 @@ from setuptools import (
 setup(
     name='eth-account',
     # *IMPORTANT*: Don't manually change the version here. Use the 'bumpversion' utility.
-    version='0.1.0-beta.1',
+    version='0.1.0-alpha.0',
     description="""eth-account: private key signing and recovery in python""",
     long_description_markdown_filename='README.md',
     author='Jason Carver',
@@ -38,6 +38,7 @@ setup(
         ],
         'dev': [
             "pytest-xdist",
+            "bumpversion>=0.5.3,<1",
             "eth-account[tester]",
             "eth-account[linter]",
         ],
