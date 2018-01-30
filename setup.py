@@ -37,7 +37,7 @@ extras_require['dev'] = (
 setup(
     name='eth-account',
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
-    version='0.1.0-alpha.0',
+    version='0.1.0-alpha.1',
     description="""eth-account: Sign Ethereum transactions and messages with local private keys""",
     long_description_markdown_filename='README.md',
     author='Jason Carver',
@@ -45,7 +45,12 @@ setup(
     url='https://github.com/ethereum/eth-account',
     include_package_data=True,
     install_requires=[
-        "eth-utils>=0.7.4,<1.0.0",
+        "attrdict>=2.0.0,<3",
+        "eth-keyfile>=0.4.0,<1.0.0",
+        "eth-keys>=0.1.0b4,<0.2.0",
+        "eth-utils>=1.0.0b1,<2",
+        "hexbytes>=0.1.0b0,<1",
+        "eth-rlp>=0.1.0a2,<1",
     ],
     setup_requires=['setuptools-markdown'],
     extras_require=extras_require,
