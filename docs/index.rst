@@ -1,7 +1,7 @@
-<PROJECT_NAME>
+eth-account
 ==============================
 
-<SHORT_DESCRIPTION>
+Sign Ethereum transactions and messages with local private keys
 
 Contents
 --------
@@ -9,7 +9,7 @@ Contents
 .. toctree::
     :maxdepth: 3
 
-    <MODULE_NAME>
+    eth_account
     releases
 
 
