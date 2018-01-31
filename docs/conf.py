@@ -270,4 +270,6 @@ texinfo_documents = [
 
 intersphinx_mapping = {
     'python': ('https://docs.python.org/3.5', None),
+    'web3': ('http://web3py.readthedocs.io/en/latest/', None),
+    'hexbytes': ('http://hexbytes.readthedocs.io/en/latest/', None),
 }
