@@ -2,9 +2,6 @@
 
 import pytest
 
-from eth_account import (
-    Account,
-)
 from eth_utils import (
     is_checksum_address,
     to_bytes,
@@ -13,6 +10,10 @@ from eth_utils import (
 )
 from hexbytes import (
     HexBytes,
+)
+
+from eth_account import (
+    Account,
 )
 
 # from https://github.com/ethereum/tests/blob/3930ca3a9a377107d5792b3e7202f79c688f1a67/BasicTests/txtest.json # noqa: 501

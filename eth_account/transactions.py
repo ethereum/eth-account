@@ -7,13 +7,6 @@ from cytoolz import (
     partial,
     pipe,
 )
-import rlp
-from rlp.sedes import (
-    Binary,
-    big_endian_int,
-    binary,
-)
-
 from eth_rlp import (
     HashableRLP,
 )
@@ -22,6 +15,12 @@ from eth_utils.curried import (
     hexstr_if_str,
     to_bytes,
     to_int,
+)
+import rlp
+from rlp.sedes import (
+    Binary,
+    big_endian_int,
+    binary,
 )
 
 

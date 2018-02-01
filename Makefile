@@ -26,7 +26,7 @@ lint:
 
 lint-roll:
 	isort --recursive eth_account tests
-	$(make) lint
+	$(MAKE) lint
 
 test:
 	py.test tests

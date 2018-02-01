@@ -1,6 +1,10 @@
 from cytoolz import (
     pipe,
 )
+from eth_utils import (
+    to_bytes,
+    to_int,
+)
 
 from eth_account.transactions import (
     ChainAwareUnsignedTransaction,
@@ -8,10 +12,6 @@ from eth_account.transactions import (
     encode_transaction,
     serializable_unsigned_transaction_from_dict,
     strip_signature,
-)
-from eth_utils import (
-    to_bytes,
-    to_int,
 )
 
 CHAIN_ID_OFFSET = 35

@@ -18,6 +18,18 @@ from eth_keys import (
 from eth_keys.exceptions import (
     ValidationError,
 )
+from eth_utils.curried import (
+    combomethod,
+    hexstr_if_str,
+    is_dict,
+    keccak,
+    text_if_str,
+    to_bytes,
+    to_int,
+)
+from hexbytes import (
+    HexBytes,
+)
 
 from eth_account.datastructures import (
     AttributeDict,
@@ -36,18 +48,6 @@ from eth_account.signing import (
 from eth_account.transactions import (
     Transaction,
     vrs_from,
-)
-from eth_utils.curried import (
-    combomethod,
-    hexstr_if_str,
-    is_dict,
-    keccak,
-    text_if_str,
-    to_bytes,
-    to_int,
-)
-from hexbytes import (
-    HexBytes,
 )
 
 
@@ -355,7 +355,7 @@ class Account(object):
 
         .. code-block:: python
 
-            >>> raw_transaction = '0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428',
+            >>> raw_transaction = '0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428',  # noqa: E501
             >>> Account.recoverTransaction(raw_transaction)
             '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
         '''
@@ -468,7 +468,7 @@ class Account(object):
             >>> signed = Account.signTransaction(transaction, key)
             {'hash': HexBytes('0x6893a6ee8df79b0f5d64a180cd1ef35d030f3e296a5361cf04d02ce720d32ec5'),
              'r': 4487286261793418179817841024889747115779324305375823110249149479905075174044,
-             'rawTransaction': HexBytes('0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'),
+             'rawTransaction': HexBytes('0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'),  # noqa: E501
              's': 30785525769477805655994251009256770582792548537338581640010273753578382951464,
              'v': 37}
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
