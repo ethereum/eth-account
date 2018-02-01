@@ -46,8 +46,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "attrdict>=2.0.0,<3",
-        "eth-keyfile>=0.4.0,<1.0.0",
-        "eth-keys>=0.1.0b4,<0.2.0",
+        "eth-keyfile>=0.5.0,<0.6.0",
+        "eth-keys>=0.2.0b1,<0.3.0",
         "eth-utils>=1.0.0b1,<2",
         "hexbytes>=0.1.0b0,<1",
         "eth-rlp>=0.1.0a2,<1",
