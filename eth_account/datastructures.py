@@ -15,3 +15,14 @@ class AttributeDict(AttrDict):
             'This data is immutable -- create a copy instead of modifying. '
             'For example, AttributeDict(old, replace_key=replace_val).'
         )
+
+    def _repr_pretty_(self, builder, cycle):
+        """
+        Custom pretty output for the IPython console
+        """
+        builder.text(self.__class__.__name__ + "(")
+        if cycle:
+            builder.text("<cycle>")
+        else:
+            builder.pretty(self.__dict__)
+        builder.text(")")
