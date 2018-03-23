@@ -3,13 +3,16 @@
 [![Join the chat at https://gitter.im/ethereum/eth-account](https://badges.gitter.im/ethereum/eth-account.svg)](https://gitter.im/ethereum/eth-account?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 [![Build Status](https://travis-ci.org/ethereum/eth-account.png)](https://travis-ci.org/ethereum/eth-account)
+[![PyPI version](https://badge.fury.io/py/eth-account.svg)](https://badge.fury.io/py/eth-account)
+[![Python versions](https://img.shields.io/pypi/pyversions/eth-account.svg)](https://pypi.python.org/pypi/eth-account)
+[![Docs build](https://readthedocs.org/projects/eth-account/badge/?version=latest)](http://eth-account.readthedocs.io/en/latest/?badge=latest)
    
 
 Sign Ethereum transactions and messages with local private keys
 
 * Python 3.5+ support
 
-Read more in the [documentation on ReadTheDocs](http://eth-account.readthedocs.io/). [View the change log on Github](docs/releases.rst).
+Read more in the [documentation on ReadTheDocs](http://eth-account.readthedocs.io/). [View the change log](http://eth-account.readthedocs.io/en/latest/releases.html)
 
 ## Quickstart
 

@@ -38,6 +38,7 @@ build-docs:
 	sphinx-apidoc -o docs/ . setup.py "*conftest*"
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
+	$(MAKE) -C docs doctest
 
 docs: build-docs
 	open docs/_build/html/index.html
@@ -49,7 +50,7 @@ release: clean
 	CURRENT_SIGN_SETTING=$(git config commit.gpgSign)
 	git config commit.gpgSign true
 	bumpversion $(bump)
-	git push && git push --tags
+	git push upstream && git push upstream --tags
 	python setup.py sdist bdist_wheel upload
 	git config commit.gpgSign "$(CURRENT_SIGN_SETTING)"
 
