@@ -113,7 +113,8 @@ class Account(object):
              'id': 'b812f3f9-78cc-462a-9e89-74418aa27cb0',
              'version': 3}
 
-            >>> Account.decrypt(encrypted, 'correcthorsebatterystaple')
+            >>> import getpass
+            >>> Account.decrypt(encrypted, getpass.getpass())
             HexBytes('0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364')
 
         '''
@@ -142,9 +143,10 @@ class Account(object):
 
         .. code-block:: python
 
+            >>> import getpass
             >>> encrypted = Account.encrypt(
                 0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364,
-                'correcthorsebatterystaple'
+                getpass.getpass()
             )
 
             {'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
