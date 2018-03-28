@@ -64,7 +64,7 @@ def is_int_or_prefixed_hexstr(val):
 
 
 def is_empty_or_address(val):
-    if val in {None, b''}:
+    if val in {None, b'', ''}:
         return True
     elif is_address(val):
         return True
@@ -105,10 +105,34 @@ TRANSACTION_VALID_VALUES = {
     'to': is_empty_or_address,
     'value': is_int_or_prefixed_hexstr,
     'data': lambda val: isinstance(val, (int, str, bytes, bytearray)),
+    'chainId': lambda val: val is None or is_int_or_prefixed_hexstr(val),
 }
+
+ALLOWED_TRANSACTION_KEYS = {
+    'nonce',
+    'gasPrice',
+    'gas',
+    'to',
+    'value',
+    'data',
+    'chainId',  # set chainId to None if you want a transaction that can be replayed across networks
+}
+
+REQUIRED_TRANSACITON_KEYS = ALLOWED_TRANSACTION_KEYS.difference(TRANSACTION_DEFAULTS.keys())
 
 
 def assert_valid_fields(transaction_dict):
+    # check if any keys are missing
+    missing_keys = REQUIRED_TRANSACITON_KEYS.difference(transaction_dict.keys())
+    if missing_keys:
+        raise TypeError("Transaction must include these fields: %r" % missing_keys)
+
+    # check if any extra keys were specified
+    superfluous_keys = set(transaction_dict.keys()).difference(ALLOWED_TRANSACTION_KEYS)
+    if superfluous_keys:
+        raise TypeError("Transaction must not include unrecognized fields: %r" % superfluous_keys)
+
+    # check for valid types in each field
     valid_fields = apply_formatters_to_dict(TRANSACTION_VALID_VALUES, transaction_dict)
     if not all(valid_fields.values()):
         invalid = {key: transaction_dict[key] for key, valid in valid_fields.items() if not valid}

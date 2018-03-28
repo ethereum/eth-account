@@ -1,5 +1,9 @@
 import pytest
 
+from cytoolz import (
+    dissoc,
+)
+
 from eth_account import (
     Account,
 )
@@ -34,6 +38,18 @@ GOOD_TXN = {
         (dict(GOOD_TXN, gasPrice='0b1'), {'gasPrice'}),
         (dict(GOOD_TXN, value='0b1'), {'value'}),
         (dict(GOOD_TXN, nonce='0b1'), {'nonce'}),
+        (dict(GOOD_TXN, chainId=None), {}),
+        (dict(GOOD_TXN, chainId='0x1'), {}),
+        (dict(GOOD_TXN, chainId='1'), {'chainId'}),
+
+        # superfluous keys will be rejected (note the lower case p)
+        (dict(GOOD_TXN, gasprice=1), {'gasprice'}),
+
+        # missing keys will be called out explicitly
+        (dissoc(GOOD_TXN, 'chainId'), {'chainId'}),
+        (dissoc(GOOD_TXN, 'gasPrice'), {'gasPrice'}),
+        (dissoc(GOOD_TXN, 'gas'), {'gas'}),
+        (dissoc(GOOD_TXN, 'nonce'), {'nonce'}),
     ),
 )
 def test_invalid_transaction_fields(txn_dict, bad_fields):
