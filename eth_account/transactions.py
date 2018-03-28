@@ -3,6 +3,7 @@ import itertools
 from cytoolz import (
     curry,
     dissoc,
+    identity,
     merge,
     partial,
     pipe,
@@ -12,7 +13,13 @@ from eth_rlp import (
 )
 from eth_utils.curried import (
     apply_formatters_to_dict,
+    apply_one_of_formatters,
     hexstr_if_str,
+    is_0x_prefixed,
+    is_address,
+    is_bytes,
+    is_integer,
+    is_string,
     to_bytes,
     to_int,
 )
@@ -25,6 +32,7 @@ from rlp.sedes import (
 
 
 def serializable_unsigned_transaction_from_dict(transaction_dict):
+    assert_valid_fields(transaction_dict)
     filled_transaction = pipe(
         transaction_dict,
         dict,
@@ -46,7 +54,30 @@ def encode_transaction(unsigned_transaction, vrs):
     return rlp.encode(signed_transaction)
 
 
+def is_int_or_prefixed_hexstr(val):
+    if is_integer(val):
+        return True
+    elif isinstance(val, str) and is_0x_prefixed(val):
+        return True
+    else:
+        return False
+
+
+def is_empty_or_address(val):
+    if val in {None, b''}:
+        return True
+    elif is_address(val):
+        return True
+    else:
+        return False
+
+
+def is_none(val):
+    return val is None
+
+
 TRANSACTION_DEFAULTS = {
+    'to': b'',
     'value': 0,
     'data': b'',
 }
@@ -55,13 +86,33 @@ TRANSACTION_FORMATTERS = {
     'nonce': hexstr_if_str(to_int),
     'gasPrice': hexstr_if_str(to_int),
     'gas': hexstr_if_str(to_int),
-    'to': hexstr_if_str(to_bytes),
+    'to': apply_one_of_formatters((
+        (is_string, hexstr_if_str(to_bytes)),
+        (is_bytes, identity),
+        (is_none, lambda val: b''),
+    )),
     'value': hexstr_if_str(to_int),
     'data': hexstr_if_str(to_bytes),
     'v': hexstr_if_str(to_int),
     'r': hexstr_if_str(to_int),
     's': hexstr_if_str(to_int),
 }
+
+TRANSACTION_VALID_VALUES = {
+    'nonce': is_int_or_prefixed_hexstr,
+    'gasPrice': is_int_or_prefixed_hexstr,
+    'gas': is_int_or_prefixed_hexstr,
+    'to': is_empty_or_address,
+    'value': is_int_or_prefixed_hexstr,
+    'data': lambda val: isinstance(val, (int, str, bytes, bytearray)),
+}
+
+
+def assert_valid_fields(transaction_dict):
+    valid_fields = apply_formatters_to_dict(TRANSACTION_VALID_VALUES, transaction_dict)
+    if not all(valid_fields.values()):
+        invalid = {key: transaction_dict[key] for key, valid in valid_fields.items() if not valid}
+        raise TypeError("Transaction had invalid fields: %r" % invalid)
 
 
 def chain_id_to_v(transaction_dict):
