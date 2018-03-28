@@ -24,10 +24,7 @@ from rlp.sedes import (
 )
 
 
-def serializable_unsigned_transaction_from_dict(web3, transaction_dict):
-    '''
-    if web3 is None, fill out transaction as much as possible without calling client
-    '''
+def serializable_unsigned_transaction_from_dict(transaction_dict):
     filled_transaction = pipe(
         transaction_dict,
         dict,
@@ -78,9 +75,6 @@ def chain_id_to_v(transaction_dict):
 
 @curry
 def fill_transaction_defaults(transaction):
-    '''
-    if web3 is None, fill as much as possible while offline
-    '''
     return merge(TRANSACTION_DEFAULTS, transaction)
 
 
@@ -111,27 +105,3 @@ def strip_signature(txn):
 
 def vrs_from(transaction):
     return (getattr(transaction, part) for part in 'vrs')
-
-
-def get_block_gas_limit(web3, block_identifier=None):
-    if block_identifier is None:
-        block_identifier = web3.eth.blockNumber
-    block = web3.eth.getBlock(block_identifier)
-    return block['gasLimit']
-
-
-def get_buffered_gas_estimate(web3, transaction, gas_buffer=100000):
-    gas_estimate_transaction = dict(**transaction)
-
-    gas_estimate = web3.eth.estimateGas(gas_estimate_transaction)
-
-    gas_limit = get_block_gas_limit(web3)
-
-    if gas_estimate > gas_limit:
-        raise ValueError(
-            "Contract does not appear to be deployable within the "
-            "current network gas limits.  Estimated: {0}. Current gas "
-            "limit: {1}".format(gas_estimate, gas_limit)
-        )
-
-    return min(gas_limit, gas_estimate + gas_buffer)

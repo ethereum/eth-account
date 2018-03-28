@@ -19,11 +19,8 @@ V_OFFSET = 27
 
 
 def sign_transaction_dict(eth_key, transaction_dict):
-    # indicate that no functions should try to make calls to the client
-    web3 = None
-
     # generate RLP-serializable transaction, with defaults filled
-    unsigned_transaction = serializable_unsigned_transaction_from_dict(web3, transaction_dict)
+    unsigned_transaction = serializable_unsigned_transaction_from_dict(transaction_dict)
 
     transaction_hash = unsigned_transaction.hash()
 
@@ -65,8 +62,7 @@ def hash_of_signed_transaction(txn_obj):
     Chain ID inference and annotation is according to EIP-155
     See details at https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
 
-    :return: chain-aware transaction, ready for hashing/signing
-    :rtype: `~web3.utils.encoding.ExtendedRLP`
+    :return: the hash of the provided transaction, to be signed
     '''
     (chain_id, _v) = extract_chain_id(txn_obj.v)
     unsigned_parts = strip_signature(txn_obj)
