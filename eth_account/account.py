@@ -475,7 +475,8 @@ class Account(object):
              'v': 37}
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
         '''
-        assert isinstance(transaction_dict, Mapping)
+        if not isinstance(transaction_dict, Mapping):
+            raise TypeError("transaction_dict must be dict-like, got %r" % transaction_dict)
 
         account = self.privateKeyToAccount(private_key)
 

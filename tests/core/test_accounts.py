@@ -2,6 +2,9 @@
 
 import pytest
 
+from cytoolz import (
+    dissoc,
+)
 from eth_utils import (
     is_checksum_address,
     to_bytes,
@@ -320,12 +323,14 @@ def test_eth_account_sign_transaction_from_eth_test(acct, transaction):
     expected_raw_txn = transaction['signed']
     key = transaction['key']
 
+    unsigned_txn = dissoc(transaction, 'key', 'signed', 'unsigned')
+
     # validate r, in order to validate the transaction hash
     # There is some ambiguity about whether `r` will always be deterministically
     # generated from the transaction hash and private key, mostly due to code
     # author's ignorance. The example test fixtures and implementations seem to agree, so far.
     # See ecdsa_raw_sign() in /eth_keys/backends/native/ecdsa.py
-    signed = acct.signTransaction(transaction, key)
+    signed = acct.signTransaction(unsigned_txn, key)
     assert signed.r == to_int(hexstr=expected_raw_txn[-130:-66])
 
     # confirm that signed transaction can be recovered to the sender
