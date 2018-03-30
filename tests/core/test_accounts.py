@@ -27,7 +27,7 @@ ETH_TEST_TRANSACTIONS = [
         "nonce": 0,
         "gasPrice": 1000000000000,
         "gas": 10000,
-        "to": "13978aee95f38490e9769c39b2773ed763d9cd5f",
+        "to": "0x13978aee95f38490e9769C39B2773Ed763d9cd5F",
         "value": 10000000000000000,
         "data": "",
         "unsigned": "eb8085e8d4a510008227109413978aee95f38490e9769c39b2773ed763d9cd5f872386f26fc1000080808080",  # noqa: 501

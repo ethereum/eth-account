@@ -16,8 +16,8 @@ from eth_utils.curried import (
     apply_one_of_formatters,
     hexstr_if_str,
     is_0x_prefixed,
-    is_address,
     is_bytes,
+    is_checksum_address,
     is_integer,
     is_string,
     to_bytes,
@@ -63,10 +63,10 @@ def is_int_or_prefixed_hexstr(val):
         return False
 
 
-def is_empty_or_address(val):
+def is_empty_or_checksum_address(val):
     if val in {None, b'', ''}:
         return True
-    elif is_address(val):
+    elif is_checksum_address(val):
         return True
     else:
         return False
@@ -102,7 +102,7 @@ TRANSACTION_VALID_VALUES = {
     'nonce': is_int_or_prefixed_hexstr,
     'gasPrice': is_int_or_prefixed_hexstr,
     'gas': is_int_or_prefixed_hexstr,
-    'to': is_empty_or_address,
+    'to': is_empty_or_checksum_address,
     'value': is_int_or_prefixed_hexstr,
     'data': lambda val: isinstance(val, (int, str, bytes, bytearray)),
     'chainId': lambda val: val is None or is_int_or_prefixed_hexstr(val),
