@@ -40,16 +40,14 @@ class LocalAccount(object):
         '''
         return self._publicapi.encrypt(self.privateKey, password)
 
-    def sign(self, message=None, message_hexstr=None, message_text=None):
+    def signHash(self, message_hash):
         '''
-        Sign a message, as in :meth:`~eth_account.account.Account.sign`
+        Sign the hash of a message, as in :meth:`~eth_account.account.Account.signHash`
         but without specifying the private key.
         '''
-        return self._publicapi.sign(
-            message=message,
+        return self._publicapi.signHash(
+            message_hash,
             private_key=self.privateKey,
-            message_hexstr=message_hexstr,
-            message_text=message_text,
         )
 
     def signTransaction(self, transaction_dict):
