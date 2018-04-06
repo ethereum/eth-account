@@ -27,9 +27,7 @@ TEST_PRIVATE_KEY = b'\0' * 32
         (dict(GOOD_TXN, to='0x' + '00' * 20), {}),
         (dict(GOOD_TXN, to='0xF0109fC8DF283027b6285cc889F5aA624EaC1F55'), {}),
         (dict(GOOD_TXN, to='0xf0109Fc8df283027B6285CC889f5Aa624eAc1f55'), {'to'}),
-        pytest.mark.xfail(reason="eth-utils accepts 19-byte hex address as address")(
-            (dict(GOOD_TXN, to='0x' + '00' * 19), {'to'})
-        ),
+        (dict(GOOD_TXN, to='0x' + '00' * 19), {'to'}),
         (dict(GOOD_TXN, to='0x' + '00' * 21), {'to'}),
         (dict(GOOD_TXN, to=b'\0' * 20), {'to'}),
         (dict(GOOD_TXN, gas='0e1'), {'gas'}),
