@@ -1,14 +1,22 @@
 class LocalAccount(object):
     '''
-    Collection of convenience methods to sign and encrypt with an embedded private key.
+    A collection of convenience methods to sign and encrypt, with an embedded private key.
 
-    Recover the embedded private key with either of these methods:
+    :var str address: the checksummed public address for this account
+    :var bytes privateKey: the 32-byte private key data
+
+    .. code-block:: python
+
+        >>> my_local_account.address
+        "0xF0109fC8DF283027b6285cc889F5aA624EaC1F55"
+        >>> my_local_account.privateKey
+        b"\\x01\\x23..."
+
+    You can also get the private key by casting the account to :class:`bytes`:
 
     .. code-block:: python
 
         >>> bytes(my_local_account)
-        b"\\x01\\x23..."
-        >>> my_local_account.privateKey
         b"\\x01\\x23..."
     '''
     def __init__(self, key, account):
@@ -32,16 +40,14 @@ class LocalAccount(object):
         '''
         return self._publicapi.encrypt(self.privateKey, password)
 
-    def sign(self, message=None, message_hexstr=None, message_text=None):
+    def signHash(self, message_hash):
         '''
-        Sign a message, as in :meth:`~eth_account.account.Account.sign`
+        Sign the hash of a message, as in :meth:`~eth_account.account.Account.signHash`
         but without specifying the private key.
         '''
-        return self._publicapi.sign(
-            message=message,
+        return self._publicapi.signHash(
+            message_hash,
             private_key=self.privateKey,
-            message_hexstr=message_hexstr,
-            message_text=message_text,
         )
 
     def signTransaction(self, transaction_dict):

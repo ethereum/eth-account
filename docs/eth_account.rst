@@ -22,3 +22,11 @@ AttributeDict
     :members:
     :undoc-members:
     :show-inheritance:
+
+Messages
+---------------------------
+
+.. automodule:: eth_account.messages
+    :members:
+    :undoc-members:
+    :show-inheritance:

@@ -18,6 +18,9 @@ from hexbytes import (
 from eth_account import (
     Account,
 )
+from eth_account.messages import (
+    defunct_hash_message,
+)
 
 # from https://github.com/ethereum/tests/blob/3930ca3a9a377107d5792b3e7202f79c688f1a67/BasicTests/txtest.json # noqa: 501
 ETH_TEST_TRANSACTIONS = [
@@ -105,7 +108,7 @@ def test_eth_account_privateKeyToAccount_seed_restrictions(acct):
 
 def test_eth_account_privateKeyToAccount_properties(acct, PRIVATE_BYTES):
     account = acct.privateKeyToAccount(PRIVATE_BYTES)
-    assert callable(account.sign)
+    assert callable(account.signHash)
     assert callable(account.signTransaction)
     assert is_checksum_address(account.address)
     assert account.address == '0xa79F6f349C853F9Ea0B29636779ae3Cb4E3BA729'
@@ -114,7 +117,7 @@ def test_eth_account_privateKeyToAccount_properties(acct, PRIVATE_BYTES):
 
 def test_eth_account_create_properties(acct):
     account = acct.create()
-    assert callable(account.sign)
+    assert callable(account.signHash)
     assert callable(account.signTransaction)
     assert is_checksum_address(account.address)
     assert isinstance(account.privateKey, bytes) and len(account.privateKey) == 32
@@ -139,7 +142,8 @@ def test_eth_account_recover_message(acct):
         '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce',
     )
     message = "I♥SF"
-    from_account = acct.recoverMessage(text=message, vrs=(v, r, s))
+    msghash = defunct_hash_message(text=message)
+    from_account = acct.recoverHash(msghash, vrs=(v, r, s))
     assert from_account == '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
 
 
@@ -155,7 +159,7 @@ def test_eth_account_recover_message(acct):
 )
 def test_eth_account_recover_signature_bytes(acct, signature_bytes):
     msg_hash = b'\xbb\r\x8a\xba\x9f\xf7\xa1<N,s{i\x81\x86r\x83{\xba\x9f\xe2\x1d\xaa\xdd\xb3\xd6\x01\xda\x00\xb7)\xa1'  # noqa: E501
-    from_account = acct.recover(msg_hash, signature=signature_bytes)
+    from_account = acct.recoverHash(msg_hash, signature=signature_bytes)
     assert from_account == '0xFeC2079e80465cc8C687fFF9EE6386ca447aFec4'
 
 
@@ -166,10 +170,10 @@ def test_eth_account_recover_vrs(acct):
         15655399131600894366408541311673616702363115109327707006109616887384920764603,
     )
     msg_hash = b'\xbb\r\x8a\xba\x9f\xf7\xa1<N,s{i\x81\x86r\x83{\xba\x9f\xe2\x1d\xaa\xdd\xb3\xd6\x01\xda\x00\xb7)\xa1'  # noqa: E501
-    from_account = acct.recover(msg_hash, vrs=(v, r, s))
+    from_account = acct.recoverHash(msg_hash, vrs=(v, r, s))
     assert from_account == '0xFeC2079e80465cc8C687fFF9EE6386ca447aFec4'
 
-    from_account = acct.recover(msg_hash, vrs=map(to_hex, (v, r, s)))
+    from_account = acct.recoverHash(msg_hash, vrs=map(to_hex, (v, r, s)))
     assert from_account == '0xFeC2079e80465cc8C687fFF9EE6386ca447aFec4'
 
 
@@ -180,7 +184,7 @@ def test_eth_account_recover_vrs_standard_v(acct):
         15655399131600894366408541311673616702363115109327707006109616887384920764603,
     )
     msg_hash = b'\xbb\r\x8a\xba\x9f\xf7\xa1<N,s{i\x81\x86r\x83{\xba\x9f\xe2\x1d\xaa\xdd\xb3\xd6\x01\xda\x00\xb7)\xa1'  # noqa: E501
-    from_account = acct.recover(msg_hash, vrs=(v, r, s))
+    from_account = acct.recoverHash(msg_hash, vrs=(v, r, s))
     assert from_account == '0xFeC2079e80465cc8C687fFF9EE6386ca447aFec4'
 
 
@@ -203,8 +207,8 @@ def test_eth_account_recover_vrs_standard_v(acct):
     ],
     ids=['message_to_sign', 'hexstr_as_text', 'hello_world']
 )
-def test_eth_account_hash_message_text(acct, message, expected):
-    assert acct.hashMessage(text=message) == expected
+def test_eth_account_hash_message_text(message, expected):
+    assert defunct_hash_message(text=message) == expected
 
 
 @pytest.mark.parametrize(
@@ -222,7 +226,7 @@ def test_eth_account_hash_message_text(acct, message, expected):
     ids=['hexbytes_1', 'hexbytes_2']
 )
 def test_eth_account_hash_message_hexstr(acct, message, expected):
-    assert acct.hashMessage(hexstr=message) == expected
+    assert defunct_hash_message(hexstr=message) == expected
 
 
 @pytest.mark.parametrize(
@@ -253,8 +257,9 @@ def test_eth_account_hash_message_hexstr(acct, message, expected):
     ids=['web3js_example', '31byte_r_and_s'],
 )
 def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, r, s, signature):
-    signed = acct.sign(message_text=message, private_key=key)
-    assert signed.message == expected_bytes
+    msghash = defunct_hash_message(text=message)
+    assert msghash == expected_hash
+    signed = acct.signHash(msghash, private_key=key)
     assert signed.messageHash == expected_hash
     assert signed.v == v
     assert signed.r == r
@@ -262,7 +267,8 @@ def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, 
     assert signed.signature == signature
 
     account = acct.privateKeyToAccount(key)
-    assert account.sign(message_text=message) == signed
+    msghash = defunct_hash_message(text=message)
+    assert account.signHash(msghash) == signed
 
 
 @pytest.mark.parametrize(
