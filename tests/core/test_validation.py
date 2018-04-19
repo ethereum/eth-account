@@ -9,7 +9,6 @@ from eth_account import (
 )
 
 GOOD_TXN = {
-    'chainId': 1,
     'gasPrice': 2,
     'gas': 200000,
     'nonce': 3,
@@ -46,7 +45,6 @@ TEST_PRIVATE_KEY = b'\0' * 32
         (dict(GOOD_TXN, gasprice=1), {'gasprice'}),
 
         # missing keys will be called out explicitly
-        (dissoc(GOOD_TXN, 'chainId'), {'chainId'}),
         (dissoc(GOOD_TXN, 'gasPrice'), {'gasPrice'}),
         (dissoc(GOOD_TXN, 'gas'), {'gas'}),
         (dissoc(GOOD_TXN, 'nonce'), {'nonce'}),

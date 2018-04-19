@@ -1,6 +1,15 @@
 Release Notes
 =============
 
+v0.2.0 (stable)
+----------------
+
+Released Apr 19, 2018
+
+- Audit cleanup is complete
+- Stopped requiring chainId, until tooling to automatically derive it gets better
+  (Not that transactions without chainId are potentially replayable on fork chains)
+
 v0.2.0-alpha.0
 --------------
 
