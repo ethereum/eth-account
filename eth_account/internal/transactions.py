@@ -80,6 +80,7 @@ TRANSACTION_DEFAULTS = {
     'to': b'',
     'value': 0,
     'data': b'',
+    'chainId': None,
 }
 
 TRANSACTION_FORMATTERS = {

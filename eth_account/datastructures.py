@@ -24,5 +24,5 @@ class AttributeDict(AttrDict):
         if cycle:
             builder.text("<cycle>")
         else:
-            builder.pretty(self.__dict__)
+            builder.pretty(dict(self))
         builder.text(")")
