@@ -168,7 +168,15 @@ class Transaction(HashableRLP):
     )
 
 
-UnsignedTransaction = Transaction.exclude(['v', 'r', 's'])
+class UnsignedTransaction(HashableRLP):
+    fields = (
+        ('nonce', big_endian_int),
+        ('gasPrice', big_endian_int),
+        ('gas', big_endian_int),
+        ('to', Binary.fixed_length(20, allow_empty=True)),
+        ('value', big_endian_int),
+        ('data', binary),
+    )
 
 
 ChainAwareUnsignedTransaction = Transaction
