@@ -1,6 +1,7 @@
 import pytest
 
 from cytoolz import (
+    assoc,
     dissoc,
 )
 
@@ -29,6 +30,12 @@ TEST_PRIVATE_KEY = b'\0' * 32
         (dict(GOOD_TXN, to='0x' + '00' * 19), {'to'}),
         (dict(GOOD_TXN, to='0x' + '00' * 21), {'to'}),
         (dict(GOOD_TXN, to=b'\0' * 20), {'to'}),
+        # from with the right address is allowed
+        (assoc(GOOD_TXN, 'from', '0x3f17f1962B36e491b30A40b2405849e597Ba5FB5'), {}),
+        # from with a non-checksum address is not
+        (assoc(GOOD_TXN, 'from', '0x3f17f1962b36e491b30a40b2405849e597ba5fb5'), {'from'}),
+        # from with the wrong address is not
+        (assoc(GOOD_TXN, 'from', '0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf'), {'from'}),
         (dict(GOOD_TXN, gas='0e1'), {'gas'}),
         (dict(GOOD_TXN, gasPrice='0e1'), {'gasPrice'}),
         (dict(GOOD_TXN, value='0e1'), {'value'}),
