@@ -1,6 +1,13 @@
 Release Notes
 =============
 
+v0.2.1 (stable)
+----------------
+
+Released Apr 23, 2018
+
+- Accept 'from' in signTransaction, if it matches the sending private key's address
+
 v0.2.0 (stable)
 ----------------
 
