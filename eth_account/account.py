@@ -4,6 +4,9 @@ from collections import (
 import json
 import os
 
+from cytoolz import (
+    dissoc,
+)
 from eth_keyfile import (
     create_keyfile_json,
     decode_keyfile_json,
@@ -413,13 +416,25 @@ class Account(object):
 
         account = self.privateKeyToAccount(private_key)
 
+        # allow from field, *only* if it matches the private key
+        if 'from' in transaction_dict:
+            if transaction_dict['from'] == account.address:
+                sanitized_transaction = dissoc(transaction_dict, 'from')
+            else:
+                raise TypeError("from field must match key's %s, but it was %s" % (
+                    account.address,
+                    transaction_dict['from'],
+                ))
+        else:
+            sanitized_transaction = transaction_dict
+
         # sign transaction
         (
             v,
             r,
             s,
             rlp_encoded,
-        ) = sign_transaction_dict(account._key_obj, transaction_dict)
+        ) = sign_transaction_dict(account._key_obj, sanitized_transaction)
 
         transaction_hash = keccak(rlp_encoded)
 
