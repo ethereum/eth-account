@@ -52,30 +52,51 @@ jobs:
       - image: circleci/python:3.5
         environment:
           TOXENV: lint
-  py35-core:
+  py35-core-rlp0:
     <<: *common
     docker:
       - image: circleci/python:3.5
         environment:
-          TOXENV: py35-core
-  py36-core:
+          TOXENV: py35-core-rlp0
+  py36-core-rlp0:
     <<: *common
     docker:
       - image: circleci/python:3.6
         environment:
-          TOXENV: py36-core
-  pypy3-core:
+          TOXENV: py36-core-rlp0
+  pypy3-core-rlp0:
     <<: *common
     docker:
       - image: pypy
         environment:
-          TOXENV: pypy3-core
+          TOXENV: pypy3-core-rlp0
+  py35-core-rlp1:
+    <<: *common
+    docker:
+      - image: circleci/python:3.5
+        environment:
+          TOXENV: py35-core-rlp1
+  py36-core-rlp1:
+    <<: *common
+    docker:
+      - image: circleci/python:3.6
+        environment:
+          TOXENV: py36-core-rlp1
+  pypy3-core-rlp1:
+    <<: *common
+    docker:
+      - image: pypy
+        environment:
+          TOXENV: pypy3-core-rlp1
 workflows:
   version: 2
   test:
     jobs:
       - doctest
       - lint
-      - py35-core
-      - py36-core
-      - pypy3-core
+      - py35-core-rlp0
+      - py36-core-rlp0
+      - pypy3-core-rlp0
+      - py35-core-rlp1
+      - py36-core-rlp1
+      - pypy3-core-rlp1

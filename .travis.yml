@@ -14,19 +14,28 @@ matrix:
       env: TOX_POSARGS="-e doctest"
     # core
     - python: "3.5"
-      env: TOX_POSARGS="-e py35-core"
+      env: TOX_POSARGS="-e py35-core-rlp0"
+    # core
+    - python: "3.5"
+      env: TOX_POSARGS="-e py35-core-rlp1"
     #
     # Python 3.6 testing
     #
     # core
     - python: "3.6"
-      env: TOX_POSARGS="-e py36-core"
+      env: TOX_POSARGS="-e py36-core-rlp0"
+    # core
+    - python: "3.6"
+      env: TOX_POSARGS="-e py36-core-rlp1"
     #
     # pypy3 testing
     #
     # core
     - python: "pypy3.5"
-      env: TOX_POSARGS="-e pypy3-core"
+      env: TOX_POSARGS="-e pypy3-core-rlp0"
+    # core
+    - python: "pypy3.5"
+      env: TOX_POSARGS="-e pypy3-core-rlp1"
 cache:
   - pip: true
 install:
