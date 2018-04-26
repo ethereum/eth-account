@@ -1,7 +1,14 @@
 Release Notes
 =============
 
-v0.2.1 (stable)
+v0.2.2
+----------------
+
+Released Apr 25, 2018
+
+- Compatibility with pyrlp v0 and v1
+
+v0.2.1
 ----------------
 
 Released Apr 23, 2018
