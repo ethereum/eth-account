@@ -50,7 +50,7 @@ setup(
         "eth-keys>=0.2.0b3,<0.3.0",
         "eth-utils>=1.0.2,<2",
         "hexbytes>=0.1.0,<1",
-        "eth-rlp>=0.1.1,<1",
+        "eth-rlp>=0.1.2,<1",
     ],
     setup_requires=['setuptools-markdown'],
     python_requires='>=3.5, <4',

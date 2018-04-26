@@ -49,7 +49,7 @@ def serializable_unsigned_transaction_from_dict(transaction_dict):
 
 def encode_transaction(unsigned_transaction, vrs):
     (v, r, s) = vrs
-    chain_naive_transaction = dissoc(vars(unsigned_transaction), 'v', 'r', 's')
+    chain_naive_transaction = dissoc(unsigned_transaction.as_dict(), 'v', 'r', 's')
     signed_transaction = Transaction(v=v, r=r, s=s, **chain_naive_transaction)
     return rlp.encode(signed_transaction)
 
@@ -154,14 +154,18 @@ def fill_transaction_defaults(transaction):
     return merge(TRANSACTION_DEFAULTS, transaction)
 
 
+UNSIGNED_TRANSACTION_FIELDS = (
+    ('nonce', big_endian_int),
+    ('gasPrice', big_endian_int),
+    ('gas', big_endian_int),
+    ('to', Binary.fixed_length(20, allow_empty=True)),
+    ('value', big_endian_int),
+    ('data', binary),
+)
+
+
 class Transaction(HashableRLP):
-    fields = (
-        ('nonce', big_endian_int),
-        ('gasPrice', big_endian_int),
-        ('gas', big_endian_int),
-        ('to', Binary.fixed_length(20, allow_empty=True)),
-        ('value', big_endian_int),
-        ('data', binary),
+    fields = UNSIGNED_TRANSACTION_FIELDS + (
         ('v', big_endian_int),
         ('r', big_endian_int),
         ('s', big_endian_int),
@@ -169,21 +173,14 @@ class Transaction(HashableRLP):
 
 
 class UnsignedTransaction(HashableRLP):
-    fields = (
-        ('nonce', big_endian_int),
-        ('gasPrice', big_endian_int),
-        ('gas', big_endian_int),
-        ('to', Binary.fixed_length(20, allow_empty=True)),
-        ('value', big_endian_int),
-        ('data', binary),
-    )
+    fields = UNSIGNED_TRANSACTION_FIELDS
 
 
 ChainAwareUnsignedTransaction = Transaction
 
 
 def strip_signature(txn):
-    unsigned_parts = itertools.islice(txn, len(UnsignedTransaction.fields))
+    unsigned_parts = itertools.islice(txn, len(UNSIGNED_TRANSACTION_FIELDS))
     return list(unsigned_parts)
 
 
