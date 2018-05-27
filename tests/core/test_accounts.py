@@ -82,6 +82,13 @@ def test_eth_account_create_variation(acct):
     assert account1 != account2
 
 
+def test_eth_account_equality(acct):
+    key = b'a' * 32
+    acct1 = acct.privateKeyToAccount(key)
+    acct2 = acct.privateKeyToAccount(key)
+    assert acct1 == acct2
+
+
 def test_eth_account_privateKeyToAccount_reproducible(acct, PRIVATE_BYTES):
     account1 = acct.privateKeyToAccount(PRIVATE_BYTES)
     account2 = acct.privateKeyToAccount(PRIVATE_BYTES)

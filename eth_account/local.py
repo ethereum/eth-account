@@ -29,9 +29,16 @@ class LocalAccount(object):
         self.address = key.public_key.to_checksum_address()
 
         key_raw = key.to_bytes()
-        self.privateKey = key_raw
+        self._privateKey = key_raw
 
         self._key_obj = key
+
+    @property
+    def privateKey(self):
+        '''
+        Get the private key.
+        '''
+        return self._privateKey
 
     def encrypt(self, password):
         '''
@@ -59,3 +66,9 @@ class LocalAccount(object):
 
     def __bytes__(self):
         return self.privateKey
+
+    def __hash__(self):
+        return hash(self.privateKey)
+
+    def __eq__(self, other):
+        return (isinstance(other, type(self))) and (self.privateKey == other.privateKey)
