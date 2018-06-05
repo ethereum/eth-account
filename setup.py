@@ -6,6 +6,9 @@ from setuptools import (
 )
 
 extras_require={
+    'ledger': [
+        "ledgerblue>=0.1.17,<0.2.0",
+    ],
     'test': [
         "pytest==3.3.2",
         "tox>=2.9.1,<3",
