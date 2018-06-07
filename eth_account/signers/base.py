@@ -6,17 +6,11 @@ from abc import (
 
 class BaseAccount(ABC):
     '''
-    A collection of convenience methods to sign transactions and message hashes.
+    Abstract class that defines a collection of convenience methods
+    to sign transactions and message hashes.
 
-    :var str address: the checksummed public address for this account
-
-    .. code-block:: python
-
-        >>> my_account.address
-        "0xF0109fC8DF283027b6285cc889F5aA624EaC1F55"
-
-    Subclasses of :cls:`BaseAccount` should implement `__hash__` and `__eq__`,
-    where two accounts are the same if they can sign for the same address.
+    Subclasses of :class:`BaseAccount` should implement `__hash__()` and `__eq__()`,
+    where two accounts are the same if they are the same class, and can sign for the same address.
     '''
 
     @property
@@ -24,6 +18,12 @@ class BaseAccount(ABC):
     def address(self):
         '''
         The checksummed public address for this account.
+
+        .. code-block:: python
+
+            >>> my_account.address
+            "0xF0109fC8DF283027b6285cc889F5aA624EaC1F55"
+
         '''
         pass
 

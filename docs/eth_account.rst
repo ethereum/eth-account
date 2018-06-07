@@ -8,12 +8,7 @@ Account
     :members:
     :undoc-members:
 
-Local Account
-----------------------------
-
-.. automodule:: eth_account.local
-    :members:
-    :undoc-members:
+See :doc:`eth_account.signers` for alternative signers.
 
 AttributeDict
 -----------------------------------
