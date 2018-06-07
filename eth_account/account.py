@@ -45,7 +45,7 @@ from eth_account.internal.transactions import (
     Transaction,
     vrs_from,
 )
-from eth_account.local import (
+from eth_account.signers.local import (
     LocalAccount,
 )
 
