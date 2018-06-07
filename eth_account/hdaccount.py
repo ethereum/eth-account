@@ -10,13 +10,11 @@ from ecdsa.curves import SECP256k1
 from ecdsa.ecdsa import int_to_string, string_to_int
 
 MIN_ENTROPY_LEN = 128        # bits
-BIP32_HARDEN = 0x80000000 # choose from hardened set of child keys
+BIP32_HARDEN    = 0x80000000 # choose from hardened set of child keys
 CURVE_GEN       = ecdsa.ecdsa.generator_secp256k1
-CURVE_ORDER = CURVE_GEN.order()
+CURVE_ORDER     = CURVE_GEN.order()
 EX_MAIN_PRIVATE = [ codecs.decode('0488ade4', 'hex') ] # Version strings for mainnet extended private keys
 EX_MAIN_PUBLIC  = [ codecs.decode('0488b21e', 'hex'), codecs.decode('049d7cb2', 'hex') ] # Version strings for mainnet extended public keys
-EX_TEST_PRIVATE = [ codecs.decode('04358394', 'hex') ] # Version strings for testnet extended private keys
-EX_TEST_PUBLIC  = [ codecs.decode('043587CF', 'hex') ] # Version strings for testnet extended public keys
 
 __base58_alphabet = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
 __base58_alphabet_bytes = b'123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz'
@@ -25,11 +23,6 @@ __base58_radix = len(__base58_alphabet)
 def __string_to_int(data):
     "Convert string of bytes Python integer, MSB"
     val = 0
-   
-    # Python 2.x compatibility
-    if type(data) == str:
-        data = bytearray(data)
-
     for (i, c) in enumerate(data[::-1]):
         val += (256**i)*c
     return val
@@ -55,9 +48,9 @@ def encode(data):
 
 class HDAccount(object):
 
-    # Static initializers to create from entropy or external formats
+    # Static initializers to create from entropy
     @staticmethod
-    def fromEntropy(entropy, public=False, testnet=False):
+    def fromEntropy(entropy):
         "Create a BIP32Key using supplied entropy >= MIN_ENTROPY_LEN"
         if entropy == None:
             entropy = os.urandom(MIN_ENTROPY_LEN/8) # Python doesn't have os.random()
@@ -66,11 +59,11 @@ class HDAccount(object):
                                 (len(entropy), MIN_ENTROPY_LEN))
         I = hmac.new(b"Bitcoin seed", entropy, hashlib.sha512).digest()
         Il, Ir = I[:32], I[32:]
-        key = HDAccount(secret=Il, chain=Ir, depth=0, index=0, fpr=b'\0\0\0\0', public=False, testnet=testnet)
+        key = HDAccount(secret=Il, chain=Ir, depth=0, index=0, fpr=b'\0\0\0\0')
         return key
 
     # Normal class initializer
-    def __init__(self, secret, chain, depth, index, fpr, public=False, testnet=False):
+    def __init__(self, secret, chain, depth, index, fpr):
         """
         Create a public or private BIP32Key using key material and chain code.
         secret   This is the source material to generate the keypair, either a
@@ -80,36 +73,23 @@ class HDAccount(object):
         depth    Child depth; parent increments its own by one when assigning this
         index    Child index
         fpr      Parent fingerprint
-        public   If true, this keypair will only contain a public key and can only create
-                 a public key chain.
         """
-        self.public = public
-        if public is False:
-            self.k = ecdsa.SigningKey.from_string(secret, curve=SECP256k1)
-            self.K = self.k.get_verifying_key()
-        else:
-            self.k = None
-            self.K = secret
-
+        self.k = ecdsa.SigningKey.from_string(secret, curve=SECP256k1)
+        self.K = self.k.get_verifying_key()
         self.C = chain
         self.depth = depth
         self.index = index
         self.parent_fpr = fpr
-        self.testnet = testnet
 
+    # Public methods
     def ExtendedKey(self, private=True, encoded=True):
         "Return extended private or public key as string, optionally Base58 encoded"
-        if self.public is True and private is True:
-            raise Exception("Cannot export an extended private key from a public-only deterministic key")
-        if not self.testnet:
-            version = EX_MAIN_PRIVATE[0] if private else EX_MAIN_PUBLIC[0]
-        else:
-            version = EX_TEST_PRIVATE[0] if private else EX_TEST_PUBLIC[0]
+        version = EX_MAIN_PRIVATE[0] if private else EX_MAIN_PUBLIC[0]
         depth = bytes(bytearray([self.depth]))
         fpr = self.parent_fpr
         child = struct.pack('>L', self.index)
         chain = self.C
-        if self.public is True or private is False:
+        if private is False:
             data = self.PublicKey()
         else:
             data = b'\x00' + self.PrivateKey()
@@ -130,33 +110,14 @@ class HDAccount(object):
 
     def PrivateKey(self):
         "Return private key as string"
-        if self.public:
-            raise Exception("Publicly derived deterministic keys have no private half")
-        else:
-            return self.k.to_string()
+        return self.k.to_string()
 
     def Fingerprint(self):
         "Return key fingerprint as string"
-        return self.Identifier()[:4]
-
-    def Identifier(self):
-        "Return key identifier as string"
         cK = self.PublicKey()
-        return hashlib.new('ripemd160', sha256(cK).digest()).digest()
+        return hashlib.new('ripemd160', sha256(cK).digest()).digest()[:4]
 
-    # Public methods
     def ChildKey(self, i):
-        """
-        Create and return a child key of this one at index 'i'.
-        The index 'i' should be summed with BIP32_HARDEN to indicate
-        to use the private derivation algorithm.
-        """
-        if self.public is False:
-            return self.CKDpriv(i)
-        else:
-            return self.CKDpriv(i)
-
-    def CKDpriv(self, i):
         """
         Create a child key of index 'i'.
         If the most significant bit of 'i' is set, then select from the
@@ -173,7 +134,8 @@ class HDAccount(object):
         else:
             data = self.PublicKey() + i_str
         # Get HMAC of data
-        (Il, Ir) = self.hmac(data)
+        I = hmac.new(self.C, data, hashlib.sha512).digest()
+        Il, Ir = I[:32], I[32:]
 
         # Construct new key material from Il and current private key
         Il_int = string_to_int(Il)
@@ -186,16 +148,7 @@ class HDAccount(object):
         secret = (b'\0'*32 + int_to_string(k_int))[-32:]
         
         # Construct and return a new HDAccount
-        return HDAccount(secret=secret, chain=Ir, depth=self.depth+1, index=i, fpr=self.Fingerprint(), public=False, testnet=self.testnet)
-
-    # Internal methods not intended to be called externally
-    def hmac(self, data):
-        """
-        Calculate the HMAC-SHA512 of input data using the chain code as key.
-        Returns a tuple of the left and right halves of the HMAC
-        """         
-        I = hmac.new(self.C, data, hashlib.sha512).digest()
-        return (I[:32], I[32:])
+        return HDAccount(secret=secret, chain=Ir, depth=self.depth+1, index=i, fpr=self.Fingerprint())
 
     # Debugging methods
     def dump(self):
