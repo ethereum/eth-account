@@ -51,7 +51,7 @@ class HDAccount(object):
     # Static initializers to create from entropy
     @staticmethod
     def fromEntropy(entropy):
-        "Create a BIP32Key using supplied entropy >= MIN_ENTROPY_LEN"
+        "Create a HDAccount using supplied entropy >= MIN_ENTROPY_LEN"
         if entropy == None:
             entropy = os.urandom(MIN_ENTROPY_LEN/8) # Python doesn't have os.random()
         if not len(entropy) >= MIN_ENTROPY_LEN/8:
@@ -65,7 +65,7 @@ class HDAccount(object):
     # Normal class initializer
     def __init__(self, secret, chain, depth, index, fpr):
         """
-        Create a public or private BIP32Key using key material and chain code.
+        Create a public or private HDAccount using key material and chain code.
         secret   This is the source material to generate the keypair, either a
                  32-byte string representation of a private key, or the ECDSA
                  library object representing a public key.
@@ -117,7 +117,7 @@ class HDAccount(object):
         cK = self.PublicKey()
         return hashlib.new('ripemd160', sha256(cK).digest()).digest()[:4]
 
-    def ChildKey(self, i):
+    def ChildKey(self, i, harden=False):
         """
         Create a child key of index 'i'.
         If the most significant bit of 'i' is set, then select from the
@@ -125,6 +125,9 @@ class HDAccount(object):
         Returns a BIP32Key constructed with the child key parameters,
         or None if i index would result in an invalid key.
         """
+        if (harden):
+            i = i + BIP32_HARDEN
+
         # Index as bytes, BE
         i_str = struct.pack(">L", i)
 
@@ -149,67 +152,3 @@ class HDAccount(object):
         
         # Construct and return a new HDAccount
         return HDAccount(secret=secret, chain=Ir, depth=self.depth+1, index=i, fpr=self.Fingerprint())
-
-    # Debugging methods
-    def dump(self):
-        print("     * (pub b58):  ", self.ExtendedKey(private=False, encoded=True))
-        print("     * (prv b58):  ", self.ExtendedKey(private=True, encoded=True))
-
-if __name__ == "__main__":
-    import sys
-
-    # BIP0032 Test vector 1
-    entropy=codecs.decode('000102030405060708090A0B0C0D0E0F', 'hex')
-    m = HDAccount.fromEntropy(entropy)
-    print("Test vector 1:")
-    print("Master (hex):", codecs.encode(entropy, 'hex'))
-    print("* [Chain m]")
-    m.dump()
-
-    print("* [Chain m/0h]")
-    m = m.ChildKey(0+BIP32_HARDEN)
-    m.dump()
-
-    print("* [Chain m/0h/1]")
-    m = m.ChildKey(1)
-    m.dump()
-
-    print("* [Chain m/0h/1/2h]")
-    m = m.ChildKey(2+BIP32_HARDEN)
-    m.dump()
-
-    print("* [Chain m/0h/1/2h/2]")
-    m = m.ChildKey(2)
-    m.dump()
-
-    print("* [Chain m/0h/1/2h/2/1000000000]")
-    m = m.ChildKey(1000000000)
-    m.dump()
-
-    # BIP0032 Test vector 2
-    entropy = codecs.decode('fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542', 'hex')
-    m = HDAccount.fromEntropy(entropy)
-    print("Test vector 2:")
-    print("Master (hex):", codecs.encode(entropy, 'hex'))
-    print("* [Chain m]")
-    m.dump()
-
-    print("* [Chain m/0]")
-    m = m.ChildKey(0)
-    m.dump()
-
-    print("* [Chain m/0/2147483647h]")
-    m = m.ChildKey(2147483647+BIP32_HARDEN)
-    m.dump()
-
-    print("* [Chain m/0/2147483647h/1]")
-    m = m.ChildKey(1)
-    m.dump()
-
-    print("* [Chain m/0/2147483647h/1/2147483646h]")
-    m = m.ChildKey(2147483646+BIP32_HARDEN)
-    m.dump()
-
-    print("* [Chain m/0/2147483647h/1/2147483646h/2]")
-    m = m.ChildKey(2)
-    m.dump()
