@@ -8,9 +8,6 @@ class BaseAccount(ABC):
     '''
     Abstract class that defines a collection of convenience methods
     to sign transactions and message hashes.
-
-    Subclasses of :class:`BaseAccount` should implement `__hash__()` and `__eq__()`,
-    where two accounts are the same if they are the same class, and can sign for the same address.
     '''
 
     @property
@@ -46,3 +43,15 @@ class BaseAccount(ABC):
         :var dict transaction_dict: transaction with all fields specified
         '''
         pass
+
+    def __eq__(self, other):
+        '''
+        Equality test between two accounts.
+
+        Two accounts are considered the same if they are exactly the same type,
+        and can sign for the same address.
+        '''
+        return type(self) == type(other) and self.address == other.address
+
+    def __hash__(self):
+        return hash((type(self), self.address))

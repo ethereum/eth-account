@@ -66,9 +66,3 @@ class LocalAccount(BaseAccount):
 
     def __bytes__(self):
         return self.privateKey
-
-    def __hash__(self):
-        return hash(self.privateKey)
-
-    def __eq__(self, other):
-        return (isinstance(other, type(self))) and (self.privateKey == other.privateKey)
