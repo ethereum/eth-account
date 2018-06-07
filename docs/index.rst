@@ -10,6 +10,7 @@ Contents
     :maxdepth: 3
 
     eth_account
+    eth_account.signers
     releases
 
 

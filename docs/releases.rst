@@ -39,7 +39,7 @@ Released Apr 6, 2018
 - Documentation
 
   - use ``getpass`` instead of typing in password manually
-  - :class:`eth_account.local.LocalAccount` attributes
+  - :class:`eth_account.signers.local.LocalAccount` attributes
   - readme improvements
   - more
 
