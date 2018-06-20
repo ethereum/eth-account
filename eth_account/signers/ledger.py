@@ -4,8 +4,6 @@ import itertools
 import eth_utils
 import rlp
 
-import ledgerblue.comm
-
 from hexbytes import HexBytes
 
 from eth_account import (
@@ -38,122 +36,17 @@ from eth_utils.curried import (
 ETH_DERIVATION_PATH_PREFIX = "m/44'/60'/0'/"
 
 
-
-TIMEOUT=20000
-import sys
-from binascii import hexlify
-def hexstr(bstr):
-    if (sys.version_info.major == 3):
-        return hexlify(bstr).decode()
-    if (sys.version_info.major == 2):
-        return hexlify(bstr)
-    return "<undecoded APDU<"
-
-class CommException(Exception):
-
-    def __init__(self, message, sw=0x6f00, data=None):
-        self.message = message
-        self.sw = sw
-        self.data = data
-
-    def __str__(self):
-        buf = "Exception : " + self.message
-        return buf
-
-def wrapCommandAPDU(channel, command, packetSize, ble=False):
-    if packetSize < 3:
-        raise CommException("Can't handle Ledger framing with less than 3 bytes for the report")
-    sequenceIdx = 0
-    offset = 0
-    if not ble:
-        result = struct.pack(">H", channel)
-        extraHeaderSize = 2
-    else:
-        result = ""
-        extraHeaderSize = 0
-    result += struct.pack(">BHH", 0x05, sequenceIdx, len(command))
-    sequenceIdx = sequenceIdx + 1
-    if len(command) > packetSize - 5 - extraHeaderSize:
-        blockSize = packetSize - 5 - extraHeaderSize
-    else:
-        blockSize = len(command)
-    result += command[offset : offset + blockSize]
-    offset = offset + blockSize
-    while offset != len(command):
-        if not ble:
-            result += struct.pack(">H", channel)
-        result += struct.pack(">BH", 0x05, sequenceIdx)
-        sequenceIdx = sequenceIdx + 1
-        if (len(command) - offset) > packetSize - 3 - extraHeaderSize:
-            blockSize = packetSize - 3 - extraHeaderSize
-        else:
-            blockSize = len(command) - offset
-        result += command[offset : offset + blockSize]
-        offset = offset + blockSize
-    if not ble:
-        while (len(result) % packetSize) != 0:
-            result += b"\x00"
-    return bytearray(result)
-
-def unwrapResponseAPDU(channel, data, packetSize, ble=False):
-    sequenceIdx = 0
-    offset = 0
-    if not ble:
-        extraHeaderSize = 2
-    else:
-        extraHeaderSize = 0
-    if ((data is None) or (len(data) < 5 + extraHeaderSize + 5)):
-        return None
-    if not ble:
-        if struct.unpack(">H", data[offset : offset + 2])[0] != channel:
-            raise CommException("Invalid channel")
-        offset += 2
-    if data[offset] != 0x05:
-        raise CommException("Invalid tag")
-    offset += 1
-    if struct.unpack(">H", data[offset : offset + 2])[0] != sequenceIdx:
-        raise CommException("Invalid sequence")
-    offset += 2
-    responseLength = struct.unpack(">H", data[offset : offset + 2])[0]
-    offset += 2
-    if len(data) < 5 + extraHeaderSize + responseLength:
-        return None
-    if responseLength > packetSize - 5 - extraHeaderSize:
-        blockSize = packetSize - 5 - extraHeaderSize
-    else:
-        blockSize = responseLength
-    result = data[offset : offset + blockSize]
-    offset += blockSize
-    while (len(result) != responseLength):
-        sequenceIdx = sequenceIdx + 1
-        if (offset == len(data)):
-            return None
-        if not ble:
-            if struct.unpack(">H", data[offset : offset + 2])[0] != channel:
-                raise CommException("Invalid channel")
-            offset += 2
-        if data[offset] != 0x05:
-            raise CommException("Invalid tag")
-        offset += 1
-        if struct.unpack(">H", data[offset : offset + 2])[0] != sequenceIdx:
-            raise CommException("Invalid sequence")
-        offset += 2
-        if (responseLength - len(result)) > packetSize - 3 - extraHeaderSize:
-            blockSize = packetSize - 3 - extraHeaderSize
-        else:
-            blockSize = responseLength - len(result)
-        result += data[offset : offset + blockSize]
-        offset += blockSize
-    return bytearray(result)
-
 import hid
 import time
-class USBDevice:
+class LedgerUsbDevice:
+    '''
+    References:
+    - https://github.com/LedgerHQ/blue-loader-python/blob/master/ledgerblue/comm.py#L56
+    - https://github.com/ethereum/go-ethereum/blob/master/accounts/usbwallet/ledger.go
+    '''
 
     def __init__(self, debug=False):
-        dev = None
         hidDevicePath = None
-        ledger = True
         for hidDevice in hid.enumerate(0, 0):
             if hidDevice['vendor_id'] == 0x2c97:
                 if ('interface_number' in hidDevice and hidDevice['interface_number'] == 0) or ('usage_page' in hidDevice and hidDevice['usage_page'] == 0xffa0):
@@ -163,22 +56,22 @@ class USBDevice:
             dev.open_path(hidDevicePath)
             dev.set_nonblocking(True)
         else:
-            raise CommException("No dongle found")
+            raise Exception("No dongle found")
         self.device = dev
-        self.ledger = ledger
         self.debug = debug
-        self.waitImpl = self
-        self.opened = True
 
-    def exchange(self, apdu, timeout=TIMEOUT):
+    def exchange(self, apdu, timeout=20000):
         if self.debug:
-            print("HID => %s" % hexstr(apdu))
-        if self.ledger:
-            apdu = wrapCommandAPDU(0x0101, apdu, 64)
+            print("HID => %s" % to_hex(apdu))
+
+        # Construct the wraped payload
+        apdu = self.wrapCommandAPDU(0x0101, apdu, 64)
         padSize = len(apdu) % 64
         tmp = apdu
         if padSize != 0:
             tmp.extend([0] * (64 - padSize))
+
+        # Send to device
         offset = 0
         while(offset != len(tmp)):
             data = tmp[offset:offset + 64]
@@ -186,44 +79,26 @@ class USBDevice:
             if self.device.write(data) < 0:
                 raise BaseException("Error while writing")
             offset += 64
+
+        # Receive reply
         dataLength = 0
         dataStart = 2
-        result = self.waitImpl.waitFirstResponse(timeout)
-        if not self.ledger:
-            if result[0] == 0x61: # 61xx : data available
-                self.device.set_nonblocking(False)
-                dataLength = result[1]
-                dataLength += 2
-                if dataLength > 62:
-                    remaining = dataLength - 62
-                    while(remaining != 0):
-                        if remaining > 64:
-                            blockLength = 64
-                        else:
-                            blockLength = remaining
-                        result.extend(bytearray(self.device.read(65))[0:blockLength])
-                        remaining -= blockLength
-                swOffset = dataLength
-                dataLength -= 2
+        result = self.waitFirstResponse(timeout)
+        self.device.set_nonblocking(False)
+        while True:
+            response = self.unwrapResponseAPDU(0x0101, result, 64)
+            if response is not None:
+                result = response
+                dataStart = 0
+                swOffset = len(response) - 2
+                dataLength = len(response) - 2
                 self.device.set_nonblocking(True)
-            else:
-                swOffset = 0
-        else:
-            self.device.set_nonblocking(False)
-            while True:
-                response = unwrapResponseAPDU(0x0101, result, 64)
-                if response is not None:
-                    result = response
-                    dataStart = 0
-                    swOffset = len(response) - 2
-                    dataLength = len(response) - 2
-                    self.device.set_nonblocking(True)
-                    break
-                result.extend(bytearray(self.device.read(65)))
+                break
+            result.extend(bytearray(self.device.read(65)))
         sw = (result[swOffset] << 8) + result[swOffset + 1]
         response = result[dataStart : dataLength + dataStart]
         if self.debug:
-            print("HID <= %s%.2x" % (hexstr(response), sw))
+            print("HID <= %s  %.2x" % (to_hex(response), sw))
         if sw != 0x9000:
             possibleCause = "Unknown reason"
             if sw == 0x6982:
@@ -234,7 +109,7 @@ class USBDevice:
                 possibleCause = "Not enough space?"
             if sw == 0x6484:
                 possibleCause = "Are you using the correct targetId?"
-            raise CommException("Invalid status %04x (%s)" % (sw, possibleCause), sw, response)
+            raise Exception("Invalid status %04x (%s)" % (sw, possibleCause))
         return response
 
     def waitFirstResponse(self, timeout):
@@ -244,20 +119,84 @@ class USBDevice:
             data = self.device.read(65)
             if not len(data):
                 if time.time() - start > timeout:
-                    raise CommException("Timeout")
+                    raise Exception("Timeout")
                 time.sleep(0.0001)
         return bytearray(data)
 
-    def apduMaxDataSize(self):
-        return 255
+    def wrapCommandAPDU(self, channel, command, packetSize):
+        if packetSize < 3:
+            raise Exception("Can't handle Ledger framing with less than 3 bytes for the report")
+        sequenceIdx = 0
+        offset = 0
+        result = struct.pack(">H", channel)
+        extraHeaderSize = 2
+        result += struct.pack(">BHH", 0x05, sequenceIdx, len(command))
+        sequenceIdx = sequenceIdx + 1
+        if len(command) > packetSize - 5 - extraHeaderSize:
+            blockSize = packetSize - 5 - extraHeaderSize
+        else:
+            blockSize = len(command)
+        result += command[offset : offset + blockSize]
+        offset = offset + blockSize
+        while offset != len(command):
+            result += struct.pack(">H", channel)
+            result += struct.pack(">BH", 0x05, sequenceIdx)
+            sequenceIdx = sequenceIdx + 1
+            if (len(command) - offset) > packetSize - 3 - extraHeaderSize:
+                blockSize = packetSize - 3 - extraHeaderSize
+            else:
+                blockSize = len(command) - offset
+            result += command[offset : offset + blockSize]
+            offset = offset + blockSize
+        while (len(result) % packetSize) != 0:
+            result += b"\x00"
+        return bytearray(result)
 
-    def close(self):
-        if self.opened:
-            try:
-                self.device.close()
-            except:
-                pass
-        self.opened = False
+    def unwrapResponseAPDU(self, channel, data, packetSize):
+        sequenceIdx = 0
+        offset = 0
+        extraHeaderSize = 2
+        if ((data is None) or (len(data) < 5 + extraHeaderSize + 5)):
+            return None
+        if struct.unpack(">H", data[offset : offset + 2])[0] != channel:
+            raise Exception("Invalid channel")
+        offset += 2
+        if data[offset] != 0x05:
+            raise Exception("Invalid tag")
+        offset += 1
+        if struct.unpack(">H", data[offset : offset + 2])[0] != sequenceIdx:
+            raise Exception("Invalid sequence")
+        offset += 2
+        responseLength = struct.unpack(">H", data[offset : offset + 2])[0]
+        offset += 2
+        if len(data) < 5 + extraHeaderSize + responseLength:
+            return None
+        if responseLength > packetSize - 5 - extraHeaderSize:
+            blockSize = packetSize - 5 - extraHeaderSize
+        else:
+            blockSize = responseLength
+        result = data[offset : offset + blockSize]
+        offset += blockSize
+        while (len(result) != responseLength):
+            sequenceIdx = sequenceIdx + 1
+            if (offset == len(data)):
+                return None
+            if struct.unpack(">H", data[offset : offset + 2])[0] != channel:
+                raise Exception("Invalid channel")
+            offset += 2
+            if data[offset] != 0x05:
+                raise Exception("Invalid tag")
+            offset += 1
+            if struct.unpack(">H", data[offset : offset + 2])[0] != sequenceIdx:
+                raise Exception("Invalid sequence")
+            offset += 2
+            if (responseLength - len(result)) > packetSize - 3 - extraHeaderSize:
+                blockSize = packetSize - 3 - extraHeaderSize
+            else:
+                blockSize = responseLength - len(result)
+            result += data[offset : offset + blockSize]
+            offset += blockSize
+        return bytearray(result)
 
 
 class LedgerAccount(BaseAccount):
@@ -327,7 +266,7 @@ class LedgerAccount(BaseAccount):
 
     def _send_to_device(self, apdu):
         if self.device is None:
-            self.device = USBDevice(debug=True)
+            self.device = LedgerUsbDevice(debug=True)
 
         reply = self.device.exchange(apdu, timeout=60)
 
