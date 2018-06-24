@@ -1,5 +1,8 @@
-import struct
+import hid
 import itertools
+import logging
+import struct
+import time
 
 import eth_utils
 import rlp
@@ -35,9 +38,63 @@ from eth_utils.curried import (
 
 ETH_DERIVATION_PATH_PREFIX = "m/44'/60'/0'/"
 
+CHANNEL_ID = 0x0101
+TAG_APDU = 0x05
+TAG_PING = 0x02
 
-import hid
-import time
+# Packet HEADER is defined at
+# https://github.com/LedgerHQ/blue-app-eth/blob/master/doc/ethapp.asc#general-transport-description
+#
+# 1. Communication channel ID (big endian) value is always CHANNEL_ID
+# 2. Command tag (TAG_APDU or TAG_PING)
+# 3. Packet sequence index (big endian) starting at 0x00
+#
+PACKET_HEADER = struct.pack('>HBH', CHANNEL_ID, TAG_APDU, 0x00)
+PACKET_SIZE = 64  # in bytes
+PACKET_FREE = PACKET_SIZE - len(PACKET_HEADER)
+
+
+def wrap_apdu(command):
+    '''
+    Return a list of packet to be sent to the device
+    '''
+    packets = []
+
+    # Prefix command with its length
+    command = struct.pack('>H', len(command)) + command
+
+    # Split command into at max PACKET_FREE sized chunks
+    commands = [command[i:i + PACKET_FREE] for i in range(0, len(command), PACKET_FREE)]
+
+    # Create a packet for each command chunk
+    for packet_id in range(len(commands)):
+        header = struct.pack('>HBH', CHANNEL_ID, TAG_APDU, packet_id)
+        packet = header + commands[packet_id]
+
+        # Add padding to the packet to make it exactly PACKET_SIZE long
+        packet += bytes([0x0] * (PACKET_SIZE - len(packet)))
+
+        packets.append(packet)
+
+    return packets
+
+
+def unwrap_apdu(packet):
+    '''
+    Given a packet from the device, extract and return relevant info
+    '''
+    if not packet:
+        return (None, None, None, None, None)
+
+    (channel, tag, packet_id, reply_size) = struct.unpack('>HBHH', packet[:7])
+
+    if packet_id == 0:
+        # reply_size is only valid in first reply
+        return (channel, tag, packet_id, reply_size, packet[7:])
+    else:
+        return (channel, tag, packet_id, None, packet[5:])
+
+
 class LedgerUsbDevice:
     '''
     References:
@@ -45,11 +102,14 @@ class LedgerUsbDevice:
     - https://github.com/ethereum/go-ethereum/blob/master/accounts/usbwallet/ledger.go
     '''
 
-    def __init__(self, debug=False):
+    logger = logging.getLogger('eth_account.signers.ledger.LedgerUsbDevices')
+
+    def __init__(self):
         hidDevicePath = None
         for hidDevice in hid.enumerate(0, 0):
             if hidDevice['vendor_id'] == 0x2c97:
-                if ('interface_number' in hidDevice and hidDevice['interface_number'] == 0) or ('usage_page' in hidDevice and hidDevice['usage_page'] == 0xffa0):
+                if ('interface_number' in hidDevice and hidDevice['interface_number'] == 0) \
+                   or ('usage_page' in hidDevice and hidDevice['usage_page'] == 0xffa0):
                     hidDevicePath = hidDevice['path']
         if hidDevicePath is not None:
             dev = hid.device()
@@ -58,145 +118,53 @@ class LedgerUsbDevice:
         else:
             raise Exception("No dongle found")
         self.device = dev
-        self.debug = debug
 
     def exchange(self, apdu, timeout=20000):
-        if self.debug:
-            print("HID => %s" % to_hex(apdu))
+        self.logger.debug("HID => %s" % to_hex(apdu))
 
-        # Construct the wraped payload
-        apdu = self.wrapCommandAPDU(0x0101, apdu, 64)
-        padSize = len(apdu) % 64
-        tmp = apdu
-        if padSize != 0:
-            tmp.extend([0] * (64 - padSize))
+        # Construct the wrapped packets
+        packets = wrap_apdu(apdu)
 
         # Send to device
-        offset = 0
-        while(offset != len(tmp)):
-            data = tmp[offset:offset + 64]
-            data = bytearray([0]) + data
-            if self.device.write(data) < 0:
-                raise BaseException("Error while writing")
-            offset += 64
+        for packet in packets:
+            self.device.write(packet)
 
-        # Receive reply
-        dataLength = 0
-        dataStart = 2
-        result = self.waitFirstResponse(timeout)
-        self.device.set_nonblocking(False)
+        # Receive reply, size of reply is contained in first packet
+        reply = []
+        reply_min_size = 2
         while True:
-            response = self.unwrapResponseAPDU(0x0101, result, 64)
-            if response is not None:
-                result = response
-                dataStart = 0
-                swOffset = len(response) - 2
-                dataLength = len(response) - 2
-                self.device.set_nonblocking(True)
+            packet = bytes(self.device.read(64))
+            (channel, tag, index, size, data) = unwrap_apdu(packet)
+
+            # Wait for a valid channel in replied packet
+            if not channel:
+                # TODO timeout
+                time.sleep(0.01)
+                continue
+
+            # Check header validity of reply
+            assert(channel == CHANNEL_ID)
+            assert(tag == TAG_APDU)
+
+            # Size is not None only on first reply
+            if size:
+                reply_min_size = size
+
+            reply += data
+
+            # Check if we have received all the reply from device
+            if len(reply) > reply_min_size:
+                reply = bytes(reply[:reply_min_size])
                 break
-            result.extend(bytearray(self.device.read(65)))
-        sw = (result[swOffset] << 8) + result[swOffset + 1]
-        response = result[dataStart : dataLength + dataStart]
-        if self.debug:
-            print("HID <= %s  %.2x" % (to_hex(response), sw))
-        if sw != 0x9000:
-            possibleCause = "Unknown reason"
-            if sw == 0x6982:
-                possibleCause = "Have you uninstalled the existing CA with resetCustomCA first?"
-            if sw == 0x6985:
-                possibleCause = "Condition of use not satisfied (denied by the user?)"
-            if sw == 0x6a84 or sw == 0x6a85:
-                possibleCause = "Not enough space?"
-            if sw == 0x6484:
-                possibleCause = "Are you using the correct targetId?"
-            raise Exception("Invalid status %04x (%s)" % (sw, possibleCause))
-        return response
 
-    def waitFirstResponse(self, timeout):
-        start = time.time()
-        data = ""
-        while len(data) == 0:
-            data = self.device.read(65)
-            if not len(data):
-                if time.time() - start > timeout:
-                    raise Exception("Timeout")
-                time.sleep(0.0001)
-        return bytearray(data)
+        # Status is stored at then end of the reply
+        (status,) = struct.unpack('>H', reply[-2:])
 
-    def wrapCommandAPDU(self, channel, command, packetSize):
-        if packetSize < 3:
-            raise Exception("Can't handle Ledger framing with less than 3 bytes for the report")
-        sequenceIdx = 0
-        offset = 0
-        result = struct.pack(">H", channel)
-        extraHeaderSize = 2
-        result += struct.pack(">BHH", 0x05, sequenceIdx, len(command))
-        sequenceIdx = sequenceIdx + 1
-        if len(command) > packetSize - 5 - extraHeaderSize:
-            blockSize = packetSize - 5 - extraHeaderSize
+        if status == 0x9000:
+            self.logger.debug("HID <= %s" % (to_hex(reply)))
+            return reply[:-2]
         else:
-            blockSize = len(command)
-        result += command[offset : offset + blockSize]
-        offset = offset + blockSize
-        while offset != len(command):
-            result += struct.pack(">H", channel)
-            result += struct.pack(">BH", 0x05, sequenceIdx)
-            sequenceIdx = sequenceIdx + 1
-            if (len(command) - offset) > packetSize - 3 - extraHeaderSize:
-                blockSize = packetSize - 3 - extraHeaderSize
-            else:
-                blockSize = len(command) - offset
-            result += command[offset : offset + blockSize]
-            offset = offset + blockSize
-        while (len(result) % packetSize) != 0:
-            result += b"\x00"
-        return bytearray(result)
-
-    def unwrapResponseAPDU(self, channel, data, packetSize):
-        sequenceIdx = 0
-        offset = 0
-        extraHeaderSize = 2
-        if ((data is None) or (len(data) < 5 + extraHeaderSize + 5)):
-            return None
-        if struct.unpack(">H", data[offset : offset + 2])[0] != channel:
-            raise Exception("Invalid channel")
-        offset += 2
-        if data[offset] != 0x05:
-            raise Exception("Invalid tag")
-        offset += 1
-        if struct.unpack(">H", data[offset : offset + 2])[0] != sequenceIdx:
-            raise Exception("Invalid sequence")
-        offset += 2
-        responseLength = struct.unpack(">H", data[offset : offset + 2])[0]
-        offset += 2
-        if len(data) < 5 + extraHeaderSize + responseLength:
-            return None
-        if responseLength > packetSize - 5 - extraHeaderSize:
-            blockSize = packetSize - 5 - extraHeaderSize
-        else:
-            blockSize = responseLength
-        result = data[offset : offset + blockSize]
-        offset += blockSize
-        while (len(result) != responseLength):
-            sequenceIdx = sequenceIdx + 1
-            if (offset == len(data)):
-                return None
-            if struct.unpack(">H", data[offset : offset + 2])[0] != channel:
-                raise Exception("Invalid channel")
-            offset += 2
-            if data[offset] != 0x05:
-                raise Exception("Invalid tag")
-            offset += 1
-            if struct.unpack(">H", data[offset : offset + 2])[0] != sequenceIdx:
-                raise Exception("Invalid sequence")
-            offset += 2
-            if (responseLength - len(result)) > packetSize - 3 - extraHeaderSize:
-                blockSize = packetSize - 3 - extraHeaderSize
-            else:
-                blockSize = responseLength - len(result)
-            result += data[offset : offset + blockSize]
-            offset += blockSize
-        return bytearray(result)
+            raise Exception(f'Invalid status in reply: {status:#0x}')
 
 
 class LedgerAccount(BaseAccount):
@@ -266,7 +234,7 @@ class LedgerAccount(BaseAccount):
 
     def _send_to_device(self, apdu):
         if self.device is None:
-            self.device = LedgerUsbDevice(debug=True)
+            self.device = LedgerUsbDevice()
 
         reply = self.device.exchange(apdu, timeout=60)
 
@@ -381,19 +349,7 @@ class LedgerAccount(BaseAccount):
         apdu += message_bytes
 
         # Sign with dongle
-        result = self._send_to_device(apdu) #TODO make it work ...
+        result = self._send_to_device(apdu)  # TODO make it work ...
+        print(result)
 
-        # Retrieve VRS from sig
-        v = result[0]
-        r = int.from_bytes(result[1:1 + 32], 'big')
-        s = int.from_bytes(result[1 + 32: 1 + 32 + 32], 'big')
-
-        eth_signature_bytes = 'XXX' #TODO calculate using vrs
-
-        return AttributeDict({
-            'messageHash': msg_hash_bytes,
-            'r': r,
-            's': s,
-            'v': v,
-            'signature': HexBytes(eth_signature_bytes),
-        })
+        return None
