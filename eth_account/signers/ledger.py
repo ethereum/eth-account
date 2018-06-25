@@ -95,6 +95,10 @@ def unwrap_apdu(packet):
         return (channel, tag, packet_id, None, packet[5:])
 
 
+class LedgerUsbException(Exception):
+    pass
+
+
 class LedgerUsbDevice:
     '''
     References:
@@ -116,11 +120,11 @@ class LedgerUsbDevice:
             dev.open_path(hidDevicePath)
             dev.set_nonblocking(True)
         else:
-            raise Exception("No dongle found")
+            raise LedgerUsbException('No Ledger usb device found')
         self.device = dev
 
     def exchange(self, apdu, timeout=20):
-        self.logger.debug("HID => %s" % to_hex(apdu))
+        self.logger.debug(f'Sending apdu to Ledger device: {to_hex(apdu)}')
 
         # Construct the wrapped packets
         packets = wrap_apdu(apdu)
@@ -140,7 +144,8 @@ class LedgerUsbDevice:
             # Wait for a valid channel in replied packet
             if not channel:
                 if reply_start + timeout < time.time():
-                    raise Exception(f'Timeout waiting for a device response (timeout={timeout}s)')
+                    raise LedgerUsbException(f'Timeout waiting for a device' +
+                                             f'response (timeout={timeout}s)')
                 time.sleep(0.01)
                 continue
 
@@ -163,10 +168,10 @@ class LedgerUsbDevice:
         (status,) = struct.unpack('>H', reply[-2:])
 
         if status == 0x9000:
-            self.logger.debug("HID <= %s" % (to_hex(reply)))
+            self.logger.debug(f'Received apdu from Ledger device: {to_hex(reply)}')
             return reply[:-2]
         else:
-            raise Exception(f'Invalid status in reply: {status:#0x}')
+            raise LedgerUsbException(f'Invalid status in reply: {status:#0x}')
 
 
 class LedgerAccount(BaseAccount):
