@@ -119,7 +119,7 @@ class LedgerUsbDevice:
             raise Exception("No dongle found")
         self.device = dev
 
-    def exchange(self, apdu, timeout=20000):
+    def exchange(self, apdu, timeout=20):
         self.logger.debug("HID => %s" % to_hex(apdu))
 
         # Construct the wrapped packets
@@ -132,13 +132,15 @@ class LedgerUsbDevice:
         # Receive reply, size of reply is contained in first packet
         reply = []
         reply_min_size = 2
+        reply_start = time.time()
         while True:
             packet = bytes(self.device.read(64))
             (channel, tag, index, size, data) = unwrap_apdu(packet)
 
             # Wait for a valid channel in replied packet
             if not channel:
-                # TODO timeout
+                if reply_start + timeout < time.time():
+                    raise Exception(f'Timeout waiting for a device response (timeout={timeout}s)')
                 time.sleep(0.01)
                 continue
 
