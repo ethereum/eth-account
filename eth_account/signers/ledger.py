@@ -1,40 +1,35 @@
-import hid
 import itertools
 import logging
 import struct
 import time
 
 import eth_utils
-import rlp
-
-from hexbytes import HexBytes
-
-from eth_account import (
-    Account,
-)
-
-from eth_account.datastructures import (
-    AttributeDict,
-)
-
-from eth_account.signers.base import (
-    BaseAccount,
-)
-
-from eth_account.internal.transactions import (
-    encode_transaction,
-    serializable_unsigned_transaction_from_dict,
-)
-
 from eth_utils import (
     to_bytes,
     to_hex,
 )
-
 from eth_utils.curried import (
     keccak,
 )
+from hexbytes import (
+    HexBytes,
+)
+import rlp
 
+from eth_account import (
+    Account,
+)
+from eth_account.datastructures import (
+    AttributeDict,
+)
+from eth_account.internal.transactions import (
+    encode_transaction,
+    serializable_unsigned_transaction_from_dict,
+)
+from eth_account.signers.base import (
+    BaseAccount,
+)
+import hid
 
 ETH_DERIVATION_PATH_PREFIX = "m/44'/60'/0'/"
 

@@ -2,18 +2,16 @@
 
 import pytest
 
-from eth_account import (
-    Account,
-)
-
-from eth_account.signers.ledger import (
-    LedgerAccount,
-)
-
 from hexbytes import (
     HexBytes,
 )
 
+from eth_account import (
+    Account,
+)
+from eth_account.signers.ledger import (
+    LedgerAccount,
+)
 
 # Not a fixture because it does not support multiple LedgerAccount
 ledger = LedgerAccount()
