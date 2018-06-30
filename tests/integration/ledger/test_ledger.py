@@ -85,3 +85,13 @@ def test_sign_transaction(transaction, tx_hash, acct):
     assert signed.hash == tx_hash
 
     assert acct.recoverTransaction(signed.rawTransaction).lower() == expected_sender
+
+    # Test transaction with a small payload
+    transaction['data'] = bytes([0x0] * 128)
+    signed = ledger.signTransaction(transaction)
+    assert acct.recoverTransaction(signed.rawTransaction).lower() == expected_sender
+
+    # Test transaction with a large payload
+    transaction['data'] = bytes([0x0] * 1042)
+    signed = ledger.signTransaction(transaction)
+    assert acct.recoverTransaction(signed.rawTransaction).lower() == expected_sender

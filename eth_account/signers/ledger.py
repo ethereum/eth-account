@@ -53,6 +53,30 @@ PACKET_HEADER = struct.pack('>HBH', CHANNEL_ID, TAG_APDU, 0x00)
 PACKET_SIZE = 64  # in bytes
 PACKET_FREE = PACKET_SIZE - len(PACKET_HEADER)
 
+RETURN_STATUS = {
+    'OK': 0x9000,
+    0x6700: 'Ethereum app not started on device',
+    0x6804: 'Ethereum app not ready on device',
+    0x6985: 'User declined on device',
+    0x6a80: 'Transaction data disabled on device'
+}
+
+# https://github.com/LedgerHQ/blue-app-eth/blob/master/src_genericwallet/main.c#L62
+APDU_CLA = 0xE0
+APDU_INS_GET_PUBLIC_KEY = 0x02
+APDU_INS_SIGN = 0x04
+APDU_INS_GET_APP_CONFIGURATION = 0x06
+APDU_INS_SIGN_PERSONAL_MESSAGE = 0x08
+APDU_P1_CONFIRM = 0x01
+APDU_P1_NON_CONFIRM = 0x00
+APDU_P2_NO_CHAINCODE = 0x00
+APDU_P2_CHAINCODE = 0x01
+APDU_P1_FIRST = 0x00
+APDU_P1_MORE = 0x80
+
+LEDGER_VENDOR_ID = 0x2c97
+LEDGER_USAGE_PAGE_ID = 0xffa0
+
 
 def wrap_apdu(command):
     '''
@@ -64,15 +88,15 @@ def wrap_apdu(command):
     command = struct.pack('>H', len(command)) + command
 
     # Split command into at max PACKET_FREE sized chunks
-    commands = [command[i:i + PACKET_FREE] for i in range(0, len(command), PACKET_FREE)]
+    chunks = [command[i:i + PACKET_FREE] for i in range(0, len(command), PACKET_FREE)]
 
     # Create a packet for each command chunk
-    for packet_id in range(len(commands)):
+    for packet_id in range(len(chunks)):
         header = struct.pack('>HBH', CHANNEL_ID, TAG_APDU, packet_id)
-        packet = header + commands[packet_id]
+        packet = header + chunks[packet_id]
 
         # Add padding to the packet to make it exactly PACKET_SIZE long
-        packet += bytes([0x0] * (PACKET_SIZE - len(packet)))
+        packet.ljust(PACKET_SIZE, bytes([0x0]))
 
         packets.append(packet)
 
@@ -111,9 +135,10 @@ class LedgerUsbDevice:
     def __init__(self):
         hidDevicePath = None
         for hidDevice in hid.enumerate(0, 0):
-            if hidDevice['vendor_id'] == 0x2c97:
+            if hidDevice['vendor_id'] == LEDGER_VENDOR_ID:
                 if ('interface_number' in hidDevice and hidDevice['interface_number'] == 0) \
-                   or ('usage_page' in hidDevice and hidDevice['usage_page'] == 0xffa0):
+                   or ('usage_page' in hidDevice and
+                        hidDevice['usage_page'] == LEDGER_USAGE_PAGE_ID):
                     hidDevicePath = hidDevice['path']
         if hidDevicePath is not None:
             dev = hid.device()
@@ -124,7 +149,7 @@ class LedgerUsbDevice:
         self.device = dev
 
     def exchange(self, apdu, timeout=20):
-        self.logger.debug(f'Sending apdu to Ledger device: {to_hex(apdu)}')
+        self.logger.debug('Sending apdu to Ledger device: apdu={}'.format(to_hex(apdu)))
 
         # Construct the wrapped packets
         packets = wrap_apdu(apdu)
@@ -144,14 +169,15 @@ class LedgerUsbDevice:
             # Wait for a valid channel in replied packet
             if not channel:
                 if reply_start + timeout < time.time():
-                    raise LedgerUsbException(f'Timeout waiting for a device' +
-                                             f'response (timeout={timeout}s)')
+                    message = 'Timeout waiting device response (timeout={}s)'
+                    raise LedgerUsbException(message.format(timeout))
                 time.sleep(0.01)
                 continue
 
             # Check header validity of reply
-            assert(channel == CHANNEL_ID)
-            assert(tag == TAG_APDU)
+            if channel != CHANNEL_ID or tag != TAG_APDU:
+                raise LedgerUsbException('Invalid channel or tag, is "Browser' +
+                                         ' support" disabled ?')
 
             # Size is not None only on first reply
             if size:
@@ -167,11 +193,15 @@ class LedgerUsbDevice:
         # Status is stored at then end of the reply
         (status,) = struct.unpack('>H', reply[-2:])
 
-        if status == 0x9000:
-            self.logger.debug(f'Received apdu from Ledger device: {to_hex(reply)}')
+        if status == RETURN_STATUS['OK']:
+            message = 'Received apdu from Ledger device: apdu={}'
+            self.logger.debug(message.format(to_hex(reply)))
             return reply[:-2]
         else:
-            raise LedgerUsbException(f'Invalid status in reply: {status:#0x}')
+            message = 'Invalid status in reply: {:#0x}'.format(status)
+            if status in RETURN_STATUS:
+                message += ' ({})'.format(RETURN_STATUS[status])
+            raise LedgerUsbException(message)
 
 
 class LedgerAccount(BaseAccount):
@@ -259,8 +289,10 @@ class LedgerAccount(BaseAccount):
         bip32_path = self._path_to_bytes(self.path_prefix + str(account_id))
 
         # https://github.com/LedgerHQ/blue-app-eth/blob/master/doc/ethapp.asc#get-eth-public-address
-        apdu = bytes.fromhex('e0020000')
-        apdu += bytes([len(bip32_path)])
+        apdu = struct.pack('>BBBB',
+                           APDU_CLA, APDU_INS_GET_PUBLIC_KEY,
+                           APDU_P1_NON_CONFIRM, APDU_P2_NO_CHAINCODE)
+        apdu += struct.pack('>B', len(bip32_path))
         apdu += bip32_path
 
         result = self._send_to_device(apdu)
@@ -282,9 +314,9 @@ class LedgerAccount(BaseAccount):
 
         for account_id in itertools.count(start=search_account_id):
             if account_id > search_limit:
-                raise ValueError(f'Address {address} not found' +
-                                 f'(search_limit={search_limit}, ' +
-                                 f'search_account_id={search_account_id})')
+                raise ValueError('Address {} not found'.format(address) +
+                                 '(search_limit={}, '.format(search_limit) +
+                                 'account_id={})'.format(search_account_id))
             if eth_utils.is_same_address(address, self.get_address(account_id)):
                 return account_id
 
@@ -311,14 +343,24 @@ class LedgerAccount(BaseAccount):
         unsigned_transaction = serializable_unsigned_transaction_from_dict(transaction_dict)
         rlp_encoded_tx = rlp.encode(unsigned_transaction)
 
-        # https://github.com/LedgerHQ/blue-app-eth/blob/master/doc/ethapp.asc#sign-eth-transaction
-        apdu = bytes.fromhex('e0040000')
-        apdu += bytes([len(bip32_path) + len(rlp_encoded_tx)])
-        apdu += bip32_path
-        apdu += rlp_encoded_tx
+        payload = bip32_path + rlp_encoded_tx
 
-        # Sign with dongle
-        result = self._send_to_device(apdu)
+        # Split payload in chunks of 255 size
+        chunks = [payload[i:i + 255] for i in range(0, len(payload), 255)]
+
+        # https://github.com/LedgerHQ/blue-app-eth/blob/master/doc/ethapp.asc#sign-eth-transaction
+        apdu_param1 = APDU_P1_FIRST
+        for chunk in chunks:
+            apdu = struct.pack('>BBBB',
+                               APDU_CLA, APDU_INS_SIGN,
+                               apdu_param1, APDU_P2_NO_CHAINCODE)
+            apdu += struct.pack('>B', len(chunk))
+            apdu += chunk
+
+            # Send to dongle
+            result = self._send_to_device(apdu)
+
+            apdu_param1 = APDU_P1_MORE
 
         # Retrieve VRS from sig
         v = result[0]
