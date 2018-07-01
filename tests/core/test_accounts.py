@@ -5,6 +5,9 @@ import pytest
 from cytoolz import (
     dissoc,
 )
+from eth_keys import (
+    keys,
+)
 from eth_utils import (
     is_checksum_address,
     to_bytes,
@@ -62,8 +65,18 @@ def PRIVATE_BYTES_ALT(PRIVATE_BYTES):
 
 
 @pytest.fixture
+def PRIVATE_KEY(PRIVATE_BYTES):
+    return keys.PrivateKey(PRIVATE_BYTES)
+
+
+@pytest.fixture
 def web3js_key():
     return '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+
+
+@pytest.fixture
+def web3js_private_key(web3js_key):
+    return keys.PrivateKey(HexBytes(web3js_key))
 
 
 @pytest.fixture
@@ -82,11 +95,18 @@ def test_eth_account_create_variation(acct):
     assert account1 != account2
 
 
-def test_eth_account_equality(acct):
-    key = b'a' * 32
-    acct1 = acct.privateKeyToAccount(key)
-    acct2 = acct.privateKeyToAccount(key)
+def test_eth_account_equality(acct, PRIVATE_BYTES):
+    acct1 = acct.privateKeyToAccount(PRIVATE_BYTES)
+    acct2 = acct.privateKeyToAccount(PRIVATE_BYTES)
     assert acct1 == acct2
+
+
+def test_eth_account_privateKeyToAccount_fromPrivateKey(acct, PRIVATE_BYTES, PRIVATE_KEY):
+    account1 = acct.privateKeyToAccount(PRIVATE_BYTES)
+    account2 = acct.privateKeyToAccount(PRIVATE_KEY)
+    assert bytes(account1) == PRIVATE_BYTES
+    assert bytes(account1) == bytes(account2)
+    assert isinstance(str(account1), str)
 
 
 def test_eth_account_privateKeyToAccount_reproducible(acct, PRIVATE_BYTES):
@@ -250,6 +270,16 @@ def test_eth_account_hash_message_hexstr(acct, message, expected):
             HexBytes('0xb91467e570a6466aa9e9876cbcd013baba02900b8979d43fe208a4a4f339f5fd6007e74cd82e037b800186422fc2da167c747ef045e5d18a5f5d4300f8e1a0291c'),  # noqa: E501
         ),
         (
+            'Some data',
+            keys.PrivateKey(HexBytes('0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318')),  # noqa: E501
+            b'Some data',
+            HexBytes('0x1da44b586eb0729ff70a73c326926f6ed5a25f5b056e7f47fbc6e58d86871655'),
+            28,
+            83713930994764734002432606962255364472443135907807238282514898577139886061053,
+            43435997768575461196683613590576722655951133545204789519877940758262837256233,
+            HexBytes('0xb91467e570a6466aa9e9876cbcd013baba02900b8979d43fe208a4a4f339f5fd6007e74cd82e037b800186422fc2da167c747ef045e5d18a5f5d4300f8e1a0291c'),  # noqa: E501
+        ),
+        (
             '10284',
             '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318',
             b'10284',
@@ -261,7 +291,7 @@ def test_eth_account_hash_message_hexstr(acct, message, expected):
         ),
 
     ),
-    ids=['web3js_example', '31byte_r_and_s'],
+    ids=['web3js_hex_str_example', 'web3js_eth_keys.datatypes.PrivateKey_example', '31byte_r_and_s'],  # noqa: E501
 )
 def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, r, s, signature):
     msghash = defunct_hash_message(text=message)
@@ -300,6 +330,22 @@ def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, 
         (
             {
                 'to': '0xF0109fC8DF283027b6285cc889F5aA624EaC1F55',
+                'value': 1000000000,
+                'gas': 2000000,
+                'gasPrice': 234567897654321,
+                'nonce': 0,
+                'chainId': 1
+            },
+            keys.PrivateKey(HexBytes('0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318')),  # noqa: E501
+            HexBytes('0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'),  # noqa: E501
+            HexBytes('0xd8f64a42b57be0d565f385378db2f6bf324ce14a594afc05de90436e9ce01f60'),
+            4487286261793418179817841024889747115779324305375823110249149479905075174044,
+            30785525769477805655994251009256770582792548537338581640010273753578382951464,
+            37,
+        ),
+        (
+            {
+                'to': '0xF0109fC8DF283027b6285cc889F5aA624EaC1F55',
                 'value': 0,
                 'gas': 31853,
                 'gasPrice': 0,
@@ -314,7 +360,7 @@ def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, 
             38,
         ),
     ),
-    ids=['web3js_example', '31byte_r_and_s'],
+    ids=['web3js_hex_str_example', 'web3js_eth_keys.datatypes.PrivateKey_example', '31byte_r_and_s'],  # noqa: E501
 )
 def test_eth_account_sign_transaction(acct, txn, private_key, expected_raw_tx, tx_hash, r, s, v):
     signed = acct.signTransaction(txn, private_key)
@@ -362,24 +408,56 @@ def test_eth_account_recover_transaction_from_eth_test(acct, transaction):
     assert acct.recoverTransaction(raw_txn) == expected_sender
 
 
-def test_eth_account_encrypt(acct, web3js_key, web3js_password):
-    encrypted = acct.encrypt(web3js_key, web3js_password)
+@pytest.mark.parametrize(
+    'private_key, password, expected_decrypted_key',
+    [
+        (
+            web3js_key(),
+            web3js_password(),
+            to_bytes(hexstr=web3js_key()),
+        ),
+        (
+            web3js_private_key(web3js_key()),
+            web3js_password(),
+            web3js_private_key(web3js_key()),
+        ),
+    ],
+    ids=['hex_str', 'eth_keys.datatypes.PrivateKey']
+)
+def test_eth_account_encrypt(acct, private_key, password, expected_decrypted_key):
+    encrypted = acct.encrypt(private_key, password)
 
     assert encrypted['address'] == '2c7536e3605d9c16a7a3d7b1898e529396a65c23'
     assert encrypted['version'] == 3
 
-    decrypted_key = acct.decrypt(encrypted, web3js_password)
+    decrypted_key = acct.decrypt(encrypted, password)
 
-    assert decrypted_key == to_bytes(hexstr=web3js_key)
+    assert decrypted_key == expected_decrypted_key
 
 
-def test_eth_account_prepared_encrypt(acct, web3js_key, web3js_password):
-    account = acct.privateKeyToAccount(web3js_key)
-    encrypted = account.encrypt(web3js_password)
+@pytest.mark.parametrize(
+    'private_key, password, expected_decrypted_key',
+    [
+        (
+            web3js_key(),
+            web3js_password(),
+            to_bytes(hexstr=web3js_key()),
+        ),
+        (
+            web3js_private_key(web3js_key()),
+            web3js_password(),
+            web3js_private_key(web3js_key()),
+        ),
+    ],
+    ids=['hex_str', 'eth_keys.datatypes.PrivateKey']
+)
+def test_eth_account_prepared_encrypt(acct, private_key, password, expected_decrypted_key):
+    account = acct.privateKeyToAccount(private_key)
+    encrypted = account.encrypt(password)
 
     assert encrypted['address'] == '2c7536e3605d9c16a7a3d7b1898e529396a65c23'
     assert encrypted['version'] == 3
 
-    decrypted_key = acct.decrypt(encrypted, web3js_password)
+    decrypted_key = acct.decrypt(encrypted, password)
 
-    assert decrypted_key == to_bytes(hexstr=web3js_key)
+    assert decrypted_key == expected_decrypted_key

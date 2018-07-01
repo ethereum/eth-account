@@ -135,7 +135,7 @@ class Account(object):
         client keeps key files.
 
         :param private_key: The raw private key
-        :type private_key: hex str or bytes or int
+        :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :param str password: The password which you will need to unlock the account in your client
         :returns: The data to use in your encrypted file
         :rtype: dict
@@ -164,7 +164,11 @@ class Account(object):
              >>> with open('my-keyfile', 'w') as f:
                  f.write(json.dumps(encrypted))
         '''
-        key_bytes = HexBytes(private_key)
+        if isinstance(private_key, keys.PrivateKey):
+            key_bytes = private_key.to_bytes()
+        else:
+            key_bytes = HexBytes(private_key)
+
         password_bytes = text_if_str(to_bytes, password)
         assert len(key_bytes) == 32
         return create_keyfile_json(key_bytes, password_bytes)
@@ -175,7 +179,7 @@ class Account(object):
         Returns a convenient object for working with the given private key.
 
         :param private_key: The raw private key
-        :type private_key: hex str or bytes or int
+        :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :return: object with methods for signing and encrypting
         :rtype: LocalAccount
 
@@ -192,7 +196,11 @@ class Account(object):
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         '''
-        key_bytes = HexBytes(private_key)
+        if isinstance(private_key, self._keys.PrivateKey):
+            key_bytes = private_key.to_bytes()
+        else:
+            key_bytes = HexBytes(private_key)
+
         try:
             key_obj = self._keys.PrivateKey(key_bytes)
             return LocalAccount(key_obj, self)
@@ -329,7 +337,7 @@ class Account(object):
         :param message_hash: the 32-byte message hash to be signed
         :type message_hash: hex str, bytes or int
         :param private_key: the key to sign the message with
-        :type private_key: hex str, bytes or int
+        :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most
           importantly the fields: v, r, and s
         :rtype: ~eth_account.datastructures.AttributeDict
@@ -361,8 +369,12 @@ class Account(object):
         msg_hash_bytes = HexBytes(message_hash)
         if len(msg_hash_bytes) != 32:
             raise ValueError("The message hash must be exactly 32-bytes")
-        key_bytes = HexBytes(private_key)
-        key = self._keys.PrivateKey(key_bytes)
+
+        if isinstance(private_key, self._keys.PrivateKey):
+            key = private_key
+        else:
+            key = self._keys.PrivateKey(HexBytes(private_key))
+
         (v, r, s, eth_signature_bytes) = sign_message_hash(key, msg_hash_bytes)
         return AttributeDict({
             'messageHash': msg_hash_bytes,
@@ -386,7 +398,7 @@ class Account(object):
         :param dict transaction_dict: the transaction with keys:
           nonce, chainId, to, data, value, gas, and gasPrice.
         :param private_key: the private key to sign the data with
-        :type private_key: hex str, bytes or int
+        :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most
           importantly the fields: v, r, and s
         :rtype: AttributeDict
