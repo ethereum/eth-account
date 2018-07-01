@@ -9,6 +9,9 @@ from hexbytes import (
 from eth_account import (
     Account,
 )
+from eth_account.messages import (
+    defunct_hash_message,
+)
 from eth_account.signers.ledger import (
     LedgerAccount,
 )
@@ -93,3 +96,21 @@ def test_sign_transaction(transaction, tx_hash, acct):
     transaction['data'] = bytes([0x0] * 1042)
     signed = ledger.signTransaction(transaction)
     assert acct.recoverTransaction(signed.rawTransaction).lower() == expected_sender
+
+
+def test_defunct_sign_message(acct):
+    message = "I♥SF"
+    msghash = defunct_hash_message(text=message)
+
+    expected_signer = ledger.address
+
+    signed = ledger.defunctSignMessage(text=message)
+
+    assert signed.messageHash == msghash
+    assert type(signed.v) is int
+    assert type(signed.r) is str
+    assert type(signed.s) is str
+
+    vrs = (signed.v, signed.r, signed.s)
+    from_account = acct.recoverHash(signed.messageHash, vrs=vrs)
+    assert from_account.lower() == expected_signer

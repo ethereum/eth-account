@@ -26,6 +26,9 @@ from eth_account.internal.transactions import (
     encode_transaction,
     serializable_unsigned_transaction_from_dict,
 )
+from eth_account.messages import (
+    defunct_hash_message,
+)
 from eth_account.signers.base import (
     BaseAccount,
 )
@@ -51,6 +54,7 @@ PACKET_FREE = PACKET_SIZE - len(PACKET_HEADER)
 RETURN_STATUS = {
     'OK': 0x9000,
     0x6700: 'Ethereum app not started on device',
+    0x6d00: 'Ethereum app not started on device',
     0x6804: 'Ethereum app not ready on device',
     0x6985: 'User declined on device',
     0x6a80: 'Transaction data disabled on device'
@@ -381,19 +385,61 @@ class LedgerAccount(BaseAccount):
     def defunctSignMessage(self, primitive=None, hexstr=None, text=None):
         '''
         Sign a message with a hash as in :meth:`~eth_account.messages.defunct_hash_message`
+
+        Supported since firmware version 1.0.8
         '''
         bip32_path = self._path_to_bytes(self.path_prefix + str(self.account_id))
 
         message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
 
-        # https://github.com/LedgerHQ/blue-app-eth/blob/master/doc/ethapp.asc#sign-eth-transaction
-        apdu = bytes.fromhex('e0080000')
-        apdu += bytes([len(bip32_path) + len(message_bytes)])
-        apdu += bip32_path
-        apdu += message_bytes
+        # Prefix message with it's length as big-endian (>) unsigned int (I)
+        message_with_prefix = struct.pack('>I', len(message_bytes)) + message_bytes
 
-        # Sign with dongle
-        result = self._send_to_device(apdu)  # TODO make it work ...
-        print(result)
+        payload = bip32_path + message_with_prefix
 
-        return None
+        # Split payload in chunks of 255 size
+        chunks = [payload[i:i + 255] for i in range(0, len(payload), 255)]
+
+        # https://github.com/LedgerHQ/blue-app-eth/blob/master/doc/ethapp.asc#sign-eth-personal-message
+        apdu_param1 = APDU_P1_FIRST
+        for chunk in chunks:
+            apdu = struct.pack('>BBBB',
+                               APDU_CLA, APDU_INS_SIGN_PERSONAL_MESSAGE,
+                               apdu_param1, APDU_P2_NO_CHAINCODE)
+            apdu += struct.pack('>B', len(chunk))
+            apdu += chunk
+
+            # Send to dongle
+            result = self._send_to_device(apdu)
+
+            apdu_param1 = APDU_P1_MORE
+
+        # Retrieve VRS from sig
+        v = result[0]
+        r = int.from_bytes(result[1:1 + 32], 'big')
+        s = int.from_bytes(result[1 + 32: 1 + 32 + 32], 'big')
+
+        return AttributeDict({
+            'messageHash': HexBytes(defunct_hash_message(message_bytes)),
+            'signature': HexBytes(to_bytes(r) + to_bytes(s) + to_bytes(v)),
+            'v': v,
+            'r': to_hex(r),
+            's': to_hex(s),
+        })
+
+    def get_version(self):
+        '''
+        Get version of the Ethereum application installed on the device.
+        It also return if the application is configured to sign transaction
+        with data.
+        '''
+        apdu = struct.pack('>BBBB',
+                           APDU_CLA, APDU_INS_GET_APP_CONFIGURATION,
+                           APDU_P1_NON_CONFIRM, APDU_P2_NO_CHAINCODE)
+
+        result = self._send_to_device(apdu)
+
+        # Parse result
+        (data_sign, major_version, minor_version, patch_version) = struct.unpack('>?BBB', result)
+
+        return (data_sign, major_version, minor_version, patch_version)
