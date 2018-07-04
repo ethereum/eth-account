@@ -54,19 +54,20 @@ ETH_TEST_TRANSACTIONS = [
 ]
 
 
-@pytest.fixture
-def PRIVATE_BYTES():
-    return b'unicorns' * 4
+PRIVATE_KEY_AS_BYTES = b'unicorns' * 4
+PRIVATE_KEY_AS_BYTES_ALT = b'rainbows' * 4
+PRIVATE_KEY_AS_OBJ = keys.PrivateKey(PRIVATE_KEY_AS_BYTES)
+PRIVATE_KEY_AS_OBJ_ALT = keys.PrivateKey(PRIVATE_KEY_AS_BYTES_ALT)
 
 
-@pytest.fixture
-def PRIVATE_BYTES_ALT(PRIVATE_BYTES):
-    return b'rainbows' * 4
+@pytest.fixture(params=[PRIVATE_KEY_AS_BYTES, PRIVATE_KEY_AS_OBJ])
+def PRIVATE_KEY(request):
+    return request.param
 
 
-@pytest.fixture
-def PRIVATE_KEY(PRIVATE_BYTES):
-    return keys.PrivateKey(PRIVATE_BYTES)
+@pytest.fixture(params=[PRIVATE_KEY_AS_BYTES_ALT, PRIVATE_KEY_AS_OBJ_ALT])
+def PRIVATE_KEY_ALT(request):
+    return request.param
 
 
 @pytest.fixture
@@ -95,32 +96,24 @@ def test_eth_account_create_variation(acct):
     assert account1 != account2
 
 
-def test_eth_account_equality(acct, PRIVATE_BYTES):
-    acct1 = acct.privateKeyToAccount(PRIVATE_BYTES)
-    acct2 = acct.privateKeyToAccount(PRIVATE_BYTES)
+def test_eth_account_equality(acct, PRIVATE_KEY):
+    acct1 = acct.privateKeyToAccount(PRIVATE_KEY)
+    acct2 = acct.privateKeyToAccount(PRIVATE_KEY)
     assert acct1 == acct2
 
 
-def test_eth_account_privateKeyToAccount_fromPrivateKey(acct, PRIVATE_BYTES, PRIVATE_KEY):
-    account1 = acct.privateKeyToAccount(PRIVATE_BYTES)
+def test_eth_account_privateKeyToAccount_reproducible(acct, PRIVATE_KEY):
+    account1 = acct.privateKeyToAccount(PRIVATE_KEY)
     account2 = acct.privateKeyToAccount(PRIVATE_KEY)
-    assert bytes(account1) == PRIVATE_BYTES
+    assert bytes(account1) == PRIVATE_KEY
     assert bytes(account1) == bytes(account2)
     assert isinstance(str(account1), str)
 
 
-def test_eth_account_privateKeyToAccount_reproducible(acct, PRIVATE_BYTES):
-    account1 = acct.privateKeyToAccount(PRIVATE_BYTES)
-    account2 = acct.privateKeyToAccount(PRIVATE_BYTES)
-    assert bytes(account1) == PRIVATE_BYTES
-    assert bytes(account1) == bytes(account2)
-    assert isinstance(str(account1), str)
-
-
-def test_eth_account_privateKeyToAccount_diverge(acct, PRIVATE_BYTES, PRIVATE_BYTES_ALT):
-    account1 = acct.privateKeyToAccount(PRIVATE_BYTES)
-    account2 = acct.privateKeyToAccount(PRIVATE_BYTES_ALT)
-    assert bytes(account2) == PRIVATE_BYTES_ALT
+def test_eth_account_privateKeyToAccount_diverge(acct, PRIVATE_KEY, PRIVATE_KEY_ALT):
+    account1 = acct.privateKeyToAccount(PRIVATE_KEY)
+    account2 = acct.privateKeyToAccount(PRIVATE_KEY_ALT)
+    assert bytes(account2) == PRIVATE_KEY_ALT
     assert bytes(account1) != bytes(account2)
 
 
@@ -133,13 +126,13 @@ def test_eth_account_privateKeyToAccount_seed_restrictions(acct):
         acct.privateKeyToAccount(b'\xff' * 33)
 
 
-def test_eth_account_privateKeyToAccount_properties(acct, PRIVATE_BYTES):
-    account = acct.privateKeyToAccount(PRIVATE_BYTES)
+def test_eth_account_privateKeyToAccount_properties(acct, PRIVATE_KEY):
+    account = acct.privateKeyToAccount(PRIVATE_KEY)
     assert callable(account.signHash)
     assert callable(account.signTransaction)
     assert is_checksum_address(account.address)
     assert account.address == '0xa79F6f349C853F9Ea0B29636779ae3Cb4E3BA729'
-    assert account.privateKey == PRIVATE_BYTES
+    assert account.privateKey == PRIVATE_KEY
 
 
 def test_eth_account_create_properties(acct):
