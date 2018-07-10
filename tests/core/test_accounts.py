@@ -412,7 +412,7 @@ def test_eth_account_recover_transaction_from_eth_test(acct, transaction):
         (
             web3js_private_key(web3js_key()),
             web3js_password(),
-            web3js_private_key(web3js_key()),
+            web3js_private_key(web3js_key()).to_bytes(),
         ),
     ],
     ids=['hex_str', 'eth_keys.datatypes.PrivateKey']
@@ -434,12 +434,12 @@ def test_eth_account_encrypt(acct, private_key, password, expected_decrypted_key
         (
             web3js_key(),
             web3js_password(),
-            to_bytes(hexstr=web3js_key()),
+            HexBytes(to_bytes(hexstr=web3js_key())),
         ),
         (
             web3js_private_key(web3js_key()),
             web3js_password(),
-            web3js_private_key(web3js_key()),
+            web3js_private_key(web3js_key()).to_bytes(),
         ),
     ],
     ids=['hex_str', 'eth_keys.datatypes.PrivateKey']
@@ -453,4 +453,5 @@ def test_eth_account_prepared_encrypt(acct, private_key, password, expected_decr
 
     decrypted_key = acct.decrypt(encrypted, password)
 
+    assert isinstance(decrypted_key, HexBytes)
     assert decrypted_key == expected_decrypted_key

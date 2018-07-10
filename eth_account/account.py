@@ -124,7 +124,7 @@ class Account(object):
         else:
             raise TypeError("The keyfile should be supplied as a JSON string, or a dictionary.")
         password_bytes = text_if_str(to_bytes, password)
-        return decode_keyfile_json(keyfile, password_bytes)
+        return HexBytes(decode_keyfile_json(keyfile, password_bytes))
 
     @staticmethod
     def encrypt(private_key, password):
@@ -196,19 +196,8 @@ class Account(object):
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         '''
-        if isinstance(private_key, self._keys.PrivateKey):
-            key_bytes = private_key.to_bytes()
-        else:
-            key_bytes = HexBytes(private_key)
-
-        try:
-            key_obj = self._keys.PrivateKey(key_bytes)
-            return LocalAccount(key_obj, self)
-        except ValidationError as original_exception:
-            raise ValueError(
-                "The private key must be exactly 32 bytes long, instead of "
-                "%d bytes." % len(key_bytes)
-            ) from original_exception
+        key = self._parsePrivateKey(private_key)
+        return LocalAccount(key, self)
 
     @combomethod
     def recoverHash(self, message_hash, vrs=None, signature=None):
@@ -370,10 +359,7 @@ class Account(object):
         if len(msg_hash_bytes) != 32:
             raise ValueError("The message hash must be exactly 32-bytes")
 
-        if isinstance(private_key, self._keys.PrivateKey):
-            key = private_key
-        else:
-            key = self._keys.PrivateKey(HexBytes(private_key))
+        key = self._parsePrivateKey(private_key)
 
         (v, r, s, eth_signature_bytes) = sign_message_hash(key, msg_hash_bytes)
         return AttributeDict({
@@ -457,3 +443,25 @@ class Account(object):
             's': s,
             'v': v,
         })
+
+    @combomethod
+    def _parsePrivateKey(self, key):
+        '''
+        Generate a :class:`eth_keys.datatypes.PrivateKey` from the provided key. If the
+        key is already of type :class:`eth_keys.datatypes.PrivateKey`, return the key.
+
+        :param key: the private key from which a :class:`eth_keys.datatypes.PrivateKey`
+                    will be generated
+        :type key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
+        :returns: the provided key represented as a :class:`eth_keys.datatypes.PrivateKey`
+        '''
+        if isinstance(key, self._keys.PrivateKey):
+            return key
+
+        try:
+            return self._keys.PrivateKey(HexBytes(key))
+        except ValidationError as original_exception:
+            raise ValueError(
+                "The private key must be exactly 32 bytes long, instead of "
+                "%d bytes." % len(key)
+            ) from original_exception
