@@ -54,18 +54,25 @@ ETH_TEST_TRANSACTIONS = [
 ]
 
 
-PRIVATE_KEY_AS_BYTES = b'unicorns' * 4
-PRIVATE_KEY_AS_BYTES_ALT = b'rainbows' * 4
+PRIVATE_KEY_AS_HEXSTR = '0x33e95ade1eb6453d5b1412414925d59c3fa1c10d3935fa680234ad1e74ced197'
+PRIVATE_KEY_AS_BYTES = to_bytes(hexstr=PRIVATE_KEY_AS_HEXSTR)
+PRIVATE_KEY_AS_INT = int(PRIVATE_KEY_AS_HEXSTR, 16)
 PRIVATE_KEY_AS_OBJ = keys.PrivateKey(PRIVATE_KEY_AS_BYTES)
+ACCT_ADDRESS = '0x6c9d7169d6602f560C68E505Dc4379DdA19ff929'
+
+PRIVATE_KEY_AS_HEXSTR_ALT = '0x9377abaa20bb2b6ffcbe8e4413a1f2a600a6ad4bbe270385c4f15782ab012955'
+PRIVATE_KEY_AS_BYTES_ALT = to_bytes(hexstr=PRIVATE_KEY_AS_HEXSTR_ALT)
+PRIVATE_KEY_AS_INT_ALT = int(PRIVATE_KEY_AS_HEXSTR_ALT, 16)
 PRIVATE_KEY_AS_OBJ_ALT = keys.PrivateKey(PRIVATE_KEY_AS_BYTES_ALT)
+ACCT_ADDRESS_ALT = '0x54d6391B972fcf451C201E99ed8b495479967eDC'
 
 
-@pytest.fixture(params=[PRIVATE_KEY_AS_BYTES, PRIVATE_KEY_AS_OBJ])
+@pytest.fixture(params=[PRIVATE_KEY_AS_INT, PRIVATE_KEY_AS_HEXSTR, PRIVATE_KEY_AS_BYTES, PRIVATE_KEY_AS_OBJ])  # noqa: 501
 def PRIVATE_KEY(request):
     return request.param
 
 
-@pytest.fixture(params=[PRIVATE_KEY_AS_BYTES_ALT, PRIVATE_KEY_AS_OBJ_ALT])
+@pytest.fixture(params=[PRIVATE_KEY_AS_INT_ALT, PRIVATE_KEY_AS_HEXSTR_ALT, PRIVATE_KEY_AS_BYTES_ALT, PRIVATE_KEY_AS_OBJ_ALT])  # noqa: 501
 def PRIVATE_KEY_ALT(request):
     return request.param
 
@@ -105,7 +112,7 @@ def test_eth_account_equality(acct, PRIVATE_KEY):
 def test_eth_account_privateKeyToAccount_reproducible(acct, PRIVATE_KEY):
     account1 = acct.privateKeyToAccount(PRIVATE_KEY)
     account2 = acct.privateKeyToAccount(PRIVATE_KEY)
-    assert bytes(account1) == PRIVATE_KEY
+    assert bytes(account1) == PRIVATE_KEY_AS_BYTES
     assert bytes(account1) == bytes(account2)
     assert isinstance(str(account1), str)
 
@@ -113,7 +120,7 @@ def test_eth_account_privateKeyToAccount_reproducible(acct, PRIVATE_KEY):
 def test_eth_account_privateKeyToAccount_diverge(acct, PRIVATE_KEY, PRIVATE_KEY_ALT):
     account1 = acct.privateKeyToAccount(PRIVATE_KEY)
     account2 = acct.privateKeyToAccount(PRIVATE_KEY_ALT)
-    assert bytes(account2) == PRIVATE_KEY_ALT
+    assert bytes(account2) == PRIVATE_KEY_AS_BYTES_ALT
     assert bytes(account1) != bytes(account2)
 
 
@@ -131,8 +138,8 @@ def test_eth_account_privateKeyToAccount_properties(acct, PRIVATE_KEY):
     assert callable(account.signHash)
     assert callable(account.signTransaction)
     assert is_checksum_address(account.address)
-    assert account.address == '0xa79F6f349C853F9Ea0B29636779ae3Cb4E3BA729'
-    assert account.privateKey == PRIVATE_KEY
+    assert account.address == ACCT_ADDRESS
+    assert account.privateKey == PRIVATE_KEY_AS_OBJ
 
 
 def test_eth_account_create_properties(acct):
