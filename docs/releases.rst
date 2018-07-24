@@ -1,6 +1,25 @@
 Release Notes
 =============
 
+v0.3.0
+----------------
+
+Released July 24, 2018
+
+- Support :class:`eth_keys.datatypes.PrivateKey` in params that accept a private key.
+- New docs for :doc:`eth_account.signers`
+- Under the hood: add a new :class:`~eth_account.signers.base.BaseAccount` abstract class, so
+  that upcoming signing classes can implement it (be on the lookout for upcoming hardware wallet
+  support)
+
+v0.2.3
+----------------
+
+Released May 27, 2018
+
+- Implement __eq__ and __hash__ for :class:`~eth_account.signers.local.LocalAccount`, so that
+  accounts can be used in :class:`set`, or as keys in :class:`dict`, etc.
+
 v0.2.2
 ----------------
 
