@@ -7,6 +7,7 @@ import eth_utils
 from eth_utils import (
     to_bytes,
     to_hex,
+    to_int,
 )
 from eth_utils.curried import (
     keccak,
@@ -301,7 +302,7 @@ class LedgerAccount(BaseAccount):
         address = result[offset + 1: offset + 1 + result[offset]]
         address = address.decode()  # Use decode() to convert from bytearray
 
-        return eth_utils.to_normalized_address(address)
+        return eth_utils.to_checksum_address(address)
 
     def get_account_id(self, address, search_limit=20, search_account_id=0):
         '''
@@ -309,7 +310,7 @@ class LedgerAccount(BaseAccount):
         Start search at an account_id. This would allow to search deeper if required.
         Default search_limit at 20 take about 5s to reach.
         '''
-        address = eth_utils.to_normalized_address(address)
+        address = eth_utils.to_checksum_address(address)
 
         for account_id in itertools.count(start=search_account_id):
             if account_id > search_limit:
@@ -378,8 +379,8 @@ class LedgerAccount(BaseAccount):
             'rawTransaction': HexBytes(rlp_encoded),
             'hash': HexBytes(transaction_hash),
             'v': v,
-            'r': to_hex(r),
-            's': to_hex(s),
+            'r': to_int(r),
+            's': to_int(s),
         })
 
     def defunctSignMessage(self, primitive=None, hexstr=None, text=None):
@@ -423,8 +424,8 @@ class LedgerAccount(BaseAccount):
             'messageHash': HexBytes(defunct_hash_message(message_bytes)),
             'signature': HexBytes(to_bytes(r) + to_bytes(s) + to_bytes(v)),
             'v': v,
-            'r': to_hex(r),
-            's': to_hex(s),
+            'r': to_int(r),
+            's': to_int(s),
         })
 
     def get_version(self):
