@@ -51,10 +51,10 @@ class HDAccount(BaseAccount):
 
 
         # Initiate account generator
-        self._accgen = self.__accountGenerator(0)
+        self._accgen = self._accountGenerator(0)
         next(self._accgen)
 
-    def __accountGenerator(self, curindex : int = 0):
+    def _accountGenerator(self, curindex : int = 0):
         ''' This is the account generator used to derive all desired
             children keys. It is ought to be used only internally.
             You can either send None to this generator, in which case it
@@ -86,9 +86,12 @@ class HDAccount(BaseAccount):
 
     def deriveChild(self, cid : int = None) -> HDAccount:
         ''' This function generates a new account by using the
-            __accountGenerator function.
+            __accountGenerator function. You can specify an index.
+            Not specifying an index leads to the usage of the old index + 1
         '''
         # TODO implement this gateway function for __accountGenerator(...)
+        # check if this object is initialized
+        return self.__accgen.send(cid)
 
     def createAccount(self, password : str = "", ent_bits : int = 256) -> str:
         ''' This function initiates an account from scratch
@@ -99,7 +102,7 @@ class HDAccount(BaseAccount):
         # -> 32 Byte priv key | 32 Byte chaindata
         pass       
 
-     @property
+    @property
     def address(self) -> str:
         '''
         The checksummed public address for this account.
