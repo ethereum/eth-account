@@ -21,11 +21,11 @@ class HDAccount(BaseAccount):
     This class manages BIP32 HD-Accounts for Ethereum
     '''
 
-    def __init__(self, privkey : str = "", pubkey : tuple = ("",""), chaindata : str = ""):
+    def __init__(self, privkey: str = "", pubkey: tuple = ("", ""), chaindata: str = ""):
         ''' The object is getting initialized here. You can pass no parameters,
             in which case the object will be created containing no information.
             You can create an account later by calling initAccount(...) in this case.
-            You can pass only a private key and chaindata, in which case the 
+            You can pass only a private key and chaindata, in which case the
             public key will be automatically calculated. You can derive keypairs.
             You can pass only a public key and chaindata, in which case only
             public keys can be derived.
@@ -35,26 +35,25 @@ class HDAccount(BaseAccount):
         # bip32 magic number for derivation of hardened childs
         self.__hardened = 0x80000000
 
-        if (privkey,pubkey,chaindata) == ("",("",""),""):
+        if (privkey,pubkey,chaindata) == ("", ("", ""), ""):
             # create uninitialized account
             self._privkey = self._chaindata = b""
             self._pubkey = (b"", b"")
 
-        elif (privkey,chaindata) != ("",""):
+        elif (privkey,chaindata) != ("", ""):
             # initialize account with a private key and a chaincode
             # TODO
             # TODO derive public key
-
-        elif (pubkey,chaindata) != ("",""):
+            
+        elif (pubkey,chaindata) != ("", ""):
             # initialize account only with a public key and a chaincode
             # TODO
-
-
+            
         # Initiate account generator
         self._accgen = self._accountGenerator(0)
         next(self._accgen)
 
-    def _accountGenerator(self, curindex : int = 0):
+    def _accountGenerator(self, curindex: int = 0):
         ''' This is the account generator used to derive all desired
             children keys. It is ought to be used only internally.
             You can either send None to this generator, in which case it
@@ -65,17 +64,17 @@ class HDAccount(BaseAccount):
         '''
 
         # This variable will contain the object of the last derived child
-        newacc = None;
+        newacc = None
 
         while True:
             cid = yield newacc
 
-            if (cid != None):
-                if (type(cid) != type(1)):
+            if cid is not None:
+                if not isinstance(cid, int):
                     raise TypeError("Invalid child index type. Excepted int")
 
                 curindex = cid
-                
+            
             # TODO derive child into a new HDAccount object
             # z = HMAC-SHA512(chaincode, (maybe hardneed prefix) || compr. pubkey/privkey || index)
             # derivation index = z[:16]
@@ -84,7 +83,7 @@ class HDAccount(BaseAccount):
             # public key: publickey = pubkey ECC_ADD index ECC_MUL generator_point
             curindex += 1
 
-    def deriveChild(self, cid : int = None) -> HDAccount:
+    def deriveChild(self, cid: int = None) -> HDAccount:
         ''' This function generates a new account by using the
             __accountGenerator function. You can specify an index.
             Not specifying an index leads to the usage of the old index + 1
@@ -93,7 +92,7 @@ class HDAccount(BaseAccount):
         # check if this object is initialized
         return self.__accgen.send(cid)
 
-    def createAccount(self, password : str = "", ent_bits : int = 256) -> str:
+    def createAccount(self, password: str = "", ent_bits: int = 256) -> str:
         ''' This function initiates an account from scratch
             After completing the initiation it returns the mnemonic code
         '''
@@ -112,7 +111,7 @@ class HDAccount(BaseAccount):
         '''
         pass
 
-    def signHash(self, message_hash : bytes) -> AttributeDict:
+    def signHash(self, message_hash: bytes) -> AttributeDict:
         '''
         Sign the hash of a message, as in :meth:`~eth_account.account.Account.signHash`
         but without specifying the private key.
@@ -120,7 +119,7 @@ class HDAccount(BaseAccount):
         '''
         pass
 
-    def signTransaction(self, transaction_dict : Mapping) -> AttributeDict:
+    def signTransaction(self, transaction_dict: Mapping) -> AttributeDict:
         '''
         Sign a transaction, as in :meth:`~eth_account.account.Account.signTransaction`
         but without specifying the private key.
