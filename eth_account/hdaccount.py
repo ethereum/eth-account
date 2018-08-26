@@ -22,7 +22,7 @@ class HDAccount(BaseAccount):
     '''
 
     def __init__(self, privkey: str = "", pubkey: tuple = ("", ""), chaindata: str = ""):
-        ''' 
+        '''
         The object is getting initialized here. You can pass no parameters,
         in which case the object will be created containing no information.
         You can create an account later by calling initAccount(...) in this case.
@@ -45,17 +45,19 @@ class HDAccount(BaseAccount):
             # initialize account with a private key and a chaincode
             # TODO
             # TODO derive public key
+            pass
 
         elif (pubkey, chaindata) != ("", ""):
             # initialize account only with a public key and a chaincode
             # TODO
+            pass
 
         # Initiate account generator
         self._accgen = self._accountGenerator(0)
         next(self._accgen)
 
     def _accountGenerator(self, curindex: int = 0):
-        ''' 
+        '''
         This is the account generator used to derive all desired
         children keys. It is ought to be used only internally.
         You can either send None to this generator, in which case it
@@ -76,7 +78,7 @@ class HDAccount(BaseAccount):
                     raise TypeError("Invalid child index type. Excepted int")
 
                 curindex = cid
-            
+
             # TODO derive child into a new HDAccount object
             # z = HMAC-SHA512(chaincode, (maybe hardneed prefix) || compr. pubkey/privkey || index)
             # derivation index = z[:16]
@@ -86,7 +88,7 @@ class HDAccount(BaseAccount):
             curindex += 1
 
     def deriveChild(self, cid: int = None) -> HDAccount:
-        ''' 
+        '''
         This function generates a new account by using the
         __accountGenerator function. You can specify an index.
         Not specifying an index leads to the usage of the old index + 1
