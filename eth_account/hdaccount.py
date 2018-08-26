@@ -22,45 +22,47 @@ class HDAccount(BaseAccount):
     '''
 
     def __init__(self, privkey: str = "", pubkey: tuple = ("", ""), chaindata: str = ""):
-        ''' The object is getting initialized here. You can pass no parameters,
-            in which case the object will be created containing no information.
-            You can create an account later by calling initAccount(...) in this case.
-            You can pass only a private key and chaindata, in which case the
-            public key will be automatically calculated. You can derive keypairs.
-            You can pass only a public key and chaindata, in which case only
-            public keys can be derived.
-            Pass the arguments as hex strings.
+        ''' 
+        The object is getting initialized here. You can pass no parameters,
+        in which case the object will be created containing no information.
+        You can create an account later by calling initAccount(...) in this case.
+        You can pass only a private key and chaindata, in which case the
+        public key will be automatically calculated. You can derive keypairs.
+        You can pass only a public key and chaindata, in which case only
+        public keys can be derived.
+        Pass the arguments as hex strings.
         '''
 
         # bip32 magic number for derivation of hardened childs
         self.__hardened = 0x80000000
 
-        if (privkey,pubkey,chaindata) == ("", ("", ""), ""):
+        if (privkey, pubkey, chaindata) == ("", ("", ""), ""):
             # create uninitialized account
             self._privkey = self._chaindata = b""
             self._pubkey = (b"", b"")
 
-        elif (privkey,chaindata) != ("", ""):
+        elif (privkey, chaindata) != ("", ""):
             # initialize account with a private key and a chaincode
             # TODO
             # TODO derive public key
-            
-        elif (pubkey,chaindata) != ("", ""):
+
+        elif (pubkey, chaindata) != ("", ""):
             # initialize account only with a public key and a chaincode
             # TODO
-            
+
         # Initiate account generator
         self._accgen = self._accountGenerator(0)
         next(self._accgen)
 
     def _accountGenerator(self, curindex: int = 0):
-        ''' This is the account generator used to derive all desired
-            children keys. It is ought to be used only internally.
-            You can either send None to this generator, in which case it
-            just increments the index and returns you the derived child object
-            for that index or you can send an index.
-            If no private key is specified but a public key is specified,
-            the derived child will be derived using only the public key
+        ''' 
+        This is the account generator used to derive all desired
+        children keys. It is ought to be used only internally.
+        You can either send None to this generator, in which case it
+        just increments the index and returns you the derived child object
+        for that index or you can send an index.
+        If no private key is specified but a public key is specified,
+        the derived child will be derived using only the public key
         '''
 
         # This variable will contain the object of the last derived child
@@ -84,22 +86,26 @@ class HDAccount(BaseAccount):
             curindex += 1
 
     def deriveChild(self, cid: int = None) -> HDAccount:
-        ''' This function generates a new account by using the
-            __accountGenerator function. You can specify an index.
-            Not specifying an index leads to the usage of the old index + 1
+        ''' 
+        This function generates a new account by using the
+        __accountGenerator function. You can specify an index.
+        Not specifying an index leads to the usage of the old index + 1
         '''
+
         # TODO implement this gateway function for __accountGenerator(...)
         # check if this object is initialized
         return self.__accgen.send(cid)
 
     def createAccount(self, password: str = "", ent_bits: int = 256) -> str:
-        ''' This function initiates an account from scratch
-            After completing the initiation it returns the mnemonic code
         '''
+        This function initiates an account from scratch
+        After completing the initiation it returns the mnemonic code
+        '''
+
         # TODO random from ent pool -> add checksum -> create mnemonic ->
         # PBKDF2-HMAC-SHA512(mnemonic, pw) -> HMAC-SHA512(u"Bitcoin Seed", rootseed)
         # -> 32 Byte priv key | 32 Byte chaindata
-        pass       
+        pass
 
     @property
     def address(self) -> str:
