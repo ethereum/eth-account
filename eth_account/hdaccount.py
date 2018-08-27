@@ -12,7 +12,6 @@ from hexbytes import (
 from eth_account.datastructures import (
     AttributeDict,
 )
-
 from eth_account.signers.base import (
     BaseAccount,
 )
