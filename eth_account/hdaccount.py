@@ -1,3 +1,4 @@
+'''
 from bitcoin import (
     deterministic,
     mnemonic,
@@ -6,6 +7,7 @@ from bitcoin import (
 from hexbytes import (
     HexBytes,
 )
+'''
 
 from eth_account.datastructures import (
     AttributeDict,
@@ -21,7 +23,8 @@ class HDAccount(BaseAccount):
     This class manages BIP32 HD-Accounts for Ethereum
     '''
 
-    def __init__(self, privkey: str = "", pubkey: tuple = ("", ""), chaindata: str = ""):
+    def __init__(self, privkey: str = "", pubkey: tuple = ("", ""),
+                 chaindata: str = ""):
         '''
         The object is getting initialized here. You can pass no parameters,
         in which case the object will be created containing no information.
@@ -87,7 +90,7 @@ class HDAccount(BaseAccount):
             # public key: publickey = pubkey ECC_ADD index ECC_MUL generator_point
             curindex += 1
 
-    def deriveChild(self, cid: int = None) -> HDAccount:
+    def deriveChild(self, cid: int = None) -> "HDAccount":
         '''
         This function generates a new account by using the
         __accountGenerator function. You can specify an index.
@@ -127,7 +130,7 @@ class HDAccount(BaseAccount):
         '''
         pass
 
-    def signTransaction(self, transaction_dict: Mapping) -> AttributeDict:
+    def signTransaction(self, transaction_dict: dict) -> AttributeDict:
         '''
         Sign a transaction, as in :meth:`~eth_account.account.Account.signTransaction`
         but without specifying the private key.
