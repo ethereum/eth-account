@@ -7,13 +7,12 @@ import os.path
 import random
 
 '''
-This library was included from pybitcointools
+This library was initially included from pybitcointools
 https://github.com/vbuterin/pybitcointools/blob/aeb0a2bbb8bbfe421432d776c649650eaeb882a5/bitcoin/mnemonic.py
-linter and style modifications have been applied
 '''
 
 wordlist_english = open(os.path.join(os.path.dirname(
-                        os.path.realpath(__file__)), 'english.txt'), 'r')
+                        os.path.realpath(__file__)), 'bip39_english.txt'), 'r')
 
 
 def eint_to_bytes(entint, entbits):
