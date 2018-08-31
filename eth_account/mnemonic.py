@@ -1,8 +1,10 @@
+import binascii
+from bisect import (
+    bisect_left,
+)
 import hashlib
 import os.path
-import binascii
 import random
-from bisect import bisect_left
 
 '''
 This library was included from pybitcointools
@@ -33,10 +35,11 @@ def entropy_cs(entbytes):
     return csint, checksum_size
 
 
+# Call this to create a mnemonic phrase.
+# Possible values for entbytes (entropy bytes) are 16, 20, 24, 28 and 32
 def entropy_to_words(entbytes, wordlist=wordlist_english):
-    if(len(entbytes) < 4 or len(entbytes) % 4 != 0):
-        raise ValueError("The size of the entropy must be a multiple of"
-                         "4 bytes (multiple of 32 bits)")
+    if entbytes not in [16, 20, 24, 28, 32]:
+        raise ValueError("entropy must be an element of [16, 20, 24, 28, 32]")
 
     entropy_size = 8 * len(entbytes)
     csint, checksum_size = entropy_cs(entbytes)
@@ -83,6 +86,7 @@ def words_to_mnemonic_int(words, wordlist=wordlist_english):
     return sum([wordlist.index(w) << (11 * x) for x, w in enumerate(words[::-1])])
 
 
+# BIP32 checksum verification
 def words_verify(words, wordlist=wordlist_english):
     if(isinstance(words, str)):
         words = words_split(words, wordlist)
@@ -97,6 +101,7 @@ def words_verify(words, wordlist=wordlist_english):
     return csint == entropy_cs(ebytes)
 
 
+# Derive a root seed which can be used to derive the master private key and chaincode
 def mnemonic_to_seed(mnemonic_phrase, passphrase=b''):
     try:
         from hashlib import pbkdf2_hmac
@@ -131,6 +136,7 @@ def mnemonic_to_seed(mnemonic_phrase, passphrase=b''):
                               salt=b'mnemonic' + passphrase)
 
 
+# Relevant for Electrum style mnemonics
 def words_mine(prefix, entbits, satisfunction, wordlist=wordlist_english,
                randombits=random.getrandbits):
     prefix_bits = len(prefix) * 11
