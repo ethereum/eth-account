@@ -3,9 +3,6 @@ import hmac
 
 from eth_account.hdaccount import (
     pyspecials,
-)
-
-from eth_account.hdaccount import (
     utils,
 )
 

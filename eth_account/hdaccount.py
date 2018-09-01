@@ -1,18 +1,14 @@
 from os import (
     urandom,
 )
-
 from os.path import (
-    join as ojoin,
     dirname,
+    join as ojoin,
     realpath,
 )
 
 from eth_account.datastructures import (
     AttributeDict,
-)
-from eth_account.signers.base import (
-    BaseAccount,
 )
 from eth_account.hdaccount.deterministic import (
     bip32_master_key,
@@ -21,7 +17,9 @@ from eth_account.hdaccount.mnemonic import (
     entropy_to_words,
     mnemonic_to_seed,
 )
-
+from eth_account.signers.base import (
+    BaseAccount,
+)
 
 default_wordlist = ojoin(dirname(realpath(__file__)),
                          'hdaccount/wordlist/bip39_english.txt')
