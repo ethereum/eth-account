@@ -7,7 +7,9 @@ from sys import (
 )
 import time
 
-import pyspecials
+from eth_account.hdaccount import (
+    pyspecials,
+)
 
 # import base64
 # import hmac

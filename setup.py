@@ -43,6 +43,7 @@ setup(
     author='Jason Carver',
     author_email='ethcalibur+pip@gmail.com',
     url='https://github.com/ethereum/eth-account',
+    package_data={'eth_account': ['hdaccount/wordlist/*.txt']},
     include_package_data=True,
     install_requires=[
         "attrdict>=2.0.0,<3",

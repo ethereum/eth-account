@@ -1,8 +1,13 @@
 import hashlib
 import hmac
 
-import pyspecials
-import utils
+from eth_account.hdaccount import (
+    pyspecials,
+)
+
+from eth_account.hdaccount import (
+    utils,
+)
 
 # from binascii import unhexlify
 # Electrum wallets
@@ -116,6 +121,28 @@ def raw_bip32_ckd(rawtuple, i):
     return (vbytes, depth + 1, fingerprint, i, hmac_res[32:], newkey)
 
 
+def raw_bip32_privtopub(rawtuple):
+    vbytes, depth, fingerprint, i, chaincode, key = rawtuple
+    newvbytes = MAINNET_PUBLIC if vbytes == MAINNET_PRIVATE else TESTNET_PUBLIC
+    return (newvbytes, depth, fingerprint, i, chaincode, utils.privtopub(key))
+
+
+def raw_crack_bip32_privkey(parent_pub, priv):
+    vbytes, depth, fingerprint, i, chaincode, key = priv
+    pvbytes, pdepth, pfingerprint, pi, pchaincode, pkey = parent_pub
+    i = int(i)
+
+    if i >= 2**31:
+        raise Exception("Can't crack private derivation!")
+
+    hmac_res = hmac.new(pchaincode, pkey + pyspecials.encode(i, 256, 4), hashlib.sha512).digest()
+
+    pprivkey = utils.subtract_privkeys(key, hmac_res[:32] + b'\x01')
+
+    newvbytes = MAINNET_PRIVATE if vbytes == MAINNET_PUBLIC else TESTNET_PRIVATE
+    return (newvbytes, pdepth, pfingerprint, pi, pchaincode, pprivkey)
+
+
 def bip32_serialize(rawtuple):
     vbytes, depth, fingerprint, i, chaincode, key = rawtuple
     i = pyspecials.encode(i, 256, 4)
@@ -128,8 +155,10 @@ def bip32_serialize(rawtuple):
 
 def bip32_deserialize(data):
     dbin = pyspecials.changebase(data, 58, 256)
+
     if pyspecials.bin_dbl_sha256(dbin[:-4])[:4] != dbin[-4:]:
         raise Exception("Invalid checksum")
+
     vbytes = dbin[0:4]
     depth = pyspecials.from_byte_to_int(dbin[4])
     fingerprint = dbin[5:9]
@@ -137,12 +166,6 @@ def bip32_deserialize(data):
     chaincode = dbin[13:45]
     key = dbin[46:78] + b'\x01' if vbytes in PRIVATE else dbin[45:78]
     return (vbytes, depth, fingerprint, i, chaincode, key)
-
-
-def raw_bip32_privtopub(rawtuple):
-    vbytes, depth, fingerprint, i, chaincode, key = rawtuple
-    newvbytes = MAINNET_PUBLIC if vbytes == MAINNET_PRIVATE else TESTNET_PUBLIC
-    return (newvbytes, depth, fingerprint, i, chaincode, utils.privtopub(key))
 
 
 def bip32_privtopub(data):
@@ -167,25 +190,21 @@ def bip32_bin_extract_key(data):
 def bip32_extract_key(data):
     return pyspecials.safe_hexlify(bip32_deserialize(data)[-1])
 
+
+def bip32_descend(*args):
+    if len(args) == 2 and isinstance(args[1], list):
+        key, path = args
+    else:
+        key, path = args[0], map(int, args[1:])
+
+    for p in path:
+        key = bip32_ckd(key, p)
+
+    return bip32_extract_key(key)
+
 # Exploits the same vulnerability as above in Electrum wallets
 # Takes a BIP32 pubkey and one of the child privkeys of its corresponding
 # privkey and returns the BIP32 privkey associated with that pubkey
-
-
-def raw_crack_bip32_privkey(parent_pub, priv):
-    vbytes, depth, fingerprint, i, chaincode, key = priv
-    pvbytes, pdepth, pfingerprint, pi, pchaincode, pkey = parent_pub
-    i = int(i)
-
-    if i >= 2**31:
-        raise Exception("Can't crack private derivation!")
-
-    hmac_res = hmac.new(pchaincode, pkey + pyspecials.encode(i, 256, 4), hashlib.sha512).digest()
-
-    pprivkey = utils.subtract_privkeys(key, hmac_res[:32] + b'\x01')
-
-    newvbytes = MAINNET_PRIVATE if vbytes == MAINNET_PUBLIC else TESTNET_PRIVATE
-    return (newvbytes, pdepth, pfingerprint, pi, pchaincode, pprivkey)
 
 
 def crack_bip32_privkey(parent_pub, priv):
@@ -210,15 +229,3 @@ def coinvault_priv_to_bip32(*args):
     I2 = ''.join(map(chr, vals[35:67]))
     I3 = ''.join(map(chr, vals[72:104]))
     return bip32_serialize((MAINNET_PRIVATE, 0, b'\x00' * 4, 0, I2, I3 + b'\x01'))
-
-
-def bip32_descend(*args):
-    if len(args) == 2 and isinstance(args[1], list):
-        key, path = args
-    else:
-        key, path = args[0], map(int, args[1:])
-
-    for p in path:
-        key = bip32_ckd(key, p)
-
-    return bip32_extract_key(key)

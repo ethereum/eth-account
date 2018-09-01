@@ -3,16 +3,13 @@ from bisect import (
     bisect_left,
 )
 import hashlib
-import os.path
 import random
+
 
 '''
 This library was initially included from pybitcointools
 https://github.com/vbuterin/pybitcointools/blob/aeb0a2bbb8bbfe421432d776c649650eaeb882a5/bitcoin/mnemonic.py
 '''
-
-wordlist_english = open(os.path.join(os.path.dirname(
-                        os.path.realpath(__file__)), 'bip39_english.txt'), 'r')
 
 
 def eint_to_bytes(entint, entbits):
@@ -21,7 +18,7 @@ def eint_to_bytes(entint, entbits):
     return binascii.unhexlify(a)
 
 
-def mnemonic_int_to_words(mint, mint_num_words, wordlist=wordlist_english):
+def mnemonic_int_to_words(mint, mint_num_words, wordlist):
     backwords = [wordlist[(mint >> (11 * x)) & 0x7FF].strip() for x in range(mint_num_words)]
     return backwords[::-1]
 
@@ -36,8 +33,8 @@ def entropy_cs(entbytes):
 
 # Call this to create a mnemonic phrase.
 # Possible values for entbytes (entropy bytes) are 16, 20, 24, 28 and 32
-def entropy_to_words(entbytes, wordlist=wordlist_english):
-    if entbytes not in [16, 20, 24, 28, 32]:
+def entropy_to_words(entbytes, wordlist):
+    if len(entbytes) not in [16, 20, 24, 28, 32]:
         raise ValueError("entropy must be an element of [16, 20, 24, 28, 32]")
 
     entropy_size = 8 * len(entbytes)
@@ -49,14 +46,14 @@ def entropy_to_words(entbytes, wordlist=wordlist_english):
     return mnemonic_int_to_words(mint, mint_num_words, wordlist)
 
 
-def words_bisect(word, wordlist=wordlist_english):
+def words_bisect(word, wordlist):
     lo = bisect_left(wordlist, word)
     hi = len(wordlist) - bisect_left(wordlist[:lo:-1], word)
 
     return lo, hi
 
 
-def words_split(wordstr, wordlist=wordlist_english):
+def words_split(wordstr, wordlist):
     def popword(wordstr, wordlist):
         for fwl in range(1, 9):
             w = wordstr[:fwl].strip()
@@ -79,14 +76,14 @@ def words_split(wordstr, wordlist=wordlist_english):
     return words
 
 
-def words_to_mnemonic_int(words, wordlist=wordlist_english):
+def words_to_mnemonic_int(words, wordlist):
     if(isinstance(words, str)):
         words = words_split(words, wordlist)
     return sum([wordlist.index(w) << (11 * x) for x, w in enumerate(words[::-1])])
 
 
 # BIP32 checksum verification
-def words_verify(words, wordlist=wordlist_english):
+def words_verify(words, wordlist):
     if(isinstance(words, str)):
         words = words_split(words, wordlist)
 
@@ -105,7 +102,7 @@ def mnemonic_to_seed(mnemonic_phrase, passphrase=b''):
     try:
         from hashlib import pbkdf2_hmac
 
-        def pbkdf2_hmac_sha256(password, salt, iters=2048):
+        def pbkdf2_hmac_sha512(password, salt, iters=2048):
             return pbkdf2_hmac(hash_name='sha512', password=password,
                                salt=salt, iterations=iters)
     except ImportError:
@@ -113,17 +110,16 @@ def mnemonic_to_seed(mnemonic_phrase, passphrase=b''):
             from Crypto.Protocol.KDF import PBKDF2
             from Crypto.Hash import SHA512, HMAC
 
-            def pbkdf2_hmac_sha256(password, salt, iters=2048):
+            def pbkdf2_hmac_sha512(password, salt, iters=2048):
                 return PBKDF2(password=password, salt=salt, dkLen=64,
                               count=iters, prf=lambda p, s:
                               HMAC.new(p, s, SHA512).digest())
         except ImportError:
             try:
-
                 from pbkdf2 import PBKDF2
                 import hmac
 
-                def pbkdf2_hmac_sha256(password, salt, iters=2048):
+                def pbkdf2_hmac_sha512(password, salt, iters=2048):
                     return PBKDF2(password, salt, iterations=iters,
                                   macmodule=hmac,
                                   digestmodule=hashlib.sha512).read(64)
@@ -131,12 +127,12 @@ def mnemonic_to_seed(mnemonic_phrase, passphrase=b''):
             except ImportError:
                 raise RuntimeError("No implementation of pbkdf2 was found!")
 
-    return pbkdf2_hmac_sha256(password=mnemonic_phrase,
+    return pbkdf2_hmac_sha512(password=mnemonic_phrase,
                               salt=b'mnemonic' + passphrase)
 
 
 # Relevant for Electrum style mnemonics
-def words_mine(prefix, entbits, satisfunction, wordlist=wordlist_english,
+def words_mine(prefix, entbits, satisfunction, wordlist,
                randombits=random.getrandbits):
     prefix_bits = len(prefix) * 11
     mine_bits = entbits - prefix_bits
