@@ -169,12 +169,26 @@ class HDAccount(BaseAccount):
         '''
         This function receives a derivation path and returns
         an HDAccount object for the given path
-        :param path     : contains the derivation path, example: "m/12H/1" or [0x8000000C, 1]
+        :param path     : contains the derivation path, either formated as
+                          "(m/)idx_0/.../idx_n" or [idx_0, ..., idx_n]
         :type path      : str or list
         :returns        : HDAccount object for the desired path
         :rtype HDAccount
         '''
-        pass
+
+        if isinstance(path, list):
+            enc_path = path
+        elif isinstance(path, str):
+            enc_path = self.decodePath(path)
+        else:
+            raise TypeError("path must be list or str in format (m/)/idx_1/.../idx_n")
+        
+        hdacc = self
+
+        for idx in enc_path:
+            hdacc = hdacc.deriveChild(idx)
+
+        return hdacc
 
     def createAccount(self, password: str = "", ent_bytes: int = 32, wordlist: str = None) -> str:
         '''
@@ -347,6 +361,7 @@ class HDAccount(BaseAccount):
 # Example on how to use this class
 if __name__ == "__main__":
     # TEST 1: Create empty HDAccount object
+    print("--- TEST 1: Create HDAccount ---\n\n")
     hdacc = HDAccount()
 
     # Create account
@@ -356,17 +371,17 @@ if __name__ == "__main__":
     print("Mnemonic code: {}\nPassword: {}\nKey: {}\n".format(mnemonic, pw, hdacc.key))
 
     # TEST 2: Init account
-    print("Initializing new Account with the same mnemonic and password")
+    print("\n\n--- TEST2: Init account ---\n\n")
     hdacc2 = HDAccount()
     hdacc2.initAccount(mnemonic, pw)
     print("Key: ", hdacc2.key)
 
     # Check if the creation of the account and the initialization share the same result
     assert(hdacc.key == hdacc2.key)
-    print("\n")
 
     # TEST 3: Derive children using an index
     # can we derived an hardened key?
+    print("\n\n--- TEST3: Derive children ---\n\n")
     newacc = hdacc.deriveChild(hardened=True)
     print(newacc)
     # can we set hardened=True twice without the hardened const being added twice?
@@ -382,6 +397,24 @@ if __name__ == "__main__":
     print(newacc2)
 
     # TEST 4: Print empty HDAccount
-    print(HDAccount())
+    # print("\n\n--- TEST4: Print empty children ---\n\n")
+    # print(HDAccount() + "\n")
+
+    # Test 5: Derive account using a path
+    print("\n\n--- TEST 5: Derive path ---\n\n")
+    path_from_test3_list = newacc2._path
+    path_from_test3_str = newacc2.path
+    # path as list
+    newacc3 = HDAccount()
+    newacc3.initAccount(mnemonic, pw)
+    newacc3 = newacc3.derivePath(path_from_test3_list)
+    print(newacc3)
+    assert(newacc3 == newacc2)
+    # path as string
+    newacc3 = HDAccount()
+    newacc3.initAccount(mnemonic, pw)
+    newacc3 = newacc3.derivePath(path_from_test3_str)
+    print(newacc3)
+    assert(newacc3 == newacc2)
 
     print("\nSuccess!\n")
