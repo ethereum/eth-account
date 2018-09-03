@@ -182,7 +182,7 @@ class HDAccount(BaseAccount):
             enc_path = self.decodePath(path)
         else:
             raise TypeError("path must be list or str in format (m/)/idx_1/.../idx_n")
-        
+
         hdacc = self
 
         for idx in enc_path:
