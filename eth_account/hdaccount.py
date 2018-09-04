@@ -6,6 +6,14 @@ from os.path import (
     join as ojoin,
     realpath,
 )
+from eth_keys import (
+    KeyAPI,
+)
+
+
+from eth_account.account import (
+    Account,
+)
 
 from eth_account.datastructures import (
     AttributeDict,
@@ -14,10 +22,15 @@ from eth_account.hdaccount.deterministic import (
     bip32_ckd,
     bip32_deserialize,
     bip32_master_key,
+    bip32_privtopub,
+    PRIVATE,
 )
 from eth_account.hdaccount.mnemonic import (
     entropy_to_words,
     mnemonic_to_seed,
+)
+from eth_account.hdaccount.utils import (
+    decompress,
 )
 from eth_account.signers.base import (
     BaseAccount,
@@ -46,6 +59,9 @@ class HDAccount(BaseAccount):
                                   "idx_0/.../idx_n" or "m/idx_0/.../idx_n"
         '''
 
+        # Magic number for hardened key derivation (see BIP32)
+        self._const_hardened = 0x80000000
+
         # Contains derivation path. The class will automatically fill this
         self._path = []
 
@@ -55,7 +71,7 @@ class HDAccount(BaseAccount):
                     # Throws ValueError if elements are no base10 numbers
                     self._path.append(int(elem))
         elif isinstance(path, str):
-            self._path = self.decodePath()
+            self._path = self.decodePath(path)
         else:
             raise TypeError("path has to be a list or a string")
 
@@ -78,9 +94,6 @@ class HDAccount(BaseAccount):
         # Initiates the account generator
         self.__accgen = self._accountGenerator()
         self.__accgen.send(None)
-
-        # Magic number for hardened key derivation (see BIP32)
-        self._const_hardened = 0x80000000
 
     def _accountGenerator(self, cid: int = 0):
         '''
@@ -126,11 +139,11 @@ class HDAccount(BaseAccount):
             # and only a pubkey is present
             newpath = self._path.copy()
             newpath.append(curindex)
-            newacc = HDAccount(bip32_ckd(self.key, curindex), newpath)
+            newacc = HDAccount(bip32_ckd(self.__key, curindex), newpath)
             # increment index and yield new HDAccount object
             curindex += 1
 
-    def deriveChild(self, cid: int = None, hardened: bool = False) -> "HDAccount":
+    def deriveChild(self, cid=None, hardened=False):
         '''
         This function generates a new account by using the
         __accountGenerator function. You can specify an index.
@@ -139,23 +152,18 @@ class HDAccount(BaseAccount):
                               the previous index + 1
         :param bool hardened: (OPTIONAL) if set to true, 0x80000000 will be added
                               to cid which leads to hardened key derivation.
-        :returns            : HDAccount object for the desired index
         :rtype HDAccount
         '''
 
         # catch invalid argument type error, otherwise it will break our generator
         if cid is not None and not isinstance(cid, int):
-            raise TypeError("Excepted integer as index")
+            raise TypeError("Excepted integer or None as index")
 
         if not isinstance(hardened, bool):
             raise TypeError("Excepted bool for hardened")
 
-        if isinstance(cid, int) and hardened is True:
-            if cid >= self._const_hardened:
-                raise ValueError("child index 0x%x is already >= 0x80000000 "
-                                 "(hardened), but hardened is set to True")
-
-            cid += self._const_hardened
+        if isinstance(cid, int) and hardened is True and not cid >= self._const_hardened:
+                cid += self._const_hardened
 
         if cid is not None and cid < 0:
             raise ValueError("Negative child index not allowed")
@@ -265,6 +273,16 @@ class HDAccount(BaseAccount):
         return [int(elem) if not elem[-1].lower() == 'h' else
                 int(elem[:-1]) + self._const_hardened for elem in pathlist]
 
+    def removePrivateKey(self):
+        '''
+        Removes a private key from this object and replaces it with a public key.
+        From this moment on, only public keys can be derived from this object.
+        '''
+        if (self.__key == ""):
+            return
+
+        self.__key = bip32_privtopub(self.__key)
+
     @property
     def path(self):
         '''
@@ -301,33 +319,99 @@ class HDAccount(BaseAccount):
     @property
     def address(self) -> str:
         '''
-        The checksummed public address for this account.
+        Get the checksummed address of this hd account
+        :returns: the checksummed public address for this account.
+        :rtype  : str
         .. code-block:: python
             >>> my_account.address
             "0xF0109fC8DF283027b6285cc889F5aA624EaC1F55"
         '''
-        pass
 
-    def signHash(self, message_hash: bytes) -> AttributeDict:
+        rawtuple = bip32_deserialize(self.__key)
+
+        key = rawtuple[-1]
+
+        if rawtuple[0] in PRIVATE:
+            # slice the last byte, since it is the WIF-Compressed information
+            key = KeyAPI.PrivateKey(key[:-1]).public_key
+        else:
+            # remove 04 prefix for KeyAPI
+            key = KeyAPI.PublicKey(decompress(key)[1:])
+
+        return key.to_checksum_address()
+
+    def signHash(self, message_hash):
         '''
-        Sign the hash of a message, as in :meth:`~eth_account.account.Account.signHash`
-        but without specifying the private key.
-        :param bytes message_hash: 32 byte hash of the message to sign
+        Sign the hash provided.
+
+        .. WARNING:: *Never* sign a hash that you didn't generate,
+            it can be an arbitrary transaction. For example, it might
+            send all of your account's ether to an attacker.
+
+        If you would like compatibility with
+        :meth:`w3.eth.sign() <web3.eth.Eth.sign>`
+        you can use :meth:`~eth_account.messages.defunct_hash_message`.
+
+        Several other message standards are proposed, but none have a clear
+        consensus. You'll need to manually comply with any of those message standards manually.
+
+        :param message_hash: the 32-byte message hash to be signed
+        :type message_hash: hex str, bytes or int
+        :param private_key: the key to sign the message with
+        :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
+        :returns: Various details about the signature - most
+          importantly the fields: v, r, and s
+        :rtype: ~eth_account.datastructures.AttributeDict
         '''
-        pass
+
+        rawtuple = bip32_deserialize(self.__key)
+
+        if rawtuple[0] in PRIVATE:
+            # slice the last byte, since it is the WIF-Compressed information
+            return Account.signHash(message_hash, rawtuple[5][:-1])
+
+        if bip32_deserialize(self.__key)[0] not in PRIVATE:
+            raise RuntimeError("Cannot sign, only the public key is available")
 
     def signTransaction(self, transaction_dict: dict) -> AttributeDict:
         '''
-        Sign a transaction, as in :meth:`~eth_account.account.Account.signTransaction`
-        but without specifying the private key.
-        :param dict transaction_dict: transaction with all fields specified
+        Sign the hash provided.
+
+        .. WARNING:: *Never* sign a hash that you didn't generate,
+            it can be an arbitrary transaction. For example, it might
+            send all of your account's ether to an attacker.
+
+        If you would like compatibility with
+        :meth:`w3.eth.sign() <web3.eth.Eth.sign>`
+        you can use :meth:`~eth_account.messages.defunct_hash_message`.
+
+        Several other message standards are proposed, but none have a clear
+        consensus. You'll need to manually comply with any of those message standards manually.
+
+        :param message_hash: the 32-byte message hash to be signed
+        :type message_hash: hex str, bytes or int
+        :param private_key: the key to sign the message with
+        :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
+        :returns: Various details about the signature - most
+          importantly the fields: v, r, and s
+        :rtype: ~eth_account.datastructures.AttributeDict
         '''
-        pass
+
+        rawtuple = bip32_deserialize(self.__key)
+
+        if rawtuple[0] in PRIVATE:
+            # slice the last byte, since it is the WIF-Compressed information
+            return Account.signTransaction(transaction_dict, rawtuple[5][:-1])
+
+        if bip32_deserialize(self.__key)[0] not in PRIVATE:
+            raise RuntimeError("Cannot sign, only the public key is available")
 
     def __repr__(self):
         '''
         Representation of this object. Use the output in your code to get
         the same object
+        :returns: string that shows how to get the same object
+        :rtype  : str
         '''
 
         return "eth_account.hdaccount.HDAccount(encoded_key={}, path={})"\
@@ -336,16 +420,20 @@ class HDAccount(BaseAccount):
     def __str__(self):
         '''
         Human readable string represenation of this object
+        :returns: string that represents the object in a human readable format
+        :rtype  : str
         '''
 
-        return "Encoded key: {}\nDerivation Path: {}"\
-            .format(self.key, self.path)
+        return "Encoded key: {}\nChecksummed address: {}\nDerivation Path: {}"\
+            .format(self.key, self.address, self.path)
 
     def __eq__(self, other):
         '''
         Equality test between two accounts.
         Two accounts are considered the same if they are exactly the same type,
         and can sign for the same address.
+        :returns: boolean that indicates whether other is equal to this object
+        :rtype  : bool
         '''
         return type(self) == type(other) and self.key == other.key and \
             self.path == other.path
@@ -353,6 +441,8 @@ class HDAccount(BaseAccount):
     def __hash__(self):
         '''
         Unique hash for this object
+        :returns: unique hash of this object
+        :rtype  : int
         '''
 
         return hash((type(self), self.key, self._path))
@@ -360,7 +450,6 @@ class HDAccount(BaseAccount):
 
 # Example on how to use this class
 if __name__ == "__main__":
-    # TEST 1: Create empty HDAccount object
     print("--- TEST 1: Create HDAccount ---\n\n")
     hdacc = HDAccount()
 
@@ -370,7 +459,6 @@ if __name__ == "__main__":
     mnemonic = hdacc.createAccount(pw)
     print("Mnemonic code: {}\nPassword: {}\nKey: {}\n".format(mnemonic, pw, hdacc.key))
 
-    # TEST 2: Init account
     print("\n\n--- TEST2: Init account ---\n\n")
     hdacc2 = HDAccount()
     hdacc2.initAccount(mnemonic, pw)
@@ -379,7 +467,6 @@ if __name__ == "__main__":
     # Check if the creation of the account and the initialization share the same result
     assert(hdacc.key == hdacc2.key)
 
-    # TEST 3: Derive children using an index
     # can we derived an hardened key?
     print("\n\n--- TEST3: Derive children ---\n\n")
     newacc = hdacc.deriveChild(hardened=True)
@@ -396,11 +483,17 @@ if __name__ == "__main__":
     newacc2 = newacc2.deriveChild(42)
     print(newacc2)
 
-    # TEST 4: Print empty HDAccount
-    # print("\n\n--- TEST4: Print empty children ---\n\n")
-    # print(HDAccount() + "\n")
+    print("\n\n--- TEST4: Remove private key (only public key derivation possible) ---\n\n")
+    pubacc = HDAccount()
+    pubacc.createAccount()
+    # here we derive a child but self.__key is a xprv key
+    pubacc.removePrivateKey()
+    pubacc = pubacc.deriveChild()
+    print(pubacc)
+    # here we derive a child and self.__key is a xpub key
+    pubacc = pubacc.deriveChild(42)
+    print(pubacc)
 
-    # Test 5: Derive account using a path
     print("\n\n--- TEST 5: Derive path ---\n\n")
     path_from_test3_list = newacc2._path
     path_from_test3_str = newacc2.path
@@ -417,4 +510,35 @@ if __name__ == "__main__":
     print(newacc3)
     assert(newacc3 == newacc2)
 
+    print("\n\n--- TEST 6: Get address from xprv and xpub encoded keys ---\n\n")
+
+    print(newacc3.address)
+    print(pubacc.address)
     print("\nSuccess!\n")
+
+    print("\n\n--- TEST 7: Sign message hash ---\n\n")
+    randnum = urandom(32)
+    msg = hex(int.from_bytes(randnum, "big"))
+    print("signing key : %s" % newacc3.key)
+    print("hash to sign: %s" % msg)
+    print("Result:")
+    print(newacc3.signHash(msg))
+
+    print("\n\n--- TEST 8: Create and sign Transaction ---\n\n")
+    testkey = "xprv9y8Gw5q3qFv42CiuohDV6L8gY9VHjs74dMKos2pVp74vyHFRiTHwPHFDAEgz" \
+              "YDYDQYEh2yahi4Jga6qQn3q45yzvPcPibUaKNRrkTbsDHkK"
+    testpath = "m/1H/1/42"
+    testacc = HDAccount(testkey, testpath)
+    transaction = {
+        'to': '0xF0109fC8DF283027b6285cc889F5aA624EaC1F55',
+        'value': 1000000000,
+        'gas': 21000,
+        'gasPrice': 2000000000,
+        'nonce': 0,
+        'chainId': 4
+    }
+    print(testacc)
+    print("transaction to sign: ")
+    print(transaction)
+    print("Signed Transaction:")
+    print(testacc.signTransaction(transaction))

@@ -120,6 +120,10 @@ def raw_bip32_ckd(rawtuple, i):
 
 def raw_bip32_privtopub(rawtuple):
     vbytes, depth, fingerprint, i, chaincode, key = rawtuple
+    
+    if vbytes in PUBLIC:
+        return (vbytes, depth, fingerprint, i, chaincode, key)
+
     newvbytes = MAINNET_PUBLIC if vbytes == MAINNET_PRIVATE else TESTNET_PUBLIC
     return (newvbytes, depth, fingerprint, i, chaincode, utils.privtopub(key))
 
@@ -188,7 +192,7 @@ def bip32_bin_extract_key(data):
 def bip32_extract_key(data):
     return pyspecials.safe_hexlify(bip32_deserialize(data)[-1])
 
-
+'''
 def bip32_descend(*args):
     if len(args) == 2 and isinstance(args[1], list):
         key, path = args
@@ -199,12 +203,14 @@ def bip32_descend(*args):
         key = bip32_ckd(key, p)
 
     return bip32_extract_key(key)
+'''
 
 # Exploits the same vulnerability as above in Electrum wallets
 # Takes a BIP32 pubkey and one of the child privkeys of its corresponding
 # privkey and returns the BIP32 privkey associated with that pubkey
 
 
+'''
 def crack_bip32_privkey(parent_pub, priv):
     dsppub = bip32_deserialize(parent_pub)
     dspriv = bip32_deserialize(priv)
@@ -227,3 +233,4 @@ def coinvault_priv_to_bip32(*args):
     I2 = ''.join(map(chr, vals[35:67]))
     I3 = ''.join(map(chr, vals[72:104]))
     return bip32_serialize((MAINNET_PRIVATE, 0, b'\x00' * 4, 0, I2, I3 + b'\x01'))
+'''
