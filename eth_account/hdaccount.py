@@ -6,10 +6,10 @@ from os.path import (
     join as ojoin,
     realpath,
 )
-
 from eth_account.account import (
     Account,
 )
+
 from eth_account.datastructures import (
     AttributeDict,
 )
