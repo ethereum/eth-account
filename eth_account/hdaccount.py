@@ -427,7 +427,7 @@ class HDAccount(BaseAccount):
 
     def __eq__(self, other):
         '''
-        Equality test between two accounts. 
+        Equality test between two accounts.
         Two accounts are considered the same if they are exactly the same type,
         and can sign for the same address.
         :returns: boolean that indicates whether other is equal to this object
