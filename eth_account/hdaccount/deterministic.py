@@ -120,7 +120,7 @@ def raw_bip32_ckd(rawtuple, i):
 
 def raw_bip32_privtopub(rawtuple):
     vbytes, depth, fingerprint, i, chaincode, key = rawtuple
-    
+
     if vbytes in PUBLIC:
         return (vbytes, depth, fingerprint, i, chaincode, key)
 
@@ -191,6 +191,7 @@ def bip32_bin_extract_key(data):
 
 def bip32_extract_key(data):
     return pyspecials.safe_hexlify(bip32_deserialize(data)[-1])
+
 
 '''
 def bip32_descend(*args):
