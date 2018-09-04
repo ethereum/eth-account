@@ -153,15 +153,23 @@ def words_mine(prefix, entbits, satisfunction, wordlist,
 
 if __name__ == "__main__":
     import json
-
-    testvectors = json.load(open('vectors.json', 'r'))
+    import os
+    thisdir = os.path.dirname(os.path.realpath(__file__))
+    vectors = os.path.join(thisdir, "vectors.json")
+    wordlist = os.path.join(thisdir, "wordlist/bip39_english.txt")
+    testvectors = json.load(open(vectors, 'r'))
     passed = True
+
+    with open(wordlist, 'r') as fwordlist:
+        wlcnt = fwordlist.readlines()
 
     for v in testvectors['english']:
         ebytes = binascii.unhexlify(v[0])
-        w = ' '.join(entropy_to_words(ebytes))
-        seed = mnemonic_to_seed(w, passphrase='TREZOR')
+        w = ' '.join(entropy_to_words(ebytes, wlcnt))
+        seed = mnemonic_to_seed(w.encode("utf-8"), 'TREZOR'.encode("utf-8"))
+        # print("our seed: %s" % binascii.hexlify(seed).decode("utf-8"))
+        # print("testvector: %s" % v[2])
         passed = passed and w == v[1]
-        passed = passed and binascii.hexlify(seed) == v[2]
+        passed = passed and binascii.hexlify(seed).decode("utf-8") == v[2]
 
-    print("Tests %s." % ("Passed" if passed else "Failed"))
+    print("Test %s" % ("Passed" if passed else "Failed"))

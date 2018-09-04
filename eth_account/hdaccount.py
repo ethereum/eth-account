@@ -1,6 +1,4 @@
-from eth_keys import (
-    KeyAPI,
-)
+from math import ceil
 from os import (
     urandom,
 )
@@ -12,9 +10,6 @@ from os.path import (
 
 from eth_account.account import (
     Account,
-)
-from eth_account.datastructures import (
-    AttributeDict,
 )
 from eth_account.hdaccount.deterministic import (
     PRIVATE,
@@ -33,9 +28,12 @@ from eth_account.hdaccount.utils import (
 from eth_account.signers.base import (
     BaseAccount,
 )
+from eth_keys import (
+    KeyAPI,
+)
 
 default_wordlist = ojoin(dirname(realpath(__file__)),
-                         'hdaccount/wordlist/bip39_english.txt')
+                         "hdaccount/wordlist/bip39_english.txt")
 
 
 class HDAccount(BaseAccount):
@@ -43,7 +41,7 @@ class HDAccount(BaseAccount):
     This class manages BIP32 HD-Accounts for Ethereum
     '''
 
-    def __init__(self, encoded_key: str = "", path=[]):
+    def __init__(self, encoded_key="", path=[]):
         '''
         Constructor for this class. Initializes an hd account generator and
         if possible the encoded key and the derivation path. If no arguments are
@@ -93,7 +91,7 @@ class HDAccount(BaseAccount):
         self.__accgen = self._accountGenerator()
         self.__accgen.send(None)
 
-    def _accountGenerator(self, cid: int = 0):
+    def _accountGenerator(self, cid=0):
         '''
         This is the account generator used to derive all desired
         children keys. It is ought to be used only internally.
@@ -171,7 +169,7 @@ class HDAccount(BaseAccount):
 
         return self.__accgen.send(cid)
 
-    def derivePath(self, path) -> "HDAccount":
+    def derivePath(self, path):
         '''
         This function receives a derivation path and returns
         an HDAccount object for the given path
@@ -196,7 +194,7 @@ class HDAccount(BaseAccount):
 
         return hdacc
 
-    def createAccount(self, password: str = "", ent_bytes: int = 32, wordlist: str = None) -> str:
+    def createAccount(self, password="", ent_bytes=32, wordlist=None):
         '''
         This function initiates an account from scratch
         After completing the initiation it returns the mnemonic code
@@ -222,7 +220,7 @@ class HDAccount(BaseAccount):
         self.initAccount(mnemonic, password)
         return " ".join(mnemonic)
 
-    def initAccount(self, mnemonic, password: str = ""):
+    def initAccount(self, mnemonic="", password="", seed=b''):
         '''
         This function initiates an account by using a mnemonic code
         and an optional password
@@ -230,20 +228,40 @@ class HDAccount(BaseAccount):
         :type mnemonic      : str or list
         :param str password : (OPTIONAL) the password required to successfully
                               derive the master keys from the mnemonic code
+        :param seed         : the seed to derive the master key from (alternative)
+        :type seed          : str (hex formated) or bytes
         '''
 
-        if isinstance(mnemonic, str):
-            seed = mnemonic_to_seed(mnemonic.encode("utf-8"), password.encode("utf-8"))
-        elif isinstance(mnemonic, list):
-            seed = mnemonic_to_seed(" ".join(mnemonic).encode("utf-8"), password.encode("utf-8"))
+        if not (isinstance(mnemonic, str) or isinstance(mnemonic, list)) \
+           or not isinstance(password, str):
+            raise TypeError("Mnemonic has to be formated as a list or a string "
+                            " and password as string")
+
+        if not isinstance(seed, str) and not isinstance(seed, bytes):
+            raise TypeError("Seed has to be a string or bytes")
+
+        if (mnemonic != "" and seed != b'') or (mnemonic == "" and seed == b''):
+            raise ValueError("Either a mnemonic or a seed has to be defined")
+
+        if mnemonic != "":
+            if isinstance(mnemonic, str):
+                drvseed = mnemonic_to_seed(mnemonic.encode("utf-8"), password.encode("utf-8"))
+            else:
+                drvseed = mnemonic_to_seed(" ".join(mnemonic).encode("utf-8"),
+                                           password.encode("utf-8"))
         else:
-            raise TypeError("Mnemonic has to be formated as a list or a string")
+            if isinstance(seed, bytes):
+                drvseed = seed
+            else:
+                lenbytes = ceil(len(seed[2:]) / 2) if seed.startswith("0x") \
+                    else ceil(len(seed) / 2)
+                drvseed = int(seed, 16).to_bytes(lenbytes, "big")
 
         # Create seed from mnemonic and derive key (in bip32 serialization format)
-        self.__key = bip32_master_key(seed)
+        self.__key = bip32_master_key(drvseed)
         self._path = []
 
-    def decodePath(self, path: str):
+    def decodePath(self, path):
         '''
         Converts the default string representation of a path to the internal
         representation using a list.
@@ -298,6 +316,9 @@ class HDAccount(BaseAccount):
         if self.__key != "":
             depth = bip32_deserialize(self.__key)[1]
 
+        if depth == 0:
+            return "m"
+
         # Full path available, so we can start with "m/"
         if depth == len(self._path):
             return "m/" + "/".join(converted_ints)
@@ -315,7 +336,7 @@ class HDAccount(BaseAccount):
         return self.__key
 
     @property
-    def address(self) -> str:
+    def address(self):
         '''
         Get the checksummed address of this hd account
         :returns: the checksummed public address for this account.
@@ -371,7 +392,7 @@ class HDAccount(BaseAccount):
         if bip32_deserialize(self.__key)[0] not in PRIVATE:
             raise RuntimeError("Cannot sign, only the public key is available")
 
-    def signTransaction(self, transaction_dict: dict) -> AttributeDict:
+    def signTransaction(self, transaction_dict):
         '''
         Sign the hash provided.
 
@@ -446,7 +467,7 @@ class HDAccount(BaseAccount):
         return hash((type(self), self.key, self._path))
 
 
-# Example on how to use this class
+# Simple tests
 if __name__ == "__main__":
     print("--- TEST 1: Create HDAccount ---\n\n")
     hdacc = HDAccount()
@@ -540,3 +561,135 @@ if __name__ == "__main__":
     print(transaction)
     print("Signed Transaction:")
     print(testacc.signTransaction(transaction))
+
+    print("\n\n--- TEST 9: BIP32 Testvector 1 ---\n\n")
+    rootseed1 = "000102030405060708090a0b0c0d0e0f"
+    testvector1 = [
+        {
+            "path": 'm',
+            "xpub": "xpub661MyMwAqRbcFtXgS5sYJABqqG9YLmC4Q1Rdap9gSE8NqtwybGhePY2gZ29ES"
+                    "FjqJoCu1Rupje8YtGqsefD265TMg7usUDFdp6W1EGMcet8",
+            "xprv": "xprv9s21ZrQH143K3QTDL4LXw2F7HEK3wJUD2nW2nRk4stbPy6cq3jPPqjiChkVvv"
+                    "NKmPGJxWUtg6LnF5kejMRNNU3TGtRBeJgk33yuGBxrMPHi"
+        }, {
+            "path": "m/0H",
+            "xpub": "xpub68Gmy5EdvgibQVfPdqkBBCHxA5htiqg55crXYuXoQRKfDBFA1WEjWgP6LHhwB"
+                    "ZeNK1VTsfTFUHCdrfp1bgwQ9xv5ski8PX9rL2dZXvgGDnw",
+            "xprv": "xprv9uHRZZhk6KAJC1avXpDAp4MDc3sQKNxDiPvvkX8Br5ngLNv1TxvUxt4cV1rGL"
+                    "5hj6KCesnDYUhd7oWgT11eZG7XnxHrnYeSvkzY7d2bhkJ7"
+        }, {
+            "path": "m/0H/1",
+            "xpub": "xpub6ASuArnXKPbfEwhqN6e3mwBcDTgzisQN1wXN9BJcM47sSikHjJf3UFHKkNAWb"
+                    "WMiGj7Wf5uMash7SyYq527Hqck2AxYysAA7xmALppuCkwQ",
+            "xprv": "xprv9wTYmMFdV23N2TdNG573QoEsfRrWKQgWeibmLntzniatZvR9BmLnvSxqu53Kw"
+                    "1UmYPxLgboyZQaXwTCg8MSY3H2EU4pWcQDnRnrVA1xe8fs"
+        }, {
+            "path": "m/0H/1/2H",
+            "xpub": "xpub6D4BDPcP2GT577Vvch3R8wDkScZWzQzMMUm3PWbmWvVJrZwQY4VUNgqFJPMM3"
+                    "No2dFDFGTsxxpG5uJh7n7epu4trkrX7x7DogT5Uv6fcLW5",
+            "xprv": "xprv9z4pot5VBttmtdRTWfWQmoH1taj2axGVzFqSb8C9xaxKymcFzXBDptWmT7Fwu"
+                    "EzG3ryjH4ktypQSAewRiNMjANTtpgP4mLTj34bhnZX7UiM"
+        }, {
+            "path": "m/0H/1/2H/2",
+            "xpub": "xpub6FHa3pjLCk84BayeJxFW2SP4XRrFd1JYnxeLeU8EqN3vDfZmbqBqaGJAyiLjT"
+                    "Awm6ZLRQUMv1ZACTj37sR62cfN7fe5JnJ7dh8zL4fiyLHV",
+            "xprv": "xprvA2JDeKCSNNZky6uBCviVfJSKyQ1mDYahRjijr5idH2WwLsEd4Hsb2Tyh8RfQM"
+                    "uPh7f7RtyzTtdrbdqqsunu5Mm3wDvUAKRHSC34sJ7in334"
+        }, {
+            "path": "m/0H/1/2H/2/1000000000",
+            "xpub": "xpub6H1LXWLaKsWFhvm6RVpEL9P4KfRZSW7abD2ttkWP3SSQvnyA8FSVqNTEc"
+                    "YFgJS2UaFcxupHiYkro49S8yGasTvXEYBVPamhGW6cFJodrTHy",
+            "xprv": "xprvA41z7zogVVwxVSgdKUHDy1SKmdb533PjDz7J6N6mV6uS3ze1ai8FHa8km"
+                    "HScGpWmj4WggLyQjgPie1rFSruoUihUZREPSL39UNdE3BBDu76"
+        }
+    ]
+
+    rootacc = HDAccount()
+    rootacc.initAccount(seed=rootseed1)
+
+    for vector in testvector1:
+        vectoracc = rootacc.derivePath(vector["path"])
+        assert(vectoracc.key == vector["xprv"])
+        assert(bip32_privtopub(vectoracc.key) == vector["xpub"])
+
+    print("Success!")
+
+    print("\n\n--- TEST 10: BIP32 Testvector 2 ---\n\n")
+    rootseed2 = "fffcf9f6f3f0edeae7e4e1dedbd8d5d2cfccc9c6c3c0bdbab7b4b1aeaba8a5a29f9c"\
+                "999693908d8a8784817e7b7875726f6c696663605d5a5754514e4b484542"
+    testvector2 = [
+        {
+            "path": 'm',
+            "xpub": "xpub661MyMwAqRbcFW31YEwpkMuc5THy2PSt5bDMsktWQcFF8syAmRUapSCGu"
+                    "8ED9W6oDMSgv6Zz8idoc4a6mr8BDzTJY47LJhkJ8UB7WEGuduB",
+            "xprv": "xprv9s21ZrQH143K31xYSDQpPDxsXRTUcvj2iNHm5NUtrGiGG5e2DtALGdso3p"
+                    "Gz6ssrdK4PFmM8NSpSBHNqPqm55Qn3LqFtT2emdEXVYsCzC2U"
+        }, {
+            "path": "m/0",
+            "xpub": "xpub69H7F5d8KSRgmmdJg2KhpAK8SR3DjMwAdkxj3ZuxV27CprR9LgpeyGmXU"
+                    "bC6wb7ERfvrnKZjXoUmmDznezpbZb7ap6r1D3tgFxHmwMkQTPH",
+            "xprv": "xprv9vHkqa6EV4sPZHYqZznhT2NPtPCjKuDKGY38FBWLvgaDx45zo9WQRUT3d"
+                    "KYnjwih2yJD9mkrocEZXo1ex8G81dwSM1fwqWpWkeS3v86pgKt"
+        }, {
+            "path": "m/0/2147483647H",
+            "xpub": "xpub6ASAVgeehLbnwdqV6UKMHVzgqAG8Gr6riv3Fxxpj8ksbH9ebxaEyBLZ85"
+                    "ySDhKiLDBrQSARLq1uNRts8RuJiHjaDMBU4Zn9h8LZNnBC5y4a",
+            "xprv": "xprv9wSp6B7kry3Vj9m1zSnLvN3xH8RdsPP1Mh7fAaR7aRLcQMKTR2vidYEeE"
+                    "g2mUCTAwCd6vnxVrcjfy2kRgVsFawNzmjuHc2YmYRmagcEPdU9"
+        }, {
+            "path": "m/0/2147483647H/1",
+            "xpub": "xpub6DF8uhdarytz3FWdA8TvFSvvAh8dP3283MY7p2V4SeE2wyWmG5mg5EwVv"
+                    "mdMVCQcoNJxGoWaU9DCWh89LojfZ537wTfunKau47EL2dhHKon",
+            "xprv": "xprv9zFnWC6h2cLgpmSA46vutJzBcfJ8yaJGg8cX1e5StJh45BBciYTRXSd25"
+                    "UEPVuesF9yog62tGAQtHjXajPPdbRCHuWS6T8XA2ECKADdw4Ef"
+        }, {
+            "path": "m/0/2147483647H/1/2147483646H",
+            "xpub": "xpub6ERApfZwUNrhLCkDtcHTcxd75RbzS1ed54G1LkBUHQVHQKqhMkhgbmJbZ"
+                    "RkrgZw4koxb5JaHWkY4ALHY2grBGRjaDMzQLcgJvLJuZZvRcEL",
+            "xprv": "xprvA1RpRA33e1JQ7ifknakTFpgNXPmW2YvmhqLQYMmrj4xJXXWYpDPS3xz7i"
+                    "Axn8L39njGVyuoseXzU6rcxFLJ8HFsTjSyQbLYnMpCqE2VbFWc"
+        }, {
+            "path": "m/0/2147483647H/1/2147483646H/2",
+            "xpub": "xpub6FnCn6nSzZAw5Tw7cgR9bi15UV96gLZhjDstkXXxvCLsUXBGXPdSnLFbd"
+                    "pq8p9HmGsApME5hQTZ3emM2rnY5agb9rXpVGyy3bdW6EEgAtqt",
+            "xprv": "xprvA2nrNbFZABcdryreWet9Ea4LvTJcGsqrMzxHx98MMrotbir7yrKCEXw7n"
+                    "adnHM8Dq38EGfSh6dqA9QWTyefMLEcBYJUuekgW4BYPJcr9E7j"
+        }
+    ]
+
+    rootacc.initAccount(seed=rootseed2)
+
+    for vector in testvector2:
+        vectoracc = rootacc.derivePath(vector["path"])
+        assert(vectoracc.key == vector["xprv"])
+        assert(bip32_privtopub(vectoracc.key) == vector["xpub"])
+
+    print("Success!")
+
+    print("\n\n--- TEST 11: BIP32 Testvector 3 ---\n\n")
+    rootseed3 = "4b381541583be4423346c643850da4b320e46a87ae3d2a4e6da11eba819cd4acba45"\
+                "d239319ac14f863b8d5ab5a0d0c64d2e8a1e7d1457df2e5a3c51c73235be"
+    testvector3 = [
+        {
+            "path": 'm',
+            "xpub": "xpub661MyMwAqRbcEZVB4dScxMAdx6d4nFc9nvyvH3v4gJL378CSRZiYmhRoP"
+                    "7mBy6gSPSCYk6SzXPTf3ND1cZAceL7SfJ1Z3GC8vBgp2epUt13",
+            "xprv": "xprv9s21ZrQH143K25QhxbucbDDuQ4naNntJRi4KUfWT7xo4EKsHt2QJDu7KX"
+                    "p1A3u7Bi1j8ph3EGsZ9Xvz9dGuVrtHHs7pXeTzjuxBrCmmhgC6"
+        }, {
+            "path": "m/0H",
+            "xpub": "xpub68NZiKmJWnxxS6aaHmn81bvJeTESw724CRDs6HbuccFQN9Ku14VQrADWg"
+                    "qbhhTHBaohPX4CjNLf9fq9MYo6oDaPPLPxSb7gwQN3ih19Zm4Y",
+            "xprv": "xprv9uPDJpEQgRQfDcW7BkF7eTya6RPxXeJCqCJGHuCJ4GiRVLzkTXBAJMu2q"
+                    "aMWPrS7AANYqdq6vcBcBUdJCVVFceUvJFjaPdGZ2y9WACViL4L"
+        }
+    ]
+
+    rootacc.initAccount(seed=rootseed3)
+
+    for vector in testvector3:
+        vectoracc = rootacc.derivePath(vector["path"])
+        assert(vectoracc.key == vector["xprv"])
+        assert(bip32_privtopub(vectoracc.key) == vector["xpub"])
+
+    print("All tests were successful!")
