@@ -1,3 +1,6 @@
+from eth_keys import (
+    KeyAPI,
+)
 from os import (
     urandom,
 )
@@ -5,9 +8,6 @@ from os.path import (
     dirname,
     join as ojoin,
     realpath,
-)
-from eth_keys import (
-    KeyAPI,
 )
 
 from eth_account.account import (
