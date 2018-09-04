@@ -6,10 +6,13 @@ from os.path import (
     join as ojoin,
     realpath,
 )
+from eth_keys import (
+    KeyAPI,
+)
+
 from eth_account.account import (
     Account,
 )
-
 from eth_account.datastructures import (
     AttributeDict,
 )
@@ -29,9 +32,6 @@ from eth_account.hdaccount.utils import (
 )
 from eth_account.signers.base import (
     BaseAccount,
-)
-from eth_keys import (
-    KeyAPI,
 )
 
 default_wordlist = ojoin(dirname(realpath(__file__)),
