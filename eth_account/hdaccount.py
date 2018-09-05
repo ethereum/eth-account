@@ -12,11 +12,11 @@ from eth_account.account import (
     Account,
 )
 from eth_account.hdaccount.deterministic import (
+    PRIVATE,
     bip32_ckd,
     bip32_deserialize,
     bip32_master_key,
     bip32_privtopub,
-    PRIVATE,
 )
 from eth_account.hdaccount.mnemonic import (
     entropy_to_words,
