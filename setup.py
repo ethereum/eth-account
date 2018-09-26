@@ -6,6 +6,9 @@ from setuptools import (
 )
 
 extras_require={
+    'ledger': [
+        "hidapi>=0.7.99",
+    ],
     'test': [
         "pytest==3.3.2",
         "tox>=2.9.1,<3",
