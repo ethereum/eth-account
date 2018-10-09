@@ -16,6 +16,7 @@ from eth_utils.curried import (
     apply_one_of_formatters,
     hexstr_if_str,
     is_0x_prefixed,
+    is_binary_address,
     is_bytes,
     is_checksum_address,
     is_integer,
@@ -66,16 +67,12 @@ def is_int_or_prefixed_hexstr(val):
 def is_empty_or_checksum_address(val):
     if val in {None, b'', ''}:
         return True
-    elif is_valid_address_bytes(val):
+    elif is_binary_address(val):
         return True
     elif is_checksum_address(val):
         return True
     else:
         return False
-
-
-def is_valid_address_bytes(val):
-    return isinstance(val, bytes) and len(val) == 20
 
 
 def is_none(val):
