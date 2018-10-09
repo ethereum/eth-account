@@ -392,7 +392,6 @@ class Account(object):
         .. code-block:: python
 
             >>> transaction = {
-                    # Note that the address must be in checksum format:
                     'to': '0xF0109fC8DF283027b6285cc889F5aA624EaC1F55',
                     'value': 1000000000,
                     'gas': 2000000,
