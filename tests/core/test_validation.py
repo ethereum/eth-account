@@ -29,7 +29,8 @@ TEST_PRIVATE_KEY = b'\0' * 32
         (dict(GOOD_TXN, to='0xf0109Fc8df283027B6285CC889f5Aa624eAc1f55'), {'to'}),
         (dict(GOOD_TXN, to='0x' + '00' * 19), {'to'}),
         (dict(GOOD_TXN, to='0x' + '00' * 21), {'to'}),
-        (dict(GOOD_TXN, to=b'\0' * 20), {'to'}),
+        (dict(GOOD_TXN, to=b'\0' * 20), {}),
+        (dict(GOOD_TXN, to=b'\0' * 21), {'to'}),
         # from with the right address is allowed
         (assoc(GOOD_TXN, 'from', '0x3f17f1962B36e491b30A40b2405849e597Ba5FB5'), {}),
         # from with a non-checksum address is not
