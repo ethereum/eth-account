@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import os
 import pytest
 
 from cytoolz import (
@@ -18,6 +19,7 @@ from hexbytes import (
     HexBytes,
 )
 
+import eth_account
 from eth_account import (
     Account,
 )
@@ -95,6 +97,22 @@ def web3js_password():
 @pytest.fixture
 def acct(request):
     return Account
+
+
+def test_eth_account_default_kdf():
+    assert eth_account.account.defaultKDF == 'scrypt'
+
+
+def test_eth_account_default_kdf_from_env():
+    import importlib
+    os.environ['ETH_ACCOUNT_KDF'] = 'pbkdf2'
+    importlib.reload(eth_account.account)
+    assert eth_account.account.defaultKDF == 'pbkdf2'
+
+    # This is done to ensure we use the default (scrypt)
+    # KDF for subsequent tests
+    # del os.environ['ETH_ACCOUNT_KDF']
+    # importlib.reload(eth_account.account)
 
 
 def test_eth_account_create_variation(acct):
@@ -409,26 +427,41 @@ def test_eth_account_recover_transaction_from_eth_test(acct, transaction):
 
 
 @pytest.mark.parametrize(
-    'private_key, password, expected_decrypted_key',
+    'private_key, password, kdf, expected_decrypted_key, expected_kdf',
     [
         (
             web3js_key(),
             web3js_password(),
+            None,
             to_bytes(hexstr=web3js_key()),
+            'scrypt'
+        ),
+        (
+            web3js_key(),
+            web3js_password(),
+            'pbkdf2',
+            to_bytes(hexstr=web3js_key()),
+            'pbkdf2'
         ),
         (
             web3js_private_key(web3js_key()),
             web3js_password(),
+            None,
             web3js_private_key(web3js_key()).to_bytes(),
+            'scrypt'
         ),
     ],
-    ids=['hex_str', 'eth_keys.datatypes.PrivateKey']
+    ids=['hex_str', 'hex_str_provided_kdf', 'eth_keys.datatypes.PrivateKey']
 )
-def test_eth_account_encrypt(acct, private_key, password, expected_decrypted_key):
-    encrypted = acct.encrypt(private_key, password)
+def test_eth_account_encrypt(acct, private_key, password, kdf, expected_decrypted_key, expected_kdf):  # noqa: E501
+    if kdf is None:
+        encrypted = acct.encrypt(private_key, password)
+    else:
+        encrypted = acct.encrypt(private_key, password, kdf)
 
     assert encrypted['address'] == '2c7536e3605d9c16a7a3d7b1898e529396a65c23'
     assert encrypted['version'] == 3
+    assert encrypted['crypto']['kdf'] == expected_kdf
 
     decrypted_key = acct.decrypt(encrypted, password)
 
@@ -436,27 +469,39 @@ def test_eth_account_encrypt(acct, private_key, password, expected_decrypted_key
 
 
 @pytest.mark.parametrize(
-    'private_key, password, expected_decrypted_key',
+    'private_key, password, kdf, expected_decrypted_key, expected_kdf',
     [
         (
             web3js_key(),
             web3js_password(),
+            None,
             HexBytes(to_bytes(hexstr=web3js_key())),
+            'scrypt'
         ),
         (
             web3js_private_key(web3js_key()),
             web3js_password(),
+            'pbkdf2',
+            HexBytes(to_bytes(hexstr=web3js_key())),
+            'pbkdf2'
+        ),
+        (
+            web3js_private_key(web3js_key()),
+            web3js_password(),
+            None,
             web3js_private_key(web3js_key()).to_bytes(),
+            'scrypt'
         ),
     ],
-    ids=['hex_str', 'eth_keys.datatypes.PrivateKey']
+    ids=['hex_str', 'hex_str_provided_kdf', 'eth_keys.datatypes.PrivateKey']
 )
-def test_eth_account_prepared_encrypt(acct, private_key, password, expected_decrypted_key):
+def test_eth_account_prepared_encrypt(acct, private_key, password, kdf, expected_decrypted_key, expected_kdf):  # noqa: E501
     account = acct.privateKeyToAccount(private_key)
-    encrypted = account.encrypt(password)
+    encrypted = account.encrypt(password) if kdf is None else account.encrypt(password, kdf)
 
     assert encrypted['address'] == '2c7536e3605d9c16a7a3d7b1898e529396a65c23'
     assert encrypted['version'] == 3
+    assert encrypted['crypto']['kdf'] == expected_kdf
 
     decrypted_key = acct.decrypt(encrypted, password)
 
