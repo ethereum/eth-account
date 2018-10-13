@@ -3,10 +3,6 @@ from collections import (
 )
 import json
 import os
-import sys
-from types import (
-    ModuleType,
-)
 
 from cytoolz import (
     dissoc,
@@ -54,25 +50,12 @@ from eth_account.signers.local import (
 )
 
 
-class _AccountModule(ModuleType):
+class Account(object):
 
     '''
     TODO - Documentation
     '''
-    _defaultKDF = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
-
-    @property
-    def defaultKDF(self):
-        '''
-        TODO - Documentation
-        '''
-        return type(self)._defaultKDF
-
-
-sys.modules[__name__].__class__ = _AccountModule
-
-
-class Account(object):
+    default_kdf = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
 
     '''
     This is the primary entry point for working with Ethereum private keys.
@@ -151,7 +134,7 @@ class Account(object):
 
     # TODO - Update documentation to reflect new KDF param
     @staticmethod
-    def encrypt(private_key, password, kdf=getattr(sys.modules[__module__], 'defaultKDF')):  # noqa: E501,F821
+    def encrypt(private_key, password, kdf=None):
         '''
         Creates a dictionary with an encrypted version of your private key.
         To import this keyfile into Ethereum clients like geth and parity:
@@ -192,6 +175,9 @@ class Account(object):
             key_bytes = private_key.to_bytes()
         else:
             key_bytes = HexBytes(private_key)
+
+        if kdf is None:
+            kdf = __class__.default_kdf  # noqa: F821
 
         password_bytes = text_if_str(to_bytes, password)
         assert len(key_bytes) == 32

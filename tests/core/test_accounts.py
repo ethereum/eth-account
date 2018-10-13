@@ -19,7 +19,6 @@ from hexbytes import (
     HexBytes,
 )
 
-import eth_account
 from eth_account import (
     Account,
 )
@@ -99,20 +98,17 @@ def acct(request):
     return Account
 
 
-def test_eth_account_default_kdf():
-    assert eth_account.account.defaultKDF == 'scrypt'
+def test_eth_account_default_kdf(acct, monkeypatch):
+    assert os.getenv('ETH_ACCOUNT_KDF') is None
+    assert acct.default_kdf == 'scrypt'
 
+    monkeypatch.setenv('ETH_ACCOUNT_KDF', 'pbkdf2')
+    assert os.getenv('ETH_ACCOUNT_KDF') == 'pbkdf2'
 
-def test_eth_account_default_kdf_from_env():
     import importlib
-    os.environ['ETH_ACCOUNT_KDF'] = 'pbkdf2'
-    importlib.reload(eth_account.account)
-    assert eth_account.account.defaultKDF == 'pbkdf2'
-
-    # This is done to ensure we use the default (scrypt)
-    # KDF for subsequent tests
-    # del os.environ['ETH_ACCOUNT_KDF']
-    # importlib.reload(eth_account.account)
+    from eth_account import account
+    importlib.reload(account)
+    assert account.Account.default_kdf == 'pbkdf2'
 
 
 def test_eth_account_create_variation(acct):
@@ -453,7 +449,13 @@ def test_eth_account_recover_transaction_from_eth_test(acct, transaction):
     ],
     ids=['hex_str', 'hex_str_provided_kdf', 'eth_keys.datatypes.PrivateKey']
 )
-def test_eth_account_encrypt(acct, private_key, password, kdf, expected_decrypted_key, expected_kdf):  # noqa: E501
+def test_eth_account_encrypt(
+        acct,
+        private_key,
+        password,
+        kdf,
+        expected_decrypted_key,
+        expected_kdf):
     if kdf is None:
         encrypted = acct.encrypt(private_key, password)
     else:
@@ -495,9 +497,19 @@ def test_eth_account_encrypt(acct, private_key, password, kdf, expected_decrypte
     ],
     ids=['hex_str', 'hex_str_provided_kdf', 'eth_keys.datatypes.PrivateKey']
 )
-def test_eth_account_prepared_encrypt(acct, private_key, password, kdf, expected_decrypted_key, expected_kdf):  # noqa: E501
+def test_eth_account_prepared_encrypt(
+        acct,
+        private_key,
+        password,
+        kdf,
+        expected_decrypted_key,
+        expected_kdf):
     account = acct.privateKeyToAccount(private_key)
-    encrypted = account.encrypt(password) if kdf is None else account.encrypt(password, kdf)
+
+    if kdf is None:
+        encrypted = account.encrypt(password)
+    else:
+        encrypted = account.encrypt(password, kdf)
 
     assert encrypted['address'] == '2c7536e3605d9c16a7a3d7b1898e529396a65c23'
     assert encrypted['version'] == 3
