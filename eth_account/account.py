@@ -51,7 +51,6 @@ from eth_account.signers.local import (
 
 
 class Account(object):
-
     '''
     This is the primary entry point for working with Ethereum private keys.
 
@@ -134,7 +133,6 @@ class Account(object):
         password_bytes = text_if_str(to_bytes, password)
         return HexBytes(decode_keyfile_json(keyfile, password_bytes))
 
-    # TODO - Update documentation to reflect new KDF param
     @staticmethod
     def encrypt(private_key, password, kdf=None):
         '''
