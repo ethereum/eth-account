@@ -26,7 +26,7 @@ class LocalAccount(BaseAccount):
     def __init__(self, key, account):
         '''
         :param eth_keys.PrivateKey key: to prefill in private key execution
-        :param web3.account.Account account: the key-unaware management API
+        :param ~eth_account.account.Account account: the key-unaware management API
         '''
         self._publicapi = account
 
@@ -48,12 +48,15 @@ class LocalAccount(BaseAccount):
         '''
         return self._privateKey
 
-    def encrypt(self, password):
+    def encrypt(self, password, kdf=None):
         '''
         Generate a string with the encrypted key, as in
         :meth:`~eth_account.account.Account.encrypt`, but without a private key argument.
         '''
-        return self._publicapi.encrypt(self.privateKey, password)
+        if kdf is None:
+            return self._publicapi.encrypt(self.privateKey, password)
+        else:
+            return self._publicapi.encrypt(self.privateKey, password, kdf)
 
     def signHash(self, message_hash):
         return self._publicapi.signHash(

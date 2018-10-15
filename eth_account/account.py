@@ -58,6 +58,13 @@ class Account(object):
     '''
     _keys = keys
 
+    default_kdf = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
+    '''
+    The default key deriviation function (KDF) to use when encrypting a private key. If the
+    environment variable :envvar:`ETH_ACCOUNT_KDF` is set, it's value will be used as the default.
+    Otherwise, 'scrypt' will be used as the default.
+    '''
+
     @combomethod
     def create(self, extra_entropy=''):
         '''
@@ -127,7 +134,7 @@ class Account(object):
         return HexBytes(decode_keyfile_json(keyfile, password_bytes))
 
     @staticmethod
-    def encrypt(private_key, password):
+    def encrypt(private_key, password, kdf=None):
         '''
         Creates a dictionary with an encrypted version of your private key.
         To import this keyfile into Ethereum clients like geth and parity:
@@ -137,6 +144,7 @@ class Account(object):
         :param private_key: The raw private key
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :param str password: The password which you will need to unlock the account in your client
+        :param str kdf: The key derivation function to use when encrypting your private key
         :returns: The data to use in your encrypted file
         :rtype: dict
 
@@ -148,18 +156,27 @@ class Account(object):
                 getpass.getpass()
             )
 
-            {'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
-             'crypto': {'cipher': 'aes-128-ctr',
-              'cipherparams': {'iv': '78f214584844e0b241b433d7c3bb8d5f'},
-              'ciphertext': 'd6dbb56e4f54ba6db2e8dc14df17cb7352fdce03681dd3f90ce4b6c1d5af2c4f',
-              'kdf': 'pbkdf2',
-              'kdfparams': {'c': 1000000,
-               'dklen': 32,
-               'prf': 'hmac-sha256',
-               'salt': '45cf943b4de2c05c2c440ef96af914a2'},
-              'mac': 'f5e1af09df5ded25c96fcf075ada313fb6f79735a914adc8cb02e8ddee7813c3'},
-             'id': 'b812f3f9-78cc-462a-9e89-74418aa27cb0',
-             'version': 3}
+            {
+                'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
+                'crypto': {
+                    'cipher': 'aes-128-ctr',
+                    'cipherparams': {
+                        'iv': '0b7845a5c3597d3d378bde9b7c7319b7'
+                    },
+                    'ciphertext': 'a494f1feb3c854e99c1ff01e6aaa17d43c0752009073503b908457dc8de5d2a5',  # noqa: E501
+                    'kdf': 'scrypt',
+                    'kdfparams': {
+                        'dklen': 32,
+                        'n': 262144,
+                        'p': 8,
+                        'r': 1,
+                        'salt': '13c4a48123affaa29189e9097726c698'
+                    },
+                    'mac': 'f4cfb027eb0af9bd7a320b4374a3fa7bef02cfbafe0ec5d1fd7ad129401de0b1'
+                },
+                'id': 'a60e0578-0e5b-4a75-b991-d55ec6451a6f',
+                'version': 3
+            }
 
              >>> with open('my-keyfile', 'w') as f:
                  f.write(json.dumps(encrypted))
@@ -169,9 +186,12 @@ class Account(object):
         else:
             key_bytes = HexBytes(private_key)
 
+        if kdf is None:
+            kdf = __class__.default_kdf  # noqa: F821
+
         password_bytes = text_if_str(to_bytes, password)
         assert len(key_bytes) == 32
-        return create_keyfile_json(key_bytes, password_bytes)
+        return create_keyfile_json(key_bytes, password_bytes, kdf=kdf)
 
     @combomethod
     def privateKeyToAccount(self, private_key):
