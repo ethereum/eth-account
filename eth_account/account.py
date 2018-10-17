@@ -133,8 +133,8 @@ class Account(object):
         password_bytes = text_if_str(to_bytes, password)
         return HexBytes(decode_keyfile_json(keyfile, password_bytes))
 
-    @staticmethod
-    def encrypt(private_key, password, kdf=None):
+    @classmethod
+    def encrypt(cls, private_key, password, kdf=None):
         '''
         Creates a dictionary with an encrypted version of your private key.
         To import this keyfile into Ethereum clients like geth and parity:
@@ -187,7 +187,7 @@ class Account(object):
             key_bytes = HexBytes(private_key)
 
         if kdf is None:
-            kdf = __class__.default_kdf  # noqa: F821
+            kdf = cls.default_kdf
 
         password_bytes = text_if_str(to_bytes, password)
         assert len(key_bytes) == 32
