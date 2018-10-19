@@ -1,7 +1,6 @@
 from cytoolz import (
     pipe,
 )
-
 from eth_account._utils.transactions import (
     ChainAwareUnsignedTransaction,
     UnsignedTransaction,
@@ -9,7 +8,6 @@ from eth_account._utils.transactions import (
     serializable_unsigned_transaction_from_dict,
     strip_signature,
 )
-
 from eth_utils import (
     to_bytes,
     to_int,
