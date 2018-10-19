@@ -9,7 +9,7 @@ from hexbytes import (
     HexBytes,
 )
 
-from eth_account.internal.signing import (
+from eth_account._utils.signing import (
     signature_wrapper,
 )
 
