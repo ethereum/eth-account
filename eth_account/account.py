@@ -31,9 +31,6 @@ from hexbytes import (
     HexBytes,
 )
 
-from eth_account.datastructures import (
-    AttributeDict,
-)
 from eth_account._utils.signing import (
     hash_of_signed_transaction,
     sign_message_hash,
@@ -44,6 +41,9 @@ from eth_account._utils.signing import (
 from eth_account._utils.transactions import (
     Transaction,
     vrs_from,
+)
+from eth_account.datastructures import (
+    AttributeDict,
 )
 from eth_account.signers.local import (
     LocalAccount,
