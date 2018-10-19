@@ -34,14 +34,14 @@ from hexbytes import (
 from eth_account.datastructures import (
     AttributeDict,
 )
-from eth_account.internal.signing import (
+from eth_account._utils.signing import (
     hash_of_signed_transaction,
     sign_message_hash,
     sign_transaction_dict,
     to_standard_signature_bytes,
     to_standard_v,
 )
-from eth_account.internal.transactions import (
+from eth_account._utils.transactions import (
     Transaction,
     vrs_from,
 )
