@@ -106,21 +106,21 @@ class Account(object):
         .. code-block:: python
 
             >>> encrypted = {
-             'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
-             'crypto': {'cipher': 'aes-128-ctr',
-              'cipherparams': {'iv': '78f214584844e0b241b433d7c3bb8d5f'},
-              'ciphertext': 'd6dbb56e4f54ba6db2e8dc14df17cb7352fdce03681dd3f90ce4b6c1d5af2c4f',
-              'kdf': 'pbkdf2',
-              'kdfparams': {'c': 1000000,
-               'dklen': 32,
-               'prf': 'hmac-sha256',
-               'salt': '45cf943b4de2c05c2c440ef96af914a2'},
-              'mac': 'f5e1af09df5ded25c96fcf075ada313fb6f79735a914adc8cb02e8ddee7813c3'},
-             'id': 'b812f3f9-78cc-462a-9e89-74418aa27cb0',
-             'version': 3}
+            ... 'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
+            ... 'crypto': {'cipher': 'aes-128-ctr',
+            ...  'cipherparams': {'iv': '78f214584844e0b241b433d7c3bb8d5f'},
+            ...  'ciphertext': 'd6dbb56e4f54ba6db2e8dc14df17cb7352fdce03681dd3f90ce4b6c1d5af2c4f',
+            ...  'kdf': 'pbkdf2',
+            ...  'kdfparams': {'c': 1000000,
+            ...   'dklen': 32,
+            ...   'prf': 'hmac-sha256',
+            ...   'salt': '45cf943b4de2c05c2c440ef96af914a2'},
+            ...  'mac': 'f5e1af09df5ded25c96fcf075ada313fb6f79735a914adc8cb02e8ddee7813c3'},
+            ... 'id': 'b812f3f9-78cc-462a-9e89-74418aa27cb0',
+            ... 'version': 3}
 
             >>> import getpass
-            >>> Account.decrypt(encrypted, getpass.getpass())
+            >>> Account.decrypt(encrypted, getpass.getpass()) # doctest: +SKIP
             HexBytes('0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364')
 
         """
@@ -156,11 +156,10 @@ class Account(object):
         .. code-block:: python
 
             >>> import getpass
-            >>> encrypted = Account.encrypt(
-                0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364,
-                getpass.getpass()
-            )
-
+            >>> encrypted = Account.encrypt( # doctest: +SKIP
+            ...     0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364,
+            ...     getpass.getpass()
+            ... )
             {
                 'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
                 'crypto': {
@@ -183,8 +182,8 @@ class Account(object):
                 'version': 3
             }
 
-             >>> with open('my-keyfile', 'w') as f:
-                 f.write(json.dumps(encrypted))
+            >>> with open('my-keyfile', 'w') as f: # doctest: +SKIP
+            ...    f.write(json.dumps(encrypted))
         """
         if isinstance(private_key, keys.PrivateKey):
             key_bytes = private_key.to_bytes()
