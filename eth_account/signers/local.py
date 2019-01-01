@@ -48,7 +48,7 @@ class LocalAccount(BaseAccount):
         '''
         return self._privateKey
 
-    def encrypt(self, password, kdf=None):
+    def encrypt(self, password, kdf=None, iterations=None):
         '''
         Generate a string with the encrypted key, as in
         :meth:`~eth_account.account.Account.encrypt`, but without a private key argument.
@@ -56,7 +56,12 @@ class LocalAccount(BaseAccount):
         if kdf is None:
             return self._publicapi.encrypt(self.privateKey, password)
         else:
-            return self._publicapi.encrypt(self.privateKey, password, kdf)
+            return self._publicapi.encrypt(
+                self.privateKey,
+                password,
+                kdf=kdf,
+                iterations=iterations
+            )
 
     def signHash(self, message_hash):
         return self._publicapi.signHash(

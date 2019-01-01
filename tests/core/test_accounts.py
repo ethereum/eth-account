@@ -428,11 +428,12 @@ def encrypt_mark_params():
     public_key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
     password = 'test!'
 
-    # 'private_key, password, kdf, expected_decrypted_key, expected_kdf'
+    # 'private_key, password, kdf, iterations, expected_decrypted_key, expected_kdf'
     return [
         (
             public_key,
             password,
+            None,
             None,
             to_bytes(hexstr=public_key),
             'scrypt'
@@ -441,6 +442,7 @@ def encrypt_mark_params():
             public_key,
             password,
             'pbkdf2',
+            None,
             to_bytes(hexstr=public_key),
             'pbkdf2'
         ),
@@ -448,28 +450,52 @@ def encrypt_mark_params():
             keys.PrivateKey(HexBytes(public_key)),
             password,
             None,
+            None,
             keys.PrivateKey(HexBytes(public_key)).to_bytes(),
+            'scrypt'
+        ),
+        (
+            public_key,
+            password,
+            'pbkdf2',
+            2000000,
+            to_bytes(hexstr=public_key),
+            'pbkdf2'
+        ),
+        (
+            public_key,
+            password,
+            'scrypt',
+            524288,
+            to_bytes(hexstr=public_key),
             'scrypt'
         ),
     ]
 
 
 @pytest.mark.parametrize(
-    'private_key, password, kdf, expected_decrypted_key, expected_kdf',
+    'private_key, password, kdf, iterations, expected_decrypted_key, expected_kdf',
     encrypt_mark_params(),
-    ids=['hex_str', 'hex_str_provided_kdf', 'eth_keys.datatypes.PrivateKey']
+    ids=[
+        'hex_str',
+        'hex_str_provided_kdf',
+        'eth_keys.datatypes.PrivateKey',
+        'hex_str_pbkdf2_provided_iterations',
+        'hex_str_scrypt_provided_iterations',
+    ]
 )
 def test_eth_account_encrypt(
         acct,
         private_key,
         password,
         kdf,
+        iterations,
         expected_decrypted_key,
         expected_kdf):
     if kdf is None:
-        encrypted = acct.encrypt(private_key, password)
+        encrypted = acct.encrypt(private_key, password, iterations=iterations)
     else:
-        encrypted = acct.encrypt(private_key, password, kdf)
+        encrypted = acct.encrypt(private_key, password, kdf=kdf, iterations=iterations)
 
     assert encrypted['address'] == '2c7536e3605d9c16a7a3d7b1898e529396a65c23'
     assert encrypted['version'] == 3
@@ -481,23 +507,30 @@ def test_eth_account_encrypt(
 
 
 @pytest.mark.parametrize(
-    'private_key, password, kdf, expected_decrypted_key, expected_kdf',
+    'private_key, password, kdf, iterations, expected_decrypted_key, expected_kdf',
     encrypt_mark_params(),
-    ids=['hex_str', 'hex_str_provided_kdf', 'eth_keys.datatypes.PrivateKey']
+    ids=[
+        'hex_str',
+        'hex_str_provided_kdf',
+        'eth_keys.datatypes.PrivateKey',
+        'hex_str_pbkdf2_provided_iterations',
+        'hex_str_scrypt_provided_iterations',
+    ]
 )
 def test_eth_account_prepared_encrypt(
         acct,
         private_key,
         password,
         kdf,
+        iterations,
         expected_decrypted_key,
         expected_kdf):
     account = acct.privateKeyToAccount(private_key)
 
     if kdf is None:
-        encrypted = account.encrypt(password)
+        encrypted = account.encrypt(password, iterations=iterations)
     else:
-        encrypted = account.encrypt(password, kdf)
+        encrypted = account.encrypt(password, kdf=kdf, iterations=iterations)
 
     assert encrypted['address'] == '2c7536e3605d9c16a7a3d7b1898e529396a65c23'
     assert encrypted['version'] == 3
