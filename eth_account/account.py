@@ -145,7 +145,7 @@ class Account(object):
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :param str password: The password which you will need to unlock the account in your client
         :param str kdf: The key derivation function to use when encrypting your private key
-        :param str iterations: The work factor for the key derivation function
+        :param int iterations: The work factor for the key derivation function
         :returns: The data to use in your encrypted file
         :rtype: dict
 
