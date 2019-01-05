@@ -91,21 +91,6 @@ def PRIVATE_KEY_ALT(request):
 
 
 @pytest.fixture
-def web3js_key():
-    return '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
-
-
-@pytest.fixture
-def web3js_private_key(web3js_key):
-    return keys.PrivateKey(HexBytes(web3js_key))
-
-
-@pytest.fixture
-def web3js_password():
-    return 'test!'
-
-
-@pytest.fixture
 def acct(request):
     return Account
 
@@ -434,31 +419,44 @@ def test_eth_account_recover_transaction_from_eth_test(acct, transaction):
     assert acct.recoverTransaction(raw_txn) == expected_sender
 
 
-@pytest.mark.parametrize(
-    'private_key, password, kdf, expected_decrypted_key, expected_kdf',
-    [
+def encrypt_mark_params():
+    """
+    Params for testing Account#encrypt. Due to not being able to provie fixtures to
+    pytest.mark.parameterize, we opt for creating the params in a non-fixture method
+    here instead of providing fixtures for the public key, password, and private key.
+    """
+    public_key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+    password = 'test!'
+
+    # 'private_key, password, kdf, expected_decrypted_key, expected_kdf'
+    return [
         (
-            web3js_key(),
-            web3js_password(),
+            public_key,
+            password,
             None,
-            to_bytes(hexstr=web3js_key()),
+            to_bytes(hexstr=public_key),
             'scrypt'
         ),
         (
-            web3js_key(),
-            web3js_password(),
+            public_key,
+            password,
             'pbkdf2',
-            to_bytes(hexstr=web3js_key()),
+            to_bytes(hexstr=public_key),
             'pbkdf2'
         ),
         (
-            web3js_private_key(web3js_key()),
-            web3js_password(),
+            keys.PrivateKey(HexBytes(public_key)),
+            password,
             None,
-            web3js_private_key(web3js_key()).to_bytes(),
+            keys.PrivateKey(HexBytes(public_key)).to_bytes(),
             'scrypt'
         ),
-    ],
+    ]
+
+
+@pytest.mark.parametrize(
+    'private_key, password, kdf, expected_decrypted_key, expected_kdf',
+    encrypt_mark_params(),
     ids=['hex_str', 'hex_str_provided_kdf', 'eth_keys.datatypes.PrivateKey']
 )
 def test_eth_account_encrypt(
@@ -484,29 +482,7 @@ def test_eth_account_encrypt(
 
 @pytest.mark.parametrize(
     'private_key, password, kdf, expected_decrypted_key, expected_kdf',
-    [
-        (
-            web3js_key(),
-            web3js_password(),
-            None,
-            HexBytes(to_bytes(hexstr=web3js_key())),
-            'scrypt'
-        ),
-        (
-            web3js_private_key(web3js_key()),
-            web3js_password(),
-            'pbkdf2',
-            HexBytes(to_bytes(hexstr=web3js_key())),
-            'pbkdf2'
-        ),
-        (
-            web3js_private_key(web3js_key()),
-            web3js_password(),
-            None,
-            web3js_private_key(web3js_key()).to_bytes(),
-            'scrypt'
-        ),
-    ],
+    encrypt_mark_params(),
     ids=['hex_str', 'hex_str_provided_kdf', 'eth_keys.datatypes.PrivateKey']
 )
 def test_eth_account_prepared_encrypt(
