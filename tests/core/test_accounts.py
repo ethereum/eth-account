@@ -419,7 +419,7 @@ def test_eth_account_recover_transaction_from_eth_test(acct, transaction):
     assert acct.recoverTransaction(raw_txn) == expected_sender
 
 
-def encrypt_mark_params():
+def get_encrypt_test_params():
     """
     Params for testing Account#encrypt. Due to not being able to provie fixtures to
     pytest.mark.parameterize, we opt for creating the params in a non-fixture method
@@ -458,7 +458,7 @@ def encrypt_mark_params():
             public_key,
             password,
             'pbkdf2',
-            2000000,
+            1024,
             to_bytes(hexstr=public_key),
             'pbkdf2'
         ),
@@ -466,7 +466,7 @@ def encrypt_mark_params():
             public_key,
             password,
             'scrypt',
-            524288,
+            1024,
             to_bytes(hexstr=public_key),
             'scrypt'
         ),
@@ -475,7 +475,7 @@ def encrypt_mark_params():
 
 @pytest.mark.parametrize(
     'private_key, password, kdf, iterations, expected_decrypted_key, expected_kdf',
-    encrypt_mark_params(),
+    get_encrypt_test_params(),
     ids=[
         'hex_str',
         'hex_str_provided_kdf',
@@ -508,7 +508,7 @@ def test_eth_account_encrypt(
 
 @pytest.mark.parametrize(
     'private_key, password, kdf, iterations, expected_decrypted_key, expected_kdf',
-    encrypt_mark_params(),
+    get_encrypt_test_params(),
     ids=[
         'hex_str',
         'hex_str_provided_kdf',
