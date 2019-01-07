@@ -193,10 +193,7 @@ class Account(object):
         password_bytes = text_if_str(to_bytes, password)
         assert len(key_bytes) == 32
 
-        if iterations is None:
-            return create_keyfile_json(key_bytes, password_bytes, kdf=kdf)
-        else:
-            return create_keyfile_json(key_bytes, password_bytes, kdf=kdf, iterations=iterations)
+        return create_keyfile_json(key_bytes, password_bytes, kdf=kdf, iterations=iterations)
 
     @combomethod
     def privateKeyToAccount(self, private_key):
