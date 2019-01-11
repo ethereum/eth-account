@@ -6,6 +6,9 @@ import pytest
 from cytoolz import (
     dissoc,
 )
+from eth_keyfile.keyfile import (
+    get_default_work_factor_for_kdf,
+)
 from eth_keys import (
     keys,
 )
@@ -419,61 +422,110 @@ def test_eth_account_recover_transaction_from_eth_test(acct, transaction):
     assert acct.recoverTransaction(raw_txn) == expected_sender
 
 
-def encrypt_mark_params():
+def get_encrypt_test_params():
     """
-    Params for testing Account#encrypt. Due to not being able to provie fixtures to
+    Params for testing Account#encrypt. Due to not being able to provide fixtures to
     pytest.mark.parameterize, we opt for creating the params in a non-fixture method
-    here instead of providing fixtures for the public key, password, and private key.
+    here instead of providing fixtures for the private key and password.
     """
-    public_key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+    key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+    key_bytes = to_bytes(hexstr=key)
+    private_key = keys.PrivateKey(HexBytes(key))
     password = 'test!'
 
-    # 'private_key, password, kdf, expected_decrypted_key, expected_kdf'
+    # 'private_key, password, kdf, iterations, expected_decrypted_key, expected_kdf'
     return [
         (
-            public_key,
+            key,
             password,
             None,
-            to_bytes(hexstr=public_key),
+            None,
+            key_bytes,
             'scrypt'
         ),
         (
-            public_key,
+            private_key,
+            password,
+            None,
+            None,
+            private_key.to_bytes(),
+            'scrypt'
+        ),
+        (
+            key,
             password,
             'pbkdf2',
-            to_bytes(hexstr=public_key),
+            None,
+            key_bytes,
             'pbkdf2'
         ),
         (
-            keys.PrivateKey(HexBytes(public_key)),
+            key,
             password,
             None,
-            keys.PrivateKey(HexBytes(public_key)).to_bytes(),
+            1024,
+            key_bytes,
+            'scrypt'
+        ),
+        (
+            key,
+            password,
+            'pbkdf2',
+            1024,
+            key_bytes,
+            'pbkdf2'
+        ),
+        (
+            key,
+            password,
+            'scrypt',
+            1024,
+            key_bytes,
             'scrypt'
         ),
     ]
 
 
 @pytest.mark.parametrize(
-    'private_key, password, kdf, expected_decrypted_key, expected_kdf',
-    encrypt_mark_params(),
-    ids=['hex_str', 'hex_str_provided_kdf', 'eth_keys.datatypes.PrivateKey']
+    'private_key, password, kdf, iterations, expected_decrypted_key, expected_kdf',
+    get_encrypt_test_params(),
+    ids=[
+        'hex_str',
+        'eth_keys.datatypes.PrivateKey',
+        'hex_str_provided_kdf',
+        'hex_str_default_kdf_provided_iterations',
+        'hex_str_pbkdf2_provided_iterations',
+        'hex_str_scrypt_provided_iterations',
+    ]
 )
 def test_eth_account_encrypt(
         acct,
         private_key,
         password,
         kdf,
+        iterations,
         expected_decrypted_key,
         expected_kdf):
     if kdf is None:
-        encrypted = acct.encrypt(private_key, password)
+        encrypted = acct.encrypt(private_key, password, iterations=iterations)
     else:
-        encrypted = acct.encrypt(private_key, password, kdf)
+        encrypted = acct.encrypt(private_key, password, kdf=kdf, iterations=iterations)
 
     assert encrypted['address'] == '2c7536e3605d9c16a7a3d7b1898e529396a65c23'
     assert encrypted['version'] == 3
     assert encrypted['crypto']['kdf'] == expected_kdf
+
+    if iterations is None:
+        expected_iterations = get_default_work_factor_for_kdf(expected_kdf)
+    else:
+        expected_iterations = iterations
+
+    if expected_kdf == 'pbkdf2':
+        assert encrypted['crypto']['kdfparams']['c'] == expected_iterations
+    elif expected_kdf == 'scrypt':
+        assert encrypted['crypto']['kdfparams']['n'] == expected_iterations
+    else:
+        raise Exception("test must be upgraded to confirm iterations with kdf %s" % expected_kdf)
 
     decrypted_key = acct.decrypt(encrypted, password)
 
@@ -481,27 +533,47 @@ def test_eth_account_encrypt(
 
 
 @pytest.mark.parametrize(
-    'private_key, password, kdf, expected_decrypted_key, expected_kdf',
-    encrypt_mark_params(),
-    ids=['hex_str', 'hex_str_provided_kdf', 'eth_keys.datatypes.PrivateKey']
+    'private_key, password, kdf, iterations, expected_decrypted_key, expected_kdf',
+    get_encrypt_test_params(),
+    ids=[
+        'hex_str',
+        'eth_keys.datatypes.PrivateKey',
+        'hex_str_provided_kdf',
+        'hex_str_default_kdf_provided_iterations',
+        'hex_str_pbkdf2_provided_iterations',
+        'hex_str_scrypt_provided_iterations',
+    ]
 )
 def test_eth_account_prepared_encrypt(
         acct,
         private_key,
         password,
         kdf,
+        iterations,
         expected_decrypted_key,
         expected_kdf):
     account = acct.privateKeyToAccount(private_key)
 
     if kdf is None:
-        encrypted = account.encrypt(password)
+        encrypted = account.encrypt(password, iterations=iterations)
     else:
-        encrypted = account.encrypt(password, kdf)
+        encrypted = account.encrypt(password, kdf=kdf, iterations=iterations)
 
     assert encrypted['address'] == '2c7536e3605d9c16a7a3d7b1898e529396a65c23'
     assert encrypted['version'] == 3
     assert encrypted['crypto']['kdf'] == expected_kdf
+
+    if iterations is None:
+        expected_iterations = get_default_work_factor_for_kdf(expected_kdf)
+    else:
+        expected_iterations = iterations
+
+    if expected_kdf == 'pbkdf2':
+        assert encrypted['crypto']['kdfparams']['c'] == expected_iterations
+    elif expected_kdf == 'scrypt':
+        assert encrypted['crypto']['kdfparams']['n'] == expected_iterations
+    else:
+        raise Exception("test must be upgraded to confirm iterations with kdf %s" % expected_kdf)
 
     decrypted_key = acct.decrypt(encrypted, password)
 
