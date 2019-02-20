@@ -322,6 +322,19 @@ def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, 
     assert account.signHash(msghash) == signed
 
 
+def test_eth_account_sign_data_with_intended_validator(acct):
+    account = acct.create()
+    hashed_msg = defunct_hash_message(
+        text="hello world",
+        signature_version=b'\x00',
+        version_specific_data=account.address,
+    )
+    signed = acct.signHash(hashed_msg, account.privateKey)
+
+    new_addr = Account.recoverHash(hashed_msg, signature=signed.signature)
+    assert new_addr == account.address
+
+
 @pytest.mark.parametrize(
     'txn, private_key, expected_raw_tx, tx_hash, r, s, v',
     (
