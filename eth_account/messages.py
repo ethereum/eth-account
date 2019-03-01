@@ -15,8 +15,8 @@ from eth_account._utils.signing import (
 
 
 def defunct_hash_message(
-        *,
         primitive=None,
+        *,
         hexstr=None,
         text=None,
         signature_version=b'E',
@@ -24,21 +24,20 @@ def defunct_hash_message(
     '''
     Convert the provided message into a message hash, to be signed.
     This provides the same prefix and hashing approach as
-    :meth:`w3.eth.sign() <web3.eth.Eth.sign>`. The message will by default
-    be prepended with text defined in EIP-191 as
-    version 'E': ``b'\\x19Ethereum Signed Message:\\n'``
+    :meth:`w3.eth.sign() <web3.eth.Eth.sign>`.
+    Currently you can only specify the ``signature_version`` as following.
+    version ``0x45`` (version ``E``): ``b'\\x19Ethereum Signed Message:\\n'``
     concatenated with the number of bytes in the message.
-    You can also specify the ``signature_version`` as
-        1) version ``0``: Sign data with intended validator (EIP 191)
-           Here the version_specific_data would be a hexstr which is the 20 bytes account address
-        2) version ``1``: Sign the structured data (EIP 712)
-           Here the version_specific_data would be <WIP(Needs to be updated)>
+    NOTE: This is the defualt version followed, if the signature_version is not specified.
+    version ``0x00`` (version ``0``): Sign data with intended validator (EIP 191).
+    Here the version_specific_data would be a hexstr which is the 20 bytes account address
+    of the intended validator.
 
-    Awkwardly, the number of bytes in the message is encoded in decimal ascii. So
-    if the message is 'abcde', then the length is encoded as the ascii
+    For version ``0x45`` (version ``E``), Awkwardly, the number of bytes in the message is
+    encoded in decimal ascii. So if the message is 'abcde', then the length is encoded as the ascii
     character '5'. This is one of the reasons that this message format is not preferred.
     There is ambiguity when the message '00' is encoded, for example.
-    Only use this method if you must have compatibility with
+    Only use this method with version ``E`` if you must have compatibility with
     :meth:`w3.eth.sign() <web3.eth.Eth.sign>`.
 
     Supply exactly one of the three arguments:
@@ -49,7 +48,7 @@ def defunct_hash_message(
     :param str hexstr: the message encoded as hex
     :param str text: the message as a series of unicode characters (a normal Py3 str)
     :param bytes signature_version: a byte indicating which kind of prefix is to be added (EIP 191)
-    :param version_specific_data: the data which is needed for adding the prefix (EIP 191)
+    :param version_specific_data: the data which is related to the prefix (EIP 191)
     :returns: The hash of the message, after adding the prefix
     :rtype: ~hexbytes.main.HexBytes
 

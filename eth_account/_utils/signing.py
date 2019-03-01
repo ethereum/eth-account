@@ -58,7 +58,7 @@ def signature_wrapper(message, signature_version, version_specific_data):
         return wrapped_message
     else:
         raise NotImplementedError(
-            "Only Personal Sign and Signing of data with intended validator is supported"
+            "Only EIP 191 type signature wrapping is currently supported"
         )
 
 
