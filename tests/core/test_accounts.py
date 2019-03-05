@@ -322,16 +322,41 @@ def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, 
     assert account.signHash(msghash) == signed
 
 
-def test_eth_account_sign_data_with_intended_validator(acct):
+@pytest.mark.parametrize(
+    'message, message_type',
+    (
+        ("hello world", "text"),
+        (b'hello world', "primitive"),
+        ("68656c6c6f20776f726c64", "hexstr"),
+    )
+)
+def test_eth_account_sign_data_with_intended_validator(message, message_type, acct):
     account = acct.create()
+
+    kwargs = {message_type: message}
+
+    with pytest.raises(TypeError):
+        # Raise TypeError if the address is more than 20 bytes
+        defunct_hash_message(
+            **kwargs,
+            signature_version=b'\x00',
+            version_specific_data=account.address + "12345",
+        )
+    with pytest.raises(TypeError):
+        # Raise TypeError if the address is less than 20 bytes
+        defunct_hash_message(
+            **kwargs,
+            signature_version=b'\x00',
+            version_specific_data=account.address[:-10],
+        )
+
     hashed_msg = defunct_hash_message(
-        text="hello world",
+        **kwargs,
         signature_version=b'\x00',
         version_specific_data=account.address,
     )
     signed = acct.signHash(hashed_msg, account.privateKey)
-
-    new_addr = Account.recoverHash(hashed_msg, signature=signed.signature)
+    new_addr = acct.recoverHash(hashed_msg, signature=signed.signature)
     assert new_addr == account.address
 
 
