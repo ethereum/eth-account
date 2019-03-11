@@ -18,6 +18,10 @@ from eth_account._utils.transactions import (
 CHAIN_ID_OFFSET = 35
 V_OFFSET = 27
 
+# signature versions
+PERSONAL_SIGN_VERSION = b'E'  # Hex value 0x45
+INTENDED_VALIDATOR_SIGN_VERSION = b'\x00'  # Hex value 0x00
+
 
 def sign_transaction_dict(eth_key, transaction_dict):
     # generate RLP-serializable transaction, with defaults filled
@@ -50,11 +54,11 @@ def signature_wrapper(message, signature_version, version_specific_data):
             type(signature_version))
         )
 
-    if signature_version == b'E':
+    if signature_version == PERSONAL_SIGN_VERSION:
         preamble = b'\x19Ethereum Signed Message:\n'
         size = str(len(message)).encode('utf-8')
         return preamble + size + message
-    elif signature_version == b'\x00':
+    elif signature_version == INTENDED_VALIDATOR_SIGN_VERSION:
         wallet_address = to_bytes(hexstr=version_specific_data)
         if len(wallet_address) != 20:
             raise TypeError("Invalid Wallet Address: {}".format(version_specific_data))
@@ -63,7 +67,10 @@ def signature_wrapper(message, signature_version, version_specific_data):
     else:
         raise NotImplementedError(
             "Currently supported signature versions are: {0}, {1}. ".
-            format('0x' + b'\x00'.hex(), '0x' + b'E'.hex()) +
+            format(
+                '0x' + INTENDED_VALIDATOR_SIGN_VERSION.hex(),
+                '0x' + PERSONAL_SIGN_VERSION.hex()
+            ) +
             "But received signature version {}".format('0x' + signature_version.hex())
         )
 
