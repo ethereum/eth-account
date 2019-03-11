@@ -98,6 +98,16 @@ def acct(request):
     return Account
 
 
+@pytest.fixture(params=("text", "primative", "hexstr"))
+def signature_kwargs(request):
+    if request == "text":
+        return {"text": "hello world"}
+    elif request == "primative":
+        return {"primative": b"hello world"}
+    else:
+        return {"hexstr": "68656c6c6f20776f726c64"}
+
+
 def test_eth_account_default_kdf(acct, monkeypatch):
     assert os.getenv('ETH_ACCOUNT_KDF') is None
     assert acct.default_kdf == 'scrypt'
@@ -322,42 +332,44 @@ def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, 
     assert account.signHash(msghash) == signed
 
 
-@pytest.mark.parametrize(
-    'message, message_type',
-    (
-        ("hello world", "text"),
-        (b'hello world', "primitive"),
-        ("68656c6c6f20776f726c64", "hexstr"),
-    )
-)
-def test_eth_account_sign_data_with_intended_validator(message, message_type, acct):
+def test_eth_valid_account_address_sign_data_with_intended_validator(acct, signature_kwargs):
     account = acct.create()
-
-    kwargs = {message_type: message}
-
-    with pytest.raises(TypeError):
-        # Raise TypeError if the address is more than 20 bytes
-        defunct_hash_message(
-            **kwargs,
-            signature_version=b'\x00',
-            version_specific_data=account.address + "12345",
-        )
-    with pytest.raises(TypeError):
-        # Raise TypeError if the address is less than 20 bytes
-        defunct_hash_message(
-            **kwargs,
-            signature_version=b'\x00',
-            version_specific_data=account.address[:-10],
-        )
-
     hashed_msg = defunct_hash_message(
-        **kwargs,
+        **signature_kwargs,
         signature_version=b'\x00',
         version_specific_data=account.address,
     )
     signed = acct.signHash(hashed_msg, account.privateKey)
     new_addr = acct.recoverHash(hashed_msg, signature=signed.signature)
     assert new_addr == account.address
+
+
+def test_eth_short_account_address_sign_data_with_intended_validator(acct, signature_kwargs):
+    account = acct.create()
+
+    address_in_bytes = to_bytes(hexstr=account.address)
+    # Test for all lengths of addresses < 20 bytes
+    for i in range(1, 21):
+        with pytest.raises(TypeError):
+            # Raise TypeError if the address is less than 20 bytes
+            defunct_hash_message(
+                **signature_kwargs,
+                signature_version=b'\x00',
+                version_specific_data=to_hex(address_in_bytes[:-i]),
+            )
+
+
+def test_eth_long_account_address_sign_data_with_intended_validator(acct, signature_kwargs):
+    account = acct.create()
+
+    address_in_bytes = to_bytes(hexstr=account.address)
+    with pytest.raises(TypeError):
+        # Raise TypeError if the address is more than 20 bytes
+        defunct_hash_message(
+            **signature_kwargs,
+            signature_version=b'\x00',
+            version_specific_data=to_hex(address_in_bytes + b'\x00'),
+        )
 
 
 @pytest.mark.parametrize(
