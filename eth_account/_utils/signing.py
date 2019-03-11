@@ -1,4 +1,5 @@
 from cytoolz import (
+    curry,
     pipe,
 )
 from eth_utils import (
@@ -16,6 +17,10 @@ from eth_account._utils.transactions import (
 
 CHAIN_ID_OFFSET = 35
 V_OFFSET = 27
+
+# signature versions
+PERSONAL_SIGN_VERSION = b'E'  # Hex value 0x45
+INTENDED_VALIDATOR_SIGN_VERSION = b'\x00'  # Hex value 0x00
 
 
 def sign_transaction_dict(eth_key, transaction_dict):
@@ -40,14 +45,34 @@ def sign_transaction_dict(eth_key, transaction_dict):
 
 
 # watch here for updates to signature format: https://github.com/ethereum/EIPs/issues/191
-def signature_wrapper(message, version=b'E'):
-    assert isinstance(message, bytes)
-    if version == b'E':
+@curry
+def signature_wrapper(message, signature_version, version_specific_data):
+    if not isinstance(message, bytes):
+        raise TypeError("Message is of the type {}, expected bytes".format(type(message)))
+    if not isinstance(signature_version, bytes):
+        raise TypeError("Signature Version is of the type {}, expected bytes".format(
+            type(signature_version))
+        )
+
+    if signature_version == PERSONAL_SIGN_VERSION:
         preamble = b'\x19Ethereum Signed Message:\n'
         size = str(len(message)).encode('utf-8')
         return preamble + size + message
+    elif signature_version == INTENDED_VALIDATOR_SIGN_VERSION:
+        wallet_address = to_bytes(hexstr=version_specific_data)
+        if len(wallet_address) != 20:
+            raise TypeError("Invalid Wallet Address: {}".format(version_specific_data))
+        wrapped_message = b'\x19' + signature_version + wallet_address + message
+        return wrapped_message
     else:
-        raise NotImplementedError("Only the 'Ethereum Signed Message' preamble is supported")
+        raise NotImplementedError(
+            "Currently supported signature versions are: {0}, {1}. ".
+            format(
+                '0x' + INTENDED_VALIDATOR_SIGN_VERSION.hex(),
+                '0x' + PERSONAL_SIGN_VERSION.hex()
+            ) +
+            "But received signature version {}".format('0x' + signature_version.hex())
+        )
 
 
 def hash_of_signed_transaction(txn_obj):
