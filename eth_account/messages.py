@@ -26,12 +26,15 @@ def defunct_hash_message(
     This provides the same prefix and hashing approach as
     :meth:`w3.eth.sign() <web3.eth.Eth.sign>`.
     Currently you can only specify the ``signature_version`` as following.
-    version ``0x45`` (version ``E``): ``b'\\x19Ethereum Signed Message:\\n'``
-    concatenated with the number of bytes in the message.
-    .. note:: This is the defualt version followed, if the signature_version is not specified.
-    version ``0x00`` (version ``0``): Sign data with intended validator (EIP 191).
-    Here the version_specific_data would be a hexstr which is the 20 bytes account address
-    of the intended validator.
+
+    * **Version** ``0x45`` (version ``E``):  ``b'\\x19Ethereum Signed Message:\\n'``
+      concatenated with the number of bytes in the message.
+
+        .. note:: This is the defualt version followed, if the signature_version is not specified.
+
+    * **Version** ``0x00`` (version ``0``): Sign data with intended validator (EIP 191).
+      Here the version_specific_data would be a hexstr which is the 20 bytes account address
+      of the intended validator.
 
     For version ``0x45`` (version ``E``), Awkwardly, the number of bytes in the message is
     encoded in decimal ascii. So if the message is 'abcde', then the length is encoded as the ascii
