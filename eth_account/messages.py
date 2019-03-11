@@ -28,7 +28,7 @@ def defunct_hash_message(
     Currently you can only specify the ``signature_version`` as following.
     version ``0x45`` (version ``E``): ``b'\\x19Ethereum Signed Message:\\n'``
     concatenated with the number of bytes in the message.
-    NOTE: This is the defualt version followed, if the signature_version is not specified.
+    .. note:: This is the defualt version followed, if the signature_version is not specified.
     version ``0x00`` (version ``0``): Sign data with intended validator (EIP 191).
     Here the version_specific_data would be a hexstr which is the 20 bytes account address
     of the intended validator.

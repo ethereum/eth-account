@@ -44,7 +44,11 @@ def sign_transaction_dict(eth_key, transaction_dict):
 @curry
 def signature_wrapper(message, signature_version, version_specific_data):
     if not isinstance(message, bytes):
-        raise TypeError("Message is not of the type {}, expected bytes".format(type(message)))
+        raise TypeError("Message is of the type {}, expected bytes".format(type(message)))
+    if not isinstance(signature_version, bytes):
+        raise TypeError("Signature Version is of the type {}, expected bytes".format(
+            type(signature_version))
+        )
 
     if signature_version == b'E':
         preamble = b'\x19Ethereum Signed Message:\n'
@@ -58,7 +62,9 @@ def signature_wrapper(message, signature_version, version_specific_data):
         return wrapped_message
     else:
         raise NotImplementedError(
-            "Only EIP 191 type signature wrapping is currently supported"
+            "Currently supported signature versions are: {0}, {1}. ".
+            format('0x' + b'\x00'.hex(), '0x' + b'E'.hex()) +
+            "But received signature version {}".format('0x' + signature_version.hex())
         )
 
 
