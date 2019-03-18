@@ -4,14 +4,14 @@ from cytoolz import (
     curry,
     pipe,
 )
+from eth_abi import (
+    encode_abi,
+)
 from eth_utils import (
     keccak,
     to_bytes,
     to_int,
     to_text,
-)
-from eth_abi import (
-    encode_abi,
 )
 
 from eth_account._utils.transactions import (

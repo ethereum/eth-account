@@ -1,19 +1,15 @@
 import json
-
-from hexbytes import (
-    HexBytes,
-)
 import pytest
 
 from eth_utils import (
     keccak,
 )
+from hexbytes import (
+    HexBytes,
+)
 
 from eth_account import (
     Account,
-)
-from eth_account.messages import (
-    defunct_hash_message,
 )
 from eth_account._utils.signing import (
     dependencies,
@@ -21,6 +17,9 @@ from eth_account._utils.signing import (
     encodeType,
     hashStruct,
     typeHash,
+)
+from eth_account.messages import (
+    defunct_hash_message,
 )
 
 
