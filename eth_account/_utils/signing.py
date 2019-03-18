@@ -1,10 +1,17 @@
+import json
+
 from cytoolz import (
     curry,
     pipe,
 )
 from eth_utils import (
+    keccak,
     to_bytes,
     to_int,
+    to_text,
+)
+from eth_abi import (
+    encode_abi,
 )
 
 from eth_account._utils.transactions import (
@@ -21,6 +28,7 @@ V_OFFSET = 27
 # signature versions
 PERSONAL_SIGN_VERSION = b'E'  # Hex value 0x45
 INTENDED_VALIDATOR_SIGN_VERSION = b'\x00'  # Hex value 0x00
+STRUCTURED_DATA_SIGN_VERSION = b'\x01'  # Hex value 0x01
 
 
 def sign_transaction_dict(eth_key, transaction_dict):
@@ -44,6 +52,111 @@ def sign_transaction_dict(eth_key, transaction_dict):
     return (v, r, s, encoded_transaction)
 
 
+#
+# EIP712 Functionalities
+#
+def dependencies(primaryType, types, found=None):
+    """
+    Recursively get all the dependencies of the primaryType
+    """
+    # This is done to avoid the by-reference call of python
+    found = found or []
+
+    if primaryType in found:
+        return found
+    if primaryType not in types:
+        return found
+
+    found.append(primaryType)
+    for field in types[primaryType]:
+        for dep in dependencies(field["type"], types, found):
+            if dep not in found:
+                found.push(dep)
+
+    return found
+
+
+def dict_to_type_name_converter(field):
+    """
+    Given a dictionary ``field`` of type {'name': NAME, 'type': TYPE},
+    this function converts it to ``TYPE NAME``
+    """
+    return field["type"] + " " + field["name"]
+
+
+def encodeType(primaryType, types):
+    # Getting the dependencies and sorting them alphabetically as per EIP712
+    deps = dependencies(primaryType, types)
+    deps_without_primary_type = list(filter(lambda x: x != primaryType, deps))
+    sorted_deps = [primaryType] + sorted(deps_without_primary_type)
+
+    result = ''.join(
+        [
+            dep + "(" + ','.join(map(dict_to_type_name_converter, types[dep])) + ")"
+            for dep in sorted_deps
+        ]
+    )
+    return result
+
+
+def typeHash(primaryType, types):
+    return keccak(text=encodeType(primaryType, types))
+
+
+def encodeData(primaryType, types, data):
+    encTypes = []
+    encValues = []
+
+    # Add typehash
+    encTypes.append("bytes32")
+    encValues.append(typeHash(primaryType, types))
+
+    # Add field contents
+    for field in types[primaryType]:
+        value = data[field["name"]]
+        if field["type"] == "string":
+            # Special case where the values need to be keccak hashed before they are encoded
+            encTypes.append("bytes32")
+            hashed_value = keccak(text=value)
+            encValues.append(hashed_value)
+        elif field["type"] == "bytes":
+            # Special case where the values need to be keccak hashed before they are encoded
+            encTypes.append("bytes32")
+            hashed_value = keccak(primitive=value)
+            encValues.append(hashed_value)
+        elif field["type"] in types:
+            # This means that this type is a user defined type
+            encTypes.append("bytes32")
+            hashed_value = keccak(primitive=encodeData(field["type"], types, value))
+            encValues.append(hashed_value)
+        elif field["type"][-1] == "]":
+            # TODO: Replace the above conditionality with Regex for identifying arrays declaration
+            raise NotImplementedError("TODO: Arrays currently unimplemented in encodeData")
+        else:
+            encTypes.append(field["type"])
+            encValues.append(value)
+
+    return encode_abi(encTypes, encValues)
+
+
+def hashStruct(structured_json_string_data, for_domain=False):
+    """
+    The structured_json_string_data is expected to have the ``types`` attribute and
+    the ``primaryType``, ``message``, ``domain`` attribute.
+    The ``for_domain`` variable is used to calculate the ``hashStruct`` as part of the
+    ``domainSeparator`` calculation.
+    """
+    structured_data = json.loads(structured_json_string_data)
+    types = structured_data["types"]
+    if for_domain:
+        primaryType = "EIP712Domain"
+        data = structured_data["domain"]
+    else:
+        primaryType = structured_data["primaryType"]
+        data = structured_data["message"]
+    return keccak(encodeData(primaryType, types, data))
+
+
 # watch here for updates to signature format: https://github.com/ethereum/EIPs/issues/191
 @curry
 def signature_wrapper(message, signature_version, version_specific_data):
@@ -64,12 +177,19 @@ def signature_wrapper(message, signature_version, version_specific_data):
             raise TypeError("Invalid Wallet Address: {}".format(version_specific_data))
         wrapped_message = b'\x19' + signature_version + wallet_address + message
         return wrapped_message
+    elif signature_version == STRUCTURED_DATA_SIGN_VERSION:
+        message_string = to_text(primitive=message)
+        # Here the version_specific_data is the EIP712Domain JSON string (includes type also)
+        domainSeparator = hashStruct(message_string, for_domain=True)
+        wrapped_message = b'\x19' + signature_version + domainSeparator + hashStruct(message_string)
+        return wrapped_message
     else:
         raise NotImplementedError(
-            "Currently supported signature versions are: {0}, {1}. ".
+            "Currently supported signature versions are: {0}, {1}, {2}. ".
             format(
                 '0x' + INTENDED_VALIDATOR_SIGN_VERSION.hex(),
-                '0x' + PERSONAL_SIGN_VERSION.hex()
+                '0x' + PERSONAL_SIGN_VERSION.hex(),
+                '0x' + STRUCTURED_DATA_SIGN_VERSION.hex(),
             ) +
             "But received signature version {}".format('0x' + signature_version.hex())
         )
