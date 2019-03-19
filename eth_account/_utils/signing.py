@@ -1,4 +1,5 @@
 import json
+import re
 
 from cytoolz import (
     curry,
@@ -6,6 +7,7 @@ from cytoolz import (
 )
 from eth_abi import (
     encode_abi,
+    is_encodable,
 )
 from eth_utils import (
     keccak,
@@ -29,6 +31,10 @@ V_OFFSET = 27
 PERSONAL_SIGN_VERSION = b'E'  # Hex value 0x45
 INTENDED_VALIDATOR_SIGN_VERSION = b'\x00'  # Hex value 0x00
 STRUCTURED_DATA_SIGN_VERSION = b'\x01'  # Hex value 0x01
+
+# Regexes
+IDENTIFIER_REGEX = r"^[a-zA-Z_$][a-zA-Z_$0-9]*$"
+TYPE_REGEX = r"^[a-zA-Z_$][a-zA-Z_$0-9]*(\[([1-9]\d*)*\])*$"
 
 
 def sign_transaction_dict(eth_key, transaction_dict):
@@ -115,11 +121,31 @@ def encodeData(primaryType, types, data):
     for field in types[primaryType]:
         value = data[field["name"]]
         if field["type"] == "string":
+            if not isinstance(value, str):
+                raise TypeError(
+                    "Value of `{0}` ({2}) of field `{1}` is of the type `{3}`, but expected "
+                    "string value".format(
+                        field["name"],
+                        primaryType,
+                        value,
+                        type(value),
+                    )
+                )
             # Special case where the values need to be keccak hashed before they are encoded
             encTypes.append("bytes32")
             hashed_value = keccak(text=value)
             encValues.append(hashed_value)
         elif field["type"] == "bytes":
+            if not isinstance(value, bytes):
+                raise TypeError(
+                    "Value of `{0}` ({2}) of field `{1}` is of the type `{3}`, but expected "
+                    "bytes value".format(
+                        field["name"],
+                        primaryType,
+                        value,
+                        type(value),
+                    )
+                )
             # Special case where the values need to be keccak hashed before they are encoded
             encTypes.append("bytes32")
             hashed_value = keccak(primitive=value)
@@ -133,10 +159,52 @@ def encodeData(primaryType, types, data):
             # TODO: Replace the above conditionality with Regex for identifying arrays declaration
             raise NotImplementedError("TODO: Arrays currently unimplemented in encodeData")
         else:
-            encTypes.append(field["type"])
-            encValues.append(value)
+            # First checking to see if the individual values can be encoded
+            try:
+                is_encodable(field["type"], value)
+            except:
+                raise AttributeError(
+                    "Received Invalid type `{0}` of field `{1}`".format(
+                        field["type"],
+                        primaryType,
+                    )
+                )
+
+            # Next see if the data fits the specified encoding type
+            if is_encodable(field["type"], value):
+                # field["type"] is a valid type and this value corresponds to that type.
+                encTypes.append(field["type"])
+                encValues.append(value)
+            else:
+                raise TypeError(
+                    "Value of `{0}` ({2}) of field `{1}` is of the type `{3}`, but expected "
+                    "{4} value".format(
+                        field["name"],
+                        primaryType,
+                        value,
+                        type(value),
+                        field["type"],
+                    )
+                )
 
     return encode_abi(encTypes, encValues)
+
+
+def validate_structured_data(structured_data):
+    # Check if all the `name` and the `type` attributes in each field of all the
+    # `types` are valid (Regex Check)
+    for field_type in structured_data["types"]:
+        for field in structured_data["types"][field_type]:
+            # Check that field["name"] matches with IDENTIFIER_REGEX
+            if not re.match(IDENTIFIER_REGEX, field["name"]):
+                raise AttributeError(
+                    "Invalid Identifier `{}` in `{}`".format(field["name"], field_type)
+                )
+            # Check that field["type"] matches with TYPE_REGEX
+            if not re.match(TYPE_REGEX, field["type"]):
+                raise AttributeError(
+                    "Invalid Type `{}` in `{}`".format(field["type"], field_type)
+                )
 
 
 def hashStruct(structured_json_string_data, for_domain=False):
@@ -147,6 +215,8 @@ def hashStruct(structured_json_string_data, for_domain=False):
     ``domainSeparator`` calculation.
     """
     structured_data = json.loads(structured_json_string_data)
+    validate_structured_data(structured_data)
+
     types = structured_data["types"]
     if for_domain:
         primaryType = "EIP712Domain"
