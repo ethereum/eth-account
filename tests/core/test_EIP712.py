@@ -1,5 +1,6 @@
 import json
 import pytest
+import re
 
 from eth_utils import (
     keccak,
@@ -12,6 +13,7 @@ from eth_account import (
     Account,
 )
 from eth_account._utils.signing import (
+    TYPE_REGEX,
     dependencies,
     encodeData,
     encodeType,
@@ -24,7 +26,7 @@ from eth_account.messages import (
 
 
 @pytest.fixture
-def structured_data_json_string():
+def structured_valid_data_json_string():
     return '''{
         "types": {
             "EIP712Domain": [
@@ -65,33 +67,33 @@ def structured_data_json_string():
 
 
 @pytest.fixture
-def types(structured_data_json_string):
-    return json.loads(structured_data_json_string)["types"]
+def types(structured_valid_data_json_string):
+    return json.loads(structured_valid_data_json_string)["types"]
 
 
 @pytest.fixture
-def domain_type(structured_data_json_string):
-    return json.loads(structured_data_json_string)["types"]["EIP712Domain"]
+def domain_type(structured_valid_data_json_string):
+    return json.loads(structured_valid_data_json_string)["types"]["EIP712Domain"]
 
 
 @pytest.fixture
-def message(structured_data_json_string):
-    return json.loads(structured_data_json_string)["message"]
+def message(structured_valid_data_json_string):
+    return json.loads(structured_valid_data_json_string)["message"]
 
 
 @pytest.fixture
-def domain(structured_data_json_string):
-    return json.loads(structured_data_json_string)["domain"]
+def domain(structured_valid_data_json_string):
+    return json.loads(structured_valid_data_json_string)["domain"]
 
 
 @pytest.fixture(params=("text", "primitive", "hexstr"))
-def signature_kwargs(request, structured_data_json_string):
+def signature_kwargs(request, structured_valid_data_json_string):
     if request == "text":
-        return {"text": structured_data_json_string}
+        return {"text": structured_valid_data_json_string}
     elif request == "primitive":
-        return {"primitive": structured_data_json_string.encode()}
+        return {"primitive": structured_valid_data_json_string.encode()}
     else:
-        return {"hexstr": structured_data_json_string.encode().hex()}
+        return {"hexstr": structured_valid_data_json_string.encode().hex()}
 
 
 @pytest.mark.parametrize(
@@ -137,14 +139,16 @@ def test_encodeData(types, message):
     assert encodeData(primary_type, types, message).hex() == expected_hex_value
 
 
-def test_hashStruct_main_message(structured_data_json_string):
+def test_hashStruct_main_message(structured_valid_data_json_string):
     expected_hex_value = "c52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e"
-    assert hashStruct(structured_data_json_string).hex() == expected_hex_value
+    assert hashStruct(structured_valid_data_json_string).hex() == expected_hex_value
 
 
-def test_hashStruct_domain(structured_data_json_string):
+def test_hashStruct_domain(structured_valid_data_json_string):
     expected_hex_value = "f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f"
-    assert hashStruct(structured_data_json_string, for_domain=True).hex() == expected_hex_value
+    assert (
+        hashStruct(structured_valid_data_json_string, for_domain=True).hex() == expected_hex_value
+    )
 
 
 def test_hashed_structured_data(signature_kwargs):
@@ -182,3 +186,252 @@ def test_signature_variables(signature_kwargs):
     assert sig.v == 28
     assert hex(sig.r) == "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d"
     assert hex(sig.s) == "0x7299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b91562"
+
+
+@pytest.mark.parametrize(
+    'type, valid',
+    (
+        ("unint bytes32", False),
+        ("hello\\[]", False),
+        ("byte[]uint", False),
+        ("byte[7[]uint][]", False),
+        ("Person[0]", False),
+
+        ("bytes32", True),
+        ("Foo[]", True),
+        ("bytes1", True),
+        ("bytes32[][][]", True),
+        ("byte[9]", True),
+        ("Person[1]", True),
+    )
+)
+def test_type_regex(type, valid):
+    if valid:
+        assert re.match(TYPE_REGEX, type) is not None
+    else:
+        assert re.match(TYPE_REGEX, type) is None
+
+
+def test_structured_data_invalid_identifier_filtered_by_regex():
+    invalid_structured_data_string = '''{
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"}
+            ],
+            "Person": [
+                {"name": "name", "type": "string"},
+                {"name": "hello wallet", "type": "address"}
+            ],
+            "Mail": [
+                {"name": "from", "type": "Person"},
+                {"name": "to", "type": "Person"},
+                {"name": "contents", "type": "string"}
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            },
+            "to": {
+                "name": "Bob",
+                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+            },
+            "contents": "Hello, Bob!"
+        }
+    }'''
+    with pytest.raises(AttributeError) as e:
+        hashStruct(invalid_structured_data_string)
+        assert e == "Invalid Identifier `hello wallet` in `Person`"
+
+
+def test_structured_data_invalid_type_filtered_by_regex():
+    invalid_structured_data_string = '''{
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"}
+            ],
+            "Person": [
+                {"name": "name", "type": "string"},
+                {"name": "wallet", "type": "address"}
+            ],
+            "Mail": [
+                {"name": "from", "type": "Hello Person"},
+                {"name": "to", "type": "Person"},
+                {"name": "contents", "type": "string"}
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            },
+            "to": {
+                "name": "Bob",
+                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+            },
+            "contents": "Hello, Bob!"
+        }
+    }'''
+    with pytest.raises(AttributeError) as e:
+        hashStruct(invalid_structured_data_string)
+        assert e == "Invalid Type `Hello Person` in `Mail`"
+
+
+def test_invalid_structured_data_value_type_mismatch_in_primary_type():
+    # Given type is valid (string), but the value (int) is not of the mentioned type
+    invalid_structured_data_string = '''{
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"}
+            ],
+            "Person": [
+                {"name": "name", "type": "string"},
+                {"name": "wallet", "type": "address"}
+            ],
+            "Mail": [
+                {"name": "from", "type": "Person"},
+                {"name": "to", "type": "Person"},
+                {"name": "contents", "type": "string"}
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            },
+            "to": {
+                "name": "Bob",
+                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+            },
+            "contents": 12345
+        }
+    }'''
+    with pytest.raises(TypeError) as e:
+        hashStruct(invalid_structured_data_string)
+        assert (
+            e == "Value of `contents` (12345) of field `Mail` is of the "
+            "type `<class 'int'>`, but expected string value"
+        )
+
+
+def test_invalid_structured_data_invalid_abi_type():
+    # Given type/types are invalid
+    invalid_structured_data_string = '''{
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"}
+            ],
+            "Person": [
+                {"name": "name", "type": "string"},
+                {"name": "balance", "type": "uint25689"}
+            ],
+            "Mail": [
+                {"name": "from", "type": "Person"},
+                {"name": "to", "type": "Person"},
+                {"name": "contents", "type": "string"}
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "balance": 123
+            },
+            "to": {
+                "name": "Bob",
+                "balance": 1234
+            },
+            "contents": "Hello Bob!"
+        }
+    }'''
+    with pytest.raises(AttributeError) as e:
+        hashStruct(invalid_structured_data_string)
+        assert e == "Received Invalid type `uint25689` of field `Person`"
+
+
+def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function():
+    # Given valid abi type, but the value is not of the specified type
+    # (found by the is_encodable function)
+    invalid_structured_data_string = '''{
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "version", "type": "string"},
+                {"name": "chainId", "type": "uint256"},
+                {"name": "verifyingContract", "type": "address"}
+            ],
+            "Person": [
+                {"name": "name", "type": "string"},
+                {"name": "balance", "type": "uint256"}
+            ],
+            "Mail": [
+                {"name": "from", "type": "Person"},
+                {"name": "to", "type": "Person"},
+                {"name": "contents", "type": "string"}
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "balance": 1234
+            },
+            "to": {
+                "name": "Bob",
+                "balance": "how do you do?"
+            },
+            "contents": "Hello Bob!"
+        }
+    }'''
+    with pytest.raises(TypeError) as e:
+        hashStruct(invalid_structured_data_string)
+        assert (
+            e == "Value of `balance` (how do you do?) of field `Person` is of the "
+            "type `<class 'str'>`, but expected uint256 value"
+        )
