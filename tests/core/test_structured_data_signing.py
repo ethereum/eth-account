@@ -147,7 +147,8 @@ def test_hashStruct_main_message(structured_valid_data_json_string):
 def test_hashStruct_domain(structured_valid_data_json_string):
     expected_hex_value = "f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f"
     assert (
-        hashStruct(structured_valid_data_json_string, for_domain=True).hex() == expected_hex_value
+        hashStruct(structured_valid_data_json_string, is_domain_separator=True).hex() ==
+        expected_hex_value
     )
 
 
@@ -252,7 +253,7 @@ def test_structured_data_invalid_identifier_filtered_by_regex():
     }'''
     with pytest.raises(AttributeError) as e:
         hashStruct(invalid_structured_data_string)
-        assert e == "Invalid Identifier `hello wallet` in `Person`"
+    assert str(e.value) == "Invalid Identifier `hello wallet` in `Person`"
 
 
 def test_structured_data_invalid_type_filtered_by_regex():
@@ -295,7 +296,7 @@ def test_structured_data_invalid_type_filtered_by_regex():
     }'''
     with pytest.raises(AttributeError) as e:
         hashStruct(invalid_structured_data_string)
-        assert e == "Invalid Type `Hello Person` in `Mail`"
+    assert str(e.value) == "Invalid Type `Hello Person` in `Mail`"
 
 
 def test_invalid_structured_data_value_type_mismatch_in_primary_type():
@@ -339,10 +340,10 @@ def test_invalid_structured_data_value_type_mismatch_in_primary_type():
     }'''
     with pytest.raises(TypeError) as e:
         hashStruct(invalid_structured_data_string)
-        assert (
-            e == "Value of `contents` (12345) of field `Mail` is of the "
-            "type `<class 'int'>`, but expected string value"
-        )
+    assert (
+        str(e.value) == "Value of `contents` (12345) in the struct `Mail` is of the "
+        "type `<class 'int'>`, but expected string value"
+    )
 
 
 def test_invalid_structured_data_invalid_abi_type():
@@ -384,14 +385,14 @@ def test_invalid_structured_data_invalid_abi_type():
             "contents": "Hello Bob!"
         }
     }'''
-    with pytest.raises(AttributeError) as e:
+    with pytest.raises(TypeError) as e:
         hashStruct(invalid_structured_data_string)
-        assert e == "Received Invalid type `uint25689` of field `Person`"
+    assert str(e.value) == "Received Invalid type `uint25689` in the struct `Person`"
 
 
 def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function():
     # Given valid abi type, but the value is not of the specified type
-    # (found by the is_encodable function)
+    # (Error is found by the ``is_encodable`` ABI function)
     invalid_structured_data_string = '''{
         "types": {
             "EIP712Domain": [
@@ -431,7 +432,7 @@ def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function()
     }'''
     with pytest.raises(TypeError) as e:
         hashStruct(invalid_structured_data_string)
-        assert (
-            e == "Value of `balance` (how do you do?) of field `Person` is of the "
-            "type `<class 'str'>`, but expected uint256 value"
-        )
+    assert (
+        str(e.value) == "Value of `balance` (how do you do?) in the struct `Person` is of the "
+        "type `<class 'str'>`, but expected uint256 value"
+    )
