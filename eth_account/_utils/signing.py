@@ -91,6 +91,10 @@ def dict_to_type_name_converter(field):
 
 
 def encodeType(primaryType, types):
+    """
+    The type of a struct is encoded as name ‖ "(" ‖ member₁ ‖ "," ‖ member₂ ‖ "," ‖ … ‖ memberₙ ")"
+    where each member is written as type ‖ " " ‖ name.
+    """
     # Getting the dependencies and sorting them alphabetically as per EIP712
     deps = dependencies(primaryType, types)
     deps_without_primary_type = list(filter(lambda x: x != primaryType, deps))
@@ -98,8 +102,8 @@ def encodeType(primaryType, types):
 
     result = ''.join(
         [
-            dep + "(" + ','.join(map(dict_to_type_name_converter, types[dep])) + ")"
-            for dep in sorted_deps
+            struct_name + "(" + ','.join(map(dict_to_type_name_converter, types[struct_name])) + ")"
+            for struct_name in sorted_deps
         ]
     )
     return result
@@ -123,7 +127,7 @@ def encodeData(primaryType, types, data):
         if field["type"] == "string":
             if not isinstance(value, str):
                 raise TypeError(
-                    "Value of `{0}` ({2}) of field `{1}` is of the type `{3}`, but expected "
+                    "Value of `{0}` ({2}) in the struct `{1}` is of the type `{3}`, but expected "
                     "string value".format(
                         field["name"],
                         primaryType,
@@ -138,7 +142,7 @@ def encodeData(primaryType, types, data):
         elif field["type"] == "bytes":
             if not isinstance(value, bytes):
                 raise TypeError(
-                    "Value of `{0}` ({2}) of field `{1}` is of the type `{3}`, but expected "
+                    "Value of `{0}` ({2}) in the struct `{1}` is of the type `{3}`, but expected "
                     "bytes value".format(
                         field["name"],
                         primaryType,
@@ -163,8 +167,8 @@ def encodeData(primaryType, types, data):
             try:
                 is_encodable(field["type"], value)
             except:
-                raise AttributeError(
-                    "Received Invalid type `{0}` of field `{1}`".format(
+                raise TypeError(
+                    "Received Invalid type `{0}` in the struct `{1}`".format(
                         field["type"],
                         primaryType,
                     )
@@ -177,7 +181,7 @@ def encodeData(primaryType, types, data):
                 encValues.append(value)
             else:
                 raise TypeError(
-                    "Value of `{0}` ({2}) of field `{1}` is of the type `{3}`, but expected "
+                    "Value of `{0}` ({2}) in the struct `{1}` is of the type `{3}`, but expected "
                     "{4} value".format(
                         field["name"],
                         primaryType,
@@ -207,18 +211,18 @@ def validate_structured_data(structured_data):
                 )
 
 
-def hashStruct(structured_json_string_data, for_domain=False):
+def hashStruct(structured_json_string_data, is_domain_separator=False):
     """
     The structured_json_string_data is expected to have the ``types`` attribute and
     the ``primaryType``, ``message``, ``domain`` attribute.
-    The ``for_domain`` variable is used to calculate the ``hashStruct`` as part of the
-    ``domainSeparator`` calculation.
+    The ``is_domain_separator`` variable is used to calculate the ``hashStruct`` as
+    part of the ``domainSeparator`` calculation.
     """
     structured_data = json.loads(structured_json_string_data)
     validate_structured_data(structured_data)
 
     types = structured_data["types"]
-    if for_domain:
+    if is_domain_separator:
         primaryType = "EIP712Domain"
         data = structured_data["domain"]
     else:
@@ -227,7 +231,9 @@ def hashStruct(structured_json_string_data, for_domain=False):
     return keccak(encodeData(primaryType, types, data))
 
 
-# watch here for updates to signature format: https://github.com/ethereum/EIPs/issues/191
+# watch here for updates to signature format:
+# https://github.com/ethereum/EIPs/blob/master/EIPS/eip-191.md
+# https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
 @curry
 def signature_wrapper(message, signature_version, version_specific_data):
     if not isinstance(message, bytes):
@@ -249,8 +255,7 @@ def signature_wrapper(message, signature_version, version_specific_data):
         return wrapped_message
     elif signature_version == STRUCTURED_DATA_SIGN_VERSION:
         message_string = to_text(primitive=message)
-        # Here the version_specific_data is the EIP712Domain JSON string (includes type also)
-        domainSeparator = hashStruct(message_string, for_domain=True)
+        domainSeparator = hashStruct(message_string, is_domain_separator=True)
         wrapped_message = b'\x19' + signature_version + domainSeparator + hashStruct(message_string)
         return wrapped_message
     else:
