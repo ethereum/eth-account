@@ -3,6 +3,7 @@ import pytest
 import re
 
 from eth_utils import (
+    ValidationError,
     keccak,
 )
 from hexbytes import (
@@ -12,13 +13,16 @@ from hexbytes import (
 from eth_account import (
     Account,
 )
-from eth_account._utils.signing import (
-    TYPE_REGEX,
+from eth_account._utils.structured_data.hashing import (
     dependencies,
+    encode_struct,
     encodeData,
     encodeType,
     hashStruct,
     typeHash,
+)
+from eth_account._utils.structured_data.validation import (
+    TYPE_REGEX,
 )
 from eth_account.messages import (
     defunct_hash_message,
@@ -99,12 +103,27 @@ def signature_kwargs(request, structured_valid_data_json_string):
 @pytest.mark.parametrize(
     'primary_type, expected',
     (
-        ('Mail', ['Mail', 'Person']),
-        ('Person', ['Person']),
+        ('Mail', ('Person',)),
+        ('Person', ()),
     )
 )
 def test_dependencies(primary_type, types, expected):
     assert dependencies(primary_type, types) == expected
+
+
+@pytest.mark.parametrize(
+    'struct_name, expected',
+    (
+        ("Mail", "Mail(Person from,Person to,string contents)"),
+        ("Person", "Person(string name,address wallet)"),
+        ("EIP712Domain", (
+            "EIP712Domain(string name,string version,"
+            "uint256 chainId,address verifyingContract)"
+        )),
+    )
+)
+def test_encode_struct(struct_name, types, expected):
+    assert encode_struct(struct_name, types[struct_name]) == expected
 
 
 @pytest.mark.parametrize(
@@ -251,7 +270,7 @@ def test_structured_data_invalid_identifier_filtered_by_regex():
             "contents": "Hello, Bob!"
         }
     }'''
-    with pytest.raises(AttributeError) as e:
+    with pytest.raises(ValidationError) as e:
         hashStruct(invalid_structured_data_string)
     assert str(e.value) == "Invalid Identifier `hello wallet` in `Person`"
 
@@ -294,7 +313,7 @@ def test_structured_data_invalid_type_filtered_by_regex():
             "contents": "Hello, Bob!"
         }
     }'''
-    with pytest.raises(AttributeError) as e:
+    with pytest.raises(ValidationError) as e:
         hashStruct(invalid_structured_data_string)
     assert str(e.value) == "Invalid Type `Hello Person` in `Mail`"
 
