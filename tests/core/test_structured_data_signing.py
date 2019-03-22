@@ -14,12 +14,12 @@ from eth_account import (
     Account,
 )
 from eth_account._utils.structured_data.hashing import (
-    dependencies,
+    encode_data,
     encode_struct,
-    encodeData,
-    encodeType,
-    hashStruct,
-    typeHash,
+    encode_type,
+    get_dependencies,
+    hash_struct,
+    hash_struct_type,
 )
 from eth_account._utils.structured_data.validation import (
     TYPE_REGEX,
@@ -107,8 +107,8 @@ def signature_kwargs(request, structured_valid_data_json_string):
         ('Person', ()),
     )
 )
-def test_dependencies(primary_type, types, expected):
-    assert dependencies(primary_type, types) == expected
+def test_get_dependencies(primary_type, types, expected):
+    assert get_dependencies(primary_type, types) == expected
 
 
 @pytest.mark.parametrize(
@@ -133,8 +133,8 @@ def test_encode_struct(struct_name, types, expected):
         ('Person', 'Person(string name,address wallet)'),
     )
 )
-def test_encodeType(primary_type, types, expected):
-    assert encodeType(primary_type, types) == expected
+def test_encode_type(primary_type, types, expected):
+    assert encode_type(primary_type, types) == expected
 
 
 @pytest.mark.parametrize(
@@ -144,29 +144,29 @@ def test_encodeType(primary_type, types, expected):
         ('Person', 'b9d8c78acf9b987311de6c7b45bb6a9c8e1bf361fa7fd3467a2163f994c79500'),
     )
 )
-def test_typeHash(primary_type, types, expected_hex_value):
-    assert typeHash(primary_type, types).hex() == expected_hex_value
+def test_hash_struct_type(primary_type, types, expected_hex_value):
+    assert hash_struct_type(primary_type, types).hex() == expected_hex_value
 
 
-def test_encodeData(types, message):
+def test_encode_data(types, message):
     primary_type = "Mail"
     expected_hex_value = (
         "a0cedeb2dc280ba39b857546d74f5549c3a1d7bdc2dd96bf881f76108e23dac2fc71e5fa27ff56c350aa531b"
         "c129ebdf613b772b6604664f5d8dbe21b85eb0c8cd54f074a4af31b4411ff6a60c9719dbd559c221c8ac3492d9"
         "d872b041d703d1b5aadf3154a261abdd9086fc627b61efca26ae5702701d05cd2305f7c52a2fc8"
     )
-    assert encodeData(primary_type, types, message).hex() == expected_hex_value
+    assert encode_data(primary_type, types, message).hex() == expected_hex_value
 
 
-def test_hashStruct_main_message(structured_valid_data_json_string):
+def test_hash_struct_main_message(structured_valid_data_json_string):
     expected_hex_value = "c52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e"
-    assert hashStruct(structured_valid_data_json_string).hex() == expected_hex_value
+    assert hash_struct(structured_valid_data_json_string).hex() == expected_hex_value
 
 
-def test_hashStruct_domain(structured_valid_data_json_string):
+def test_hash_struct_domain(structured_valid_data_json_string):
     expected_hex_value = "f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f"
     assert (
-        hashStruct(structured_valid_data_json_string, is_domain_separator=True).hex() ==
+        hash_struct(structured_valid_data_json_string, is_domain_separator=True).hex() ==
         expected_hex_value
     )
 
@@ -271,7 +271,7 @@ def test_structured_data_invalid_identifier_filtered_by_regex():
         }
     }'''
     with pytest.raises(ValidationError) as e:
-        hashStruct(invalid_structured_data_string)
+        hash_struct(invalid_structured_data_string)
     assert str(e.value) == "Invalid Identifier `hello wallet` in `Person`"
 
 
@@ -314,7 +314,7 @@ def test_structured_data_invalid_type_filtered_by_regex():
         }
     }'''
     with pytest.raises(ValidationError) as e:
-        hashStruct(invalid_structured_data_string)
+        hash_struct(invalid_structured_data_string)
     assert str(e.value) == "Invalid Type `Hello Person` in `Mail`"
 
 
@@ -358,7 +358,7 @@ def test_invalid_structured_data_value_type_mismatch_in_primary_type():
         }
     }'''
     with pytest.raises(TypeError) as e:
-        hashStruct(invalid_structured_data_string)
+        hash_struct(invalid_structured_data_string)
     assert (
         str(e.value) == "Value of `contents` (12345) in the struct `Mail` is of the "
         "type `<class 'int'>`, but expected string value"
@@ -405,7 +405,7 @@ def test_invalid_structured_data_invalid_abi_type():
         }
     }'''
     with pytest.raises(TypeError) as e:
-        hashStruct(invalid_structured_data_string)
+        hash_struct(invalid_structured_data_string)
     assert str(e.value) == "Received Invalid type `uint25689` in the struct `Person`"
 
 
@@ -450,7 +450,7 @@ def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function()
         }
     }'''
     with pytest.raises(TypeError) as e:
-        hashStruct(invalid_structured_data_string)
+        hash_struct(invalid_structured_data_string)
     assert (
         str(e.value) == "Value of `balance` (how do you do?) in the struct `Person` is of the "
         "type `<class 'str'>`, but expected uint256 value"

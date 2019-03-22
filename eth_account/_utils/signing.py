@@ -9,7 +9,7 @@ from eth_utils import (
 )
 
 from eth_account._utils.structured_data import (
-    hashStruct,
+    hash_struct,
 )
 from eth_account._utils.transactions import (
     ChainAwareUnsignedTransaction,
@@ -73,8 +73,10 @@ def signature_wrapper(message, signature_version, version_specific_data):
         return wrapped_message
     elif signature_version == STRUCTURED_DATA_SIGN_VERSION:
         message_string = to_text(primitive=message)
-        domainSeparator = hashStruct(message_string, is_domain_separator=True)
-        wrapped_message = b'\x19' + signature_version + domainSeparator + hashStruct(message_string)
+        domainSeparator = hash_struct(message_string, is_domain_separator=True)
+        wrapped_message = (
+            b'\x19' + signature_version + domainSeparator + hash_struct(message_string)
+        )
         return wrapped_message
     else:
         raise NotImplementedError(

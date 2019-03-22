@@ -14,12 +14,12 @@ from .validation import (
 )
 
 
-def dependencies(primaryType, types):
+def get_dependencies(primary_type, types):
     """
-    Perform DFS to get all the dependencies of the primaryType
+    Perform DFS to get all the dependencies of the primary_type
     """
     deps = set()
-    struct_names_yet_to_be_expanded = [primaryType]
+    struct_names_yet_to_be_expanded = [primary_type]
 
     while len(struct_names_yet_to_be_expanded) > 0:
         struct_name = struct_names_yet_to_be_expanded.pop()
@@ -27,45 +27,45 @@ def dependencies(primaryType, types):
         deps.add(struct_name)
         fields = types[struct_name]
         for field in fields:
-            # If this struct type has already been seen, then don't expand on it'
-            if field["type"] in deps:
+            if field["type"] not in types:
+                # We don't need to expand types that are not user defined (customized)
                 continue
-            # If this struct type is not a customized type, then no need to expand
-            elif field["type"] not in types:
+            elif field["type"] in deps:
+                # skip types that we have already encountered
                 continue
-            # Custom Struct Type
             else:
+                # Custom Struct Type
                 struct_names_yet_to_be_expanded.append(field["type"])
 
     # Don't need to make a struct as dependency of itself
-    deps.remove(primaryType)
+    deps.remove(primary_type)
 
     return tuple(deps)
 
 
-def dict_to_type_name_converter(field):
+def field_identifier(field):
     """
-    Given a dictionary ``field`` of type {'name': NAME, 'type': TYPE},
+    Given a ``field`` of the format {'name': NAME, 'type': TYPE},
     this function converts it to ``TYPE NAME``
     """
     return "{0} {1}".format(field["type"], field["name"])
 
 
-def encode_struct(struct_name, struct_types):
+def encode_struct(struct_name, struct_field_types):
     return "{0}({1})".format(
         struct_name,
-        ','.join(map(dict_to_type_name_converter, struct_types)),
+        ','.join(map(field_identifier, struct_field_types)),
     )
 
 
-def encodeType(primaryType, types):
+def encode_type(primary_type, types):
     """
     The type of a struct is encoded as name ‖ "(" ‖ member₁ ‖ "," ‖ member₂ ‖ "," ‖ … ‖ memberₙ ")"
     where each member is written as type ‖ " " ‖ name.
     """
     # Getting the dependencies and sorting them alphabetically as per EIP712
-    deps = dependencies(primaryType, types)
-    sorted_deps = (primaryType,) + tuple(sorted(deps))
+    deps = get_dependencies(primary_type, types)
+    sorted_deps = (primary_type,) + tuple(sorted(deps))
 
     result = ''.join(
         [
@@ -76,8 +76,8 @@ def encodeType(primaryType, types):
     return result
 
 
-def typeHash(primaryType, types):
-    return keccak(text=encodeType(primaryType, types))
+def hash_struct_type(primary_type, types):
+    return keccak(text=encode_type(primary_type, types))
 
 
 def is_valid_abi_type(type_name):
@@ -117,12 +117,12 @@ def is_valid_abi_type(type_name):
 
 
 @to_tuple
-def _encodeData(primaryType, types, data):
+def _encode_data(primary_type, types, data):
     # Add typehash
-    yield "bytes32", typeHash(primaryType, types)
+    yield "bytes32", hash_struct_type(primary_type, types)
 
     # Add field contents
-    for field in types[primaryType]:
+    for field in types[primary_type]:
         value = data[field["name"]]
         if field["type"] == "string":
             if not isinstance(value, str):
@@ -130,7 +130,7 @@ def _encodeData(primaryType, types, data):
                     "Value of `{0}` ({2}) in the struct `{1}` is of the type `{3}`, but expected "
                     "string value".format(
                         field["name"],
-                        primaryType,
+                        primary_type,
                         value,
                         type(value),
                     )
@@ -144,7 +144,7 @@ def _encodeData(primaryType, types, data):
                     "Value of `{0}` ({2}) in the struct `{1}` is of the type `{3}`, but expected "
                     "bytes value".format(
                         field["name"],
-                        primaryType,
+                        primary_type,
                         value,
                         type(value),
                     )
@@ -154,7 +154,7 @@ def _encodeData(primaryType, types, data):
             yield "bytes32", hashed_value
         elif field["type"] in types:
             # This means that this type is a user defined type
-            hashed_value = keccak(primitive=encodeData(field["type"], types, value))
+            hashed_value = keccak(primitive=encode_data(field["type"], types, value))
             yield "bytes32", hashed_value
         elif field["type"][-1] == "]":
             # TODO: Replace the above conditionality with Regex for identifying arrays declaration
@@ -165,7 +165,7 @@ def _encodeData(primaryType, types, data):
                 raise TypeError(
                     "Received Invalid type `{0}` in the struct `{1}`".format(
                         field["type"],
-                        primaryType,
+                        primary_type,
                     )
                 )
 
@@ -178,7 +178,7 @@ def _encodeData(primaryType, types, data):
                     "Value of `{0}` ({2}) in the struct `{1}` is of the type `{3}`, but expected "
                     "{4} value".format(
                         field["name"],
-                        primaryType,
+                        primary_type,
                         value,
                         type(value),
                         field["type"],
@@ -186,13 +186,13 @@ def _encodeData(primaryType, types, data):
                 )
 
 
-def encodeData(primaryType, types, data):
-    data_types_and_hashes = _encodeData(primaryType, types, data)
+def encode_data(primaryType, types, data):
+    data_types_and_hashes = _encode_data(primaryType, types, data)
     data_types, data_hashes = zip(*data_types_and_hashes)
     return encode_abi(data_types, data_hashes)
 
 
-def hashStruct(structured_json_string_data, is_domain_separator=False):
+def hash_struct(structured_json_string_data, is_domain_separator=False):
     """
     The structured_json_string_data is expected to have the ``types`` attribute and
     the ``primaryType``, ``message``, ``domain`` attribute.
@@ -209,4 +209,4 @@ def hashStruct(structured_json_string_data, is_domain_separator=False):
     else:
         primaryType = structured_data["primaryType"]
         data = structured_data["message"]
-    return keccak(encodeData(primaryType, types, data))
+    return keccak(encode_data(primaryType, types, data))

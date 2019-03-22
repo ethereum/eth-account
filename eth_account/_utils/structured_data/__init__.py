@@ -1,3 +1,3 @@
 from .hashing import (  # noqa: F401
-    hashStruct,
+    hash_struct,
 )
