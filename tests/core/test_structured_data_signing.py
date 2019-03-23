@@ -31,43 +31,7 @@ from eth_account.messages import (
 
 @pytest.fixture
 def structured_valid_data_json_string():
-    return '''{
-        "types": {
-            "EIP712Domain": [
-                {"name": "name", "type": "string"},
-                {"name": "version", "type": "string"},
-                {"name": "chainId", "type": "uint256"},
-                {"name": "verifyingContract", "type": "address"}
-            ],
-            "Person": [
-                {"name": "name", "type": "string"},
-                {"name": "wallet", "type": "address"}
-            ],
-            "Mail": [
-                {"name": "from", "type": "Person"},
-                {"name": "to", "type": "Person"},
-                {"name": "contents", "type": "string"}
-            ]
-        },
-        "primaryType": "Mail",
-        "domain": {
-            "name": "Ether Mail",
-            "version": "1",
-            "chainId": 1,
-            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
-        },
-        "message": {
-            "from": {
-                "name": "Cow",
-                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-            },
-            "to": {
-                "name": "Bob",
-                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
-            },
-            "contents": "Hello, Bob!"
-        }
-    }'''
+    return open("tests/fixtures/valid_message.json", "r").read()
 
 
 @pytest.fixture
@@ -233,86 +197,18 @@ def test_type_regex(type, valid):
 
 
 def test_structured_data_invalid_identifier_filtered_by_regex():
-    invalid_structured_data_string = '''{
-        "types": {
-            "EIP712Domain": [
-                {"name": "name", "type": "string"},
-                {"name": "version", "type": "string"},
-                {"name": "chainId", "type": "uint256"},
-                {"name": "verifyingContract", "type": "address"}
-            ],
-            "Person": [
-                {"name": "name", "type": "string"},
-                {"name": "hello wallet", "type": "address"}
-            ],
-            "Mail": [
-                {"name": "from", "type": "Person"},
-                {"name": "to", "type": "Person"},
-                {"name": "contents", "type": "string"}
-            ]
-        },
-        "primaryType": "Mail",
-        "domain": {
-            "name": "Ether Mail",
-            "version": "1",
-            "chainId": 1,
-            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
-        },
-        "message": {
-            "from": {
-                "name": "Cow",
-                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-            },
-            "to": {
-                "name": "Bob",
-                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
-            },
-            "contents": "Hello, Bob!"
-        }
-    }'''
+    invalid_structured_data_string = open(
+        "tests/fixtures/invalid_struct_identifier_message.json"
+    ).read()
     with pytest.raises(ValidationError) as e:
         hash_struct(invalid_structured_data_string)
     assert str(e.value) == "Invalid Identifier `hello wallet` in `Person`"
 
 
 def test_structured_data_invalid_type_filtered_by_regex():
-    invalid_structured_data_string = '''{
-        "types": {
-            "EIP712Domain": [
-                {"name": "name", "type": "string"},
-                {"name": "version", "type": "string"},
-                {"name": "chainId", "type": "uint256"},
-                {"name": "verifyingContract", "type": "address"}
-            ],
-            "Person": [
-                {"name": "name", "type": "string"},
-                {"name": "wallet", "type": "address"}
-            ],
-            "Mail": [
-                {"name": "from", "type": "Hello Person"},
-                {"name": "to", "type": "Person"},
-                {"name": "contents", "type": "string"}
-            ]
-        },
-        "primaryType": "Mail",
-        "domain": {
-            "name": "Ether Mail",
-            "version": "1",
-            "chainId": 1,
-            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
-        },
-        "message": {
-            "from": {
-                "name": "Cow",
-                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-            },
-            "to": {
-                "name": "Bob",
-                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
-            },
-            "contents": "Hello, Bob!"
-        }
-    }'''
+    invalid_structured_data_string = open(
+        "tests/fixtures/invalid_struct_type_message.json"
+    ).read()
     with pytest.raises(ValidationError) as e:
         hash_struct(invalid_structured_data_string)
     assert str(e.value) == "Invalid Type `Hello Person` in `Mail`"
@@ -320,43 +216,9 @@ def test_structured_data_invalid_type_filtered_by_regex():
 
 def test_invalid_structured_data_value_type_mismatch_in_primary_type():
     # Given type is valid (string), but the value (int) is not of the mentioned type
-    invalid_structured_data_string = '''{
-        "types": {
-            "EIP712Domain": [
-                {"name": "name", "type": "string"},
-                {"name": "version", "type": "string"},
-                {"name": "chainId", "type": "uint256"},
-                {"name": "verifyingContract", "type": "address"}
-            ],
-            "Person": [
-                {"name": "name", "type": "string"},
-                {"name": "wallet", "type": "address"}
-            ],
-            "Mail": [
-                {"name": "from", "type": "Person"},
-                {"name": "to", "type": "Person"},
-                {"name": "contents", "type": "string"}
-            ]
-        },
-        "primaryType": "Mail",
-        "domain": {
-            "name": "Ether Mail",
-            "version": "1",
-            "chainId": 1,
-            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
-        },
-        "message": {
-            "from": {
-                "name": "Cow",
-                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
-            },
-            "to": {
-                "name": "Bob",
-                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
-            },
-            "contents": 12345
-        }
-    }'''
+    invalid_structured_data_string = open(
+        "tests/fixtures/invalid_message_value_type_mismatch_primary_type.json"
+    ).read()
     with pytest.raises(TypeError) as e:
         hash_struct(invalid_structured_data_string)
     assert (
@@ -367,43 +229,9 @@ def test_invalid_structured_data_value_type_mismatch_in_primary_type():
 
 def test_invalid_structured_data_invalid_abi_type():
     # Given type/types are invalid
-    invalid_structured_data_string = '''{
-        "types": {
-            "EIP712Domain": [
-                {"name": "name", "type": "string"},
-                {"name": "version", "type": "string"},
-                {"name": "chainId", "type": "uint256"},
-                {"name": "verifyingContract", "type": "address"}
-            ],
-            "Person": [
-                {"name": "name", "type": "string"},
-                {"name": "balance", "type": "uint25689"}
-            ],
-            "Mail": [
-                {"name": "from", "type": "Person"},
-                {"name": "to", "type": "Person"},
-                {"name": "contents", "type": "string"}
-            ]
-        },
-        "primaryType": "Mail",
-        "domain": {
-            "name": "Ether Mail",
-            "version": "1",
-            "chainId": 1,
-            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
-        },
-        "message": {
-            "from": {
-                "name": "Cow",
-                "balance": 123
-            },
-            "to": {
-                "name": "Bob",
-                "balance": 1234
-            },
-            "contents": "Hello Bob!"
-        }
-    }'''
+    invalid_structured_data_string = open(
+        "tests/fixtures/invalid_message_invalid_abi_type.json"
+    ).read()
     with pytest.raises(TypeError) as e:
         hash_struct(invalid_structured_data_string)
     assert str(e.value) == "Received Invalid type `uint25689` in the struct `Person`"
@@ -412,43 +240,9 @@ def test_invalid_structured_data_invalid_abi_type():
 def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function():
     # Given valid abi type, but the value is not of the specified type
     # (Error is found by the ``is_encodable`` ABI function)
-    invalid_structured_data_string = '''{
-        "types": {
-            "EIP712Domain": [
-                {"name": "name", "type": "string"},
-                {"name": "version", "type": "string"},
-                {"name": "chainId", "type": "uint256"},
-                {"name": "verifyingContract", "type": "address"}
-            ],
-            "Person": [
-                {"name": "name", "type": "string"},
-                {"name": "balance", "type": "uint256"}
-            ],
-            "Mail": [
-                {"name": "from", "type": "Person"},
-                {"name": "to", "type": "Person"},
-                {"name": "contents", "type": "string"}
-            ]
-        },
-        "primaryType": "Mail",
-        "domain": {
-            "name": "Ether Mail",
-            "version": "1",
-            "chainId": 1,
-            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
-        },
-        "message": {
-            "from": {
-                "name": "Cow",
-                "balance": 1234
-            },
-            "to": {
-                "name": "Bob",
-                "balance": "how do you do?"
-            },
-            "contents": "Hello Bob!"
-        }
-    }'''
+    invalid_structured_data_string = open(
+        "tests/fixtures/invalid_message_valid_abi_type_invalid_value.json"
+    ).read()
     with pytest.raises(TypeError) as e:
         hash_struct(invalid_structured_data_string)
     assert (
