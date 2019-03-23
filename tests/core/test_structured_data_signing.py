@@ -17,6 +17,7 @@ from eth_account._utils.structured_data.hashing import (
     encode_data,
     encode_struct,
     encode_type,
+    get_array_dimensions,
     get_dependencies,
     hash_struct,
     hash_struct_type,
@@ -249,3 +250,16 @@ def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function()
         str(e.value) == "Value of `balance` (how do you do?) in the struct `Person` is of the "
         "type `<class 'str'>`, but expected uint256 value"
     )
+
+
+@pytest.mark.parametrize(
+    'data, expected',
+    (
+        ([[1, 2, 3], [4, 5, 6]], (2, 3)),
+        ([[1, 2, 3]], (1, 3)),
+        ([1, 2, 3], (3,)),
+        ([[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]], (2, 3, 2)),
+    )
+)
+def test_get_array_dimensions(data, expected):
+    assert get_array_dimensions(data) == expected

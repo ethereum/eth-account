@@ -1,8 +1,14 @@
+from collections import (
+    Iterable,
+)
 import json
 
 from eth_abi import (
     encode_abi,
     is_encodable,
+)
+from eth_abi.grammar import (
+    parse,
 )
 from eth_utils import (
     keccak,
@@ -116,6 +122,41 @@ def is_valid_abi_type(type_name):
     return False
 
 
+def is_array_type(type):
+    # Identify if type such as "person[]" or "person[2]" is an array
+    abi_type = parse(type)
+    return abi_type.is_array
+
+
+def get_array_dimensions(data):
+    """
+    Given an array type data item, check that it is an array and
+    return the dimensions as a tuple.
+    Ex: get_array_dimensions([[1, 2, 3], [4, 5, 6]]) returns (2, 3)
+    """
+    if not isinstance(data, Iterable) or isinstance(data, str):
+        # Because even strings are considered Iterables as per python
+        return ()
+
+    expected_dimensions = get_array_dimensions(data[0])
+    for index in range(1, len(data)):
+        # 1 dimension less sub-arrays should all have the same dimensions to be a valid array
+        if get_array_dimensions(data[index]) != expected_dimensions:
+            raise TypeError("Not a valid array or incomplete array")
+
+    return (len(data),) + expected_dimensions
+
+
+@to_tuple
+def flatten_multidimensional_array(array):
+    for item in array:
+        if isinstance(item, Iterable) and not isinstance(item, str):
+            for x in flatten_multidimensional_array(item):
+                yield x
+        else:
+            yield item
+
+
 @to_tuple
 def _encode_data(primary_type, types, data):
     # Add typehash
@@ -156,9 +197,34 @@ def _encode_data(primary_type, types, data):
             # This means that this type is a user defined type
             hashed_value = keccak(primitive=encode_data(field["type"], types, value))
             yield "bytes32", hashed_value
-        elif field["type"][-1] == "]":
-            # TODO: Replace the above conditionality with Regex for identifying arrays declaration
-            raise NotImplementedError("TODO: Arrays currently unimplemented in encodeData")
+        elif is_array_type(field["type"]):
+            # Get the dimensions from the value
+            array_dimensions = get_array_dimensions(value)
+            # Get the dimensions from what was declared in the schema
+            parsed_type = parse(field["type"])
+            for i in range(len(array_dimensions)):
+                if len(parsed_type.arrlist[i]) == 0:
+                    # Skip empty or dynamically declared dimensions
+                    continue
+                if array_dimensions[i] != parsed_type.arrlist[i][0]:
+                    # Dimensions should match with declared schema
+                    raise TypeError(
+                        "Array data `{0}` has dimensions `{1}` whereas the "
+                        "schema has dimensions `{2}`".format(
+                            value,
+                            array_dimensions,
+                            parsed_type.arrlist,
+                        )
+                    )
+
+            array_items = flatten_multidimensional_array(value)
+            array_items_encoding = [
+                encode_data(parsed_type.base, types, array_item)
+                for array_item in array_items
+            ]
+            concatenated_array_encodings = ''.join(array_items_encoding)
+            hashed_value = keccak(concatenated_array_encodings)
+            yield "bytes32", hashed_value
         else:
             # First checking to see if type is valid as per abi
             if not is_valid_abi_type(field["type"]):
