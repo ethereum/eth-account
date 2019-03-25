@@ -263,3 +263,29 @@ def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function()
 )
 def test_get_array_dimensions(data, expected):
     assert get_array_dimensions(data) == expected
+
+
+def test_unequal_array_lengths_between_schema_and_data():
+    invalid_structured_data_string = open(
+        "tests/fixtures/invalid_message_unequal_1d_array_lengths.json"
+    ).read()
+    with pytest.raises(TypeError) as e:
+        hash_struct(invalid_structured_data_string)
+    assert (
+        str(e.value) == "Array data "
+        "`[{'name': 'Bob', 'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'}]` has "
+        "dimensions `(1,)` whereas the schema has dimensions `(2,)`"
+    )
+
+
+def test_unequal_array_dimension_between_schema_and_data():
+    invalid_structured_data_string = open(
+        "tests/fixtures/invalid_message_unequal_array_dimensions.json"
+    ).read()
+    with pytest.raises(TypeError) as e:
+        hash_struct(invalid_structured_data_string)
+    assert (
+        str(e.value) == "Array data "
+        "`[{'name': 'Bob', 'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'}]` has "
+        "dimensions `(1,)` whereas the schema has dimensions `(2, 3, 4)`"
+    )

@@ -134,8 +134,9 @@ def get_array_dimensions(data):
     return the dimensions as a tuple.
     Ex: get_array_dimensions([[1, 2, 3], [4, 5, 6]]) returns (2, 3)
     """
-    if not isinstance(data, Iterable) or isinstance(data, str):
-        # Because even strings are considered Iterables as per python
+    if not isinstance(data, list) and not isinstance(data, tuple):
+        # Not checking for Iterable instance, because even Dictionaries and strings
+        # are considered as iterables, but that's not what we want the condition to be.
         return ()
 
     expected_dimensions = get_array_dimensions(data[0])
@@ -213,7 +214,7 @@ def _encode_data(primary_type, types, data):
                         "schema has dimensions `{2}`".format(
                             value,
                             array_dimensions,
-                            parsed_type.arrlist,
+                            tuple(map(lambda x: x[0], parsed_type.arrlist)),
                         )
                     )
 
