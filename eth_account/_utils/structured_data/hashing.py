@@ -1,7 +1,10 @@
-from collections import (
-    Iterable,
+from itertools import (
+    groupby,
 )
 import json
+from operator import (
+    itemgetter,
+)
 
 from eth_abi import (
     encode_abi,
@@ -11,8 +14,10 @@ from eth_abi.grammar import (
     parse,
 )
 from eth_utils import (
+    ValidationError,
     keccak,
     to_tuple,
+    toolz,
 )
 
 from .validation import (
@@ -128,32 +133,68 @@ def is_array_type(type):
     return abi_type.is_array
 
 
+@to_tuple
+def get_depths_and_dimensions(data, depth):
+    """
+    Yields 2-length tuples of depth and dimension of each element at that depth
+    """
+    if not isinstance(data, (list, tuple)):
+        # Not checking for Iterable instance, because even Dictionaries and strings
+        # are considered as iterables, but that's not what we want the condition to be.
+        return ()
+
+    yield depth, len(data)
+
+    for item in data:
+        # iterating over all 1 dimension less sub-data items
+        yield from get_depths_and_dimensions(item, depth + 1)
+
+
 def get_array_dimensions(data):
     """
     Given an array type data item, check that it is an array and
     return the dimensions as a tuple.
     Ex: get_array_dimensions([[1, 2, 3], [4, 5, 6]]) returns (2, 3)
     """
-    if not isinstance(data, list) and not isinstance(data, tuple):
-        # Not checking for Iterable instance, because even Dictionaries and strings
-        # are considered as iterables, but that's not what we want the condition to be.
-        return ()
+    depths_and_dimensions = get_depths_and_dimensions(data, 0)
+    # re-form as a dictionary with `depth` as key, and all of the dimensions found at that depth.
+    grouped_by_depth = {
+        depth: tuple(dimension for depth, dimension in group)
+        for depth, group in groupby(depths_and_dimensions, itemgetter(0))
+    }
 
-    expected_dimensions = get_array_dimensions(data[0])
-    for index in range(1, len(data)):
-        # 1 dimension less sub-arrays should all have the same dimensions to be a valid array
-        if get_array_dimensions(data[index]) != expected_dimensions:
-            raise TypeError("Not a valid array or incomplete array")
+    # validate that there is only one dimension for any given depth.
+    invalid_depths_dimensions = tuple(
+        (depth, dimensions)
+        for depth, dimensions in grouped_by_depth.items()
+        if len(set(dimensions)) != 1
+    )
+    if invalid_depths_dimensions:
+        raise ValidationError(
+            '\n'.join(
+                [
+                    "Depth {0} of array data has more than one dimensions: {1}".
+                    format(depth, dimensions)
+                    for depth, dimensions in invalid_depths_dimensions
+                ]
+            )
+        )
 
-    return (len(data),) + expected_dimensions
+    dimensions = tuple(
+        toolz.first(set(dimensions))
+        for depth, dimensions in sorted(grouped_by_depth.items())
+    )
+
+    return dimensions
 
 
 @to_tuple
 def flatten_multidimensional_array(array):
     for item in array:
-        if isinstance(item, Iterable) and not isinstance(item, str):
-            for x in flatten_multidimensional_array(item):
-                yield x
+        if not isinstance(item, (list, tuple)):
+            # Not checking for Iterable instance, because even Dictionaries and strings
+            # are considered as iterables, but that's not what we want the condition to be.
+            yield from flatten_multidimensional_array(item)
         else:
             yield item
 
@@ -259,21 +300,28 @@ def encode_data(primaryType, types, data):
     return encode_abi(data_types, data_hashes)
 
 
-def hash_struct(structured_json_string_data, is_domain_separator=False):
-    """
-    The structured_json_string_data is expected to have the ``types`` attribute and
-    the ``primaryType``, ``message``, ``domain`` attribute.
-    The ``is_domain_separator`` variable is used to calculate the ``hashStruct`` as
-    part of the ``domainSeparator`` calculation.
-    """
+def load_and_validate_structured_message(structured_json_string_data):
     structured_data = json.loads(structured_json_string_data)
     validate_structured_data(structured_data)
 
-    types = structured_data["types"]
-    if is_domain_separator:
-        primaryType = "EIP712Domain"
-        data = structured_data["domain"]
-    else:
-        primaryType = structured_data["primaryType"]
-        data = structured_data["message"]
-    return keccak(encode_data(primaryType, types, data))
+    return structured_data
+
+
+def hash_domain(structured_data):
+    return keccak(
+        encode_data(
+            "EIP712Domain",
+            structured_data["types"],
+            structured_data["domain"]
+        )
+    )
+
+
+def hash_message(structured_data):
+    return keccak(
+        encode_data(
+            structured_data["primaryType"],
+            structured_data["types"],
+            structured_data["message"]
+        )
+    )

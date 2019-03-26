@@ -19,8 +19,10 @@ from eth_account._utils.structured_data.hashing import (
     encode_type,
     get_array_dimensions,
     get_dependencies,
-    hash_struct,
+    hash_domain,
+    hash_message,
     hash_struct_type,
+    load_and_validate_structured_message,
 )
 from eth_account._utils.structured_data.validation import (
     TYPE_REGEX,
@@ -124,16 +126,15 @@ def test_encode_data(types, message):
 
 
 def test_hash_struct_main_message(structured_valid_data_json_string):
+    structured_data = json.loads(structured_valid_data_json_string)
     expected_hex_value = "c52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e"
-    assert hash_struct(structured_valid_data_json_string).hex() == expected_hex_value
+    assert hash_message(structured_data).hex() == expected_hex_value
 
 
 def test_hash_struct_domain(structured_valid_data_json_string):
+    structured_data = json.loads(structured_valid_data_json_string)
     expected_hex_value = "f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f"
-    assert (
-        hash_struct(structured_valid_data_json_string, is_domain_separator=True).hex() ==
-        expected_hex_value
-    )
+    assert hash_domain(structured_data).hex() == expected_hex_value
 
 
 def test_hashed_structured_data(signature_kwargs):
@@ -202,7 +203,7 @@ def test_structured_data_invalid_identifier_filtered_by_regex():
         "tests/fixtures/invalid_struct_identifier_message.json"
     ).read()
     with pytest.raises(ValidationError) as e:
-        hash_struct(invalid_structured_data_string)
+        load_and_validate_structured_message(invalid_structured_data_string)
     assert str(e.value) == "Invalid Identifier `hello wallet` in `Person`"
 
 
@@ -211,7 +212,7 @@ def test_structured_data_invalid_type_filtered_by_regex():
         "tests/fixtures/invalid_struct_type_message.json"
     ).read()
     with pytest.raises(ValidationError) as e:
-        hash_struct(invalid_structured_data_string)
+        load_and_validate_structured_message(invalid_structured_data_string)
     assert str(e.value) == "Invalid Type `Hello Person` in `Mail`"
 
 
@@ -220,8 +221,9 @@ def test_invalid_structured_data_value_type_mismatch_in_primary_type():
     invalid_structured_data_string = open(
         "tests/fixtures/invalid_message_value_type_mismatch_primary_type.json"
     ).read()
+    invalid_structured_data = json.loads(invalid_structured_data_string)
     with pytest.raises(TypeError) as e:
-        hash_struct(invalid_structured_data_string)
+        hash_message(invalid_structured_data)
     assert (
         str(e.value) == "Value of `contents` (12345) in the struct `Mail` is of the "
         "type `<class 'int'>`, but expected string value"
@@ -233,8 +235,9 @@ def test_invalid_structured_data_invalid_abi_type():
     invalid_structured_data_string = open(
         "tests/fixtures/invalid_message_invalid_abi_type.json"
     ).read()
+    invalid_structured_data = json.loads(invalid_structured_data_string)
     with pytest.raises(TypeError) as e:
-        hash_struct(invalid_structured_data_string)
+        hash_message(invalid_structured_data)
     assert str(e.value) == "Received Invalid type `uint25689` in the struct `Person`"
 
 
@@ -244,8 +247,9 @@ def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function()
     invalid_structured_data_string = open(
         "tests/fixtures/invalid_message_valid_abi_type_invalid_value.json"
     ).read()
+    invalid_structured_data = json.loads(invalid_structured_data_string)
     with pytest.raises(TypeError) as e:
-        hash_struct(invalid_structured_data_string)
+        hash_message(invalid_structured_data)
     assert (
         str(e.value) == "Value of `balance` (how do you do?) in the struct `Person` is of the "
         "type `<class 'str'>`, but expected uint256 value"
@@ -269,11 +273,15 @@ def test_unequal_array_lengths_between_schema_and_data():
     invalid_structured_data_string = open(
         "tests/fixtures/invalid_message_unequal_1d_array_lengths.json"
     ).read()
+    invalid_structured_data = json.loads(invalid_structured_data_string)
     with pytest.raises(TypeError) as e:
-        hash_struct(invalid_structured_data_string)
+        hash_message(invalid_structured_data)
     assert (
         str(e.value) == "Array data "
         "`[{'name': 'Bob', 'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'}]` has "
+        "dimensions `(1,)` whereas the schema has dimensions `(2,)`" or
+        str(e.value) == "Array data "
+        "`[{'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', 'name': 'Bob'}]` has "
         "dimensions `(1,)` whereas the schema has dimensions `(2,)`"
     )
 
@@ -282,10 +290,14 @@ def test_unequal_array_dimension_between_schema_and_data():
     invalid_structured_data_string = open(
         "tests/fixtures/invalid_message_unequal_array_dimensions.json"
     ).read()
+    invalid_structured_data = json.loads(invalid_structured_data_string)
     with pytest.raises(TypeError) as e:
-        hash_struct(invalid_structured_data_string)
+        hash_message(invalid_structured_data)
     assert (
         str(e.value) == "Array data "
         "`[{'name': 'Bob', 'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'}]` has "
+        "dimensions `(1,)` whereas the schema has dimensions `(2, 3, 4)`" or
+        str(e.value) == "Array data "
+        "`[{'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', 'name': 'Bob'}]` has "
         "dimensions `(1,)` whereas the schema has dimensions `(2, 3, 4)`"
     )
