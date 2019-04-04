@@ -98,12 +98,12 @@ def acct(request):
     return Account
 
 
-@pytest.fixture(params=("text", "primative", "hexstr"))
+@pytest.fixture(params=("text", "primitive", "hexstr"))
 def signature_kwargs(request):
     if request == "text":
         return {"text": "hello world"}
-    elif request == "primative":
-        return {"primative": b"hello world"}
+    elif request == "primitive":
+        return {"primitive": b"hello world"}
     else:
         return {"hexstr": "68656c6c6f20776f726c64"}
 

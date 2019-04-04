@@ -5,8 +5,14 @@ from cytoolz import (
 from eth_utils import (
     to_bytes,
     to_int,
+    to_text,
 )
 
+from eth_account._utils.structured_data.hashing import (
+    hash_domain,
+    hash_message,
+    load_and_validate_structured_message,
+)
 from eth_account._utils.transactions import (
     ChainAwareUnsignedTransaction,
     UnsignedTransaction,
@@ -21,6 +27,7 @@ V_OFFSET = 27
 # signature versions
 PERSONAL_SIGN_VERSION = b'E'  # Hex value 0x45
 INTENDED_VALIDATOR_SIGN_VERSION = b'\x00'  # Hex value 0x00
+STRUCTURED_DATA_SIGN_VERSION = b'\x01'  # Hex value 0x01
 
 
 def sign_transaction_dict(eth_key, transaction_dict):
@@ -44,7 +51,9 @@ def sign_transaction_dict(eth_key, transaction_dict):
     return (v, r, s, encoded_transaction)
 
 
-# watch here for updates to signature format: https://github.com/ethereum/EIPs/issues/191
+# watch here for updates to signature format:
+# https://github.com/ethereum/EIPs/blob/master/EIPS/eip-191.md
+# https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
 @curry
 def signature_wrapper(message, signature_version, version_specific_data):
     if not isinstance(message, bytes):
@@ -64,12 +73,21 @@ def signature_wrapper(message, signature_version, version_specific_data):
             raise TypeError("Invalid Wallet Address: {}".format(version_specific_data))
         wrapped_message = b'\x19' + signature_version + wallet_address + message
         return wrapped_message
+    elif signature_version == STRUCTURED_DATA_SIGN_VERSION:
+        message_string = to_text(primitive=message)
+        structured_data = load_and_validate_structured_message(message_string)
+        domainSeparator = hash_domain(structured_data)
+        wrapped_message = (
+            b'\x19' + signature_version + domainSeparator + hash_message(structured_data)
+        )
+        return wrapped_message
     else:
         raise NotImplementedError(
-            "Currently supported signature versions are: {0}, {1}. ".
+            "Currently supported signature versions are: {0}, {1}, {2}. ".
             format(
                 '0x' + INTENDED_VALIDATOR_SIGN_VERSION.hex(),
-                '0x' + PERSONAL_SIGN_VERSION.hex()
+                '0x' + PERSONAL_SIGN_VERSION.hex(),
+                '0x' + STRUCTURED_DATA_SIGN_VERSION.hex(),
             ) +
             "But received signature version {}".format('0x' + signature_version.hex())
         )
