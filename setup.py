@@ -5,14 +5,16 @@ from setuptools import (
     find_packages,
 )
 
-extras_require={
+extras_require = {
     'test': [
         "pytest>=3.6.0",
+        "pytest-xdist",
         "tox>=2.9.1,<3",
     ],
     'lint': [
         "flake8==3.4.1",
         "isort>=4.2.15,<5",
+        "pydocstyle>=3.0.0,<4",
     ],
     'doc': [
         "Sphinx>=1.6.5,<2",
@@ -20,18 +22,18 @@ extras_require={
     ],
     'dev': [
         "bumpversion>=0.5.3,<1",
-        "pytest-xdist",
         "pytest-watch>=4.1.0,<5",
         "wheel",
+        "twine",
         "ipython",
     ],
 }
 
 extras_require['dev'] = (
-    extras_require['dev']
-    + extras_require['test']
-    + extras_require['lint']
-    + extras_require['doc']
+    extras_require['dev'] +
+    extras_require['test'] +
+    extras_require['lint'] +
+    extras_require['doc']
 )
 
 setup(
@@ -40,8 +42,8 @@ setup(
     version='0.3.0',
     description="""eth-account: Sign Ethereum transactions and messages with local private keys""",
     long_description_markdown_filename='README.md',
-    author='Jason Carver',
-    author_email='ethcalibur+pip@gmail.com',
+    author='The Ethereum Foundation',
+    author_email='snakecharmers@ethereum.org',
     url='https://github.com/ethereum/eth-account',
     include_package_data=True,
     install_requires=[
@@ -49,12 +51,13 @@ setup(
         "eth-abi>=2.0.0b7,<3",
         "eth-keyfile>=0.5.0,<0.6.0",
         "eth-keys>=0.2.1,<0.3.0",
+        "eth-rlp>=0.1.2,<1",
         "eth-utils>=1.3.0,<2",
         "hexbytes>=0.1.0,<1",
-        "eth-rlp>=0.1.2,<1",
+        "rlp>=1.0.0,<2"
     ],
     setup_requires=['setuptools-markdown'],
-    python_requires='>=3.5, <4',
+    python_requires='>=3.6, <4',
     extras_require=extras_require,
     py_modules=['eth_account'],
     license="MIT",
@@ -67,8 +70,7 @@ setup(
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
         'Programming Language :: Python :: 3',
-        'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: Implementation :: PyPy',
+        'Programming Language :: Python :: 3.7',
     ],
 )
