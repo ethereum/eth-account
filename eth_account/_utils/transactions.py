@@ -31,6 +31,10 @@ from rlp.sedes import (
     binary,
 )
 
+from .validation import (
+    is_valid_address,
+)
+
 
 def serializable_unsigned_transaction_from_dict(transaction_dict):
     assert_valid_fields(transaction_dict)
@@ -67,12 +71,8 @@ def is_int_or_prefixed_hexstr(val):
 def is_empty_or_checksum_address(val):
     if val in {None, b'', ''}:
         return True
-    elif is_binary_address(val):
-        return True
-    elif is_checksum_address(val):
-        return True
     else:
-        return False
+        return is_valid_address(val)
 
 
 def is_none(val):

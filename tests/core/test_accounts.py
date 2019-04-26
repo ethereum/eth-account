@@ -21,12 +21,18 @@ from eth_utils import (
 from hexbytes import (
     HexBytes,
 )
+from hypothesis import (
+    given,
+    strategies as st,
+)
 
 from eth_account import (
     Account,
 )
 from eth_account.messages import (
     defunct_hash_message,
+    encode_defunct,
+    encode_intended_validator,
 )
 
 # from https://github.com/ethereum/tests/blob/3930ca3a9a377107d5792b3e7202f79c688f1a67/BasicTests/txtest.json # noqa: 501
@@ -94,12 +100,17 @@ def PRIVATE_KEY_ALT(request):
 
 
 @pytest.fixture
-def acct(request):
+def acct():
     return Account
 
 
+@pytest.fixture
+def keyed_acct():
+    return Account.privateKeyToAccount(PRIVATE_KEY_AS_BYTES)
+
+
 @pytest.fixture(params=("text", "primitive", "hexstr"))
-def signature_kwargs(request):
+def message_encodings(request):
     if request == "text":
         return {"text": "hello world"}
     elif request == "primitive":
@@ -161,6 +172,7 @@ def test_eth_account_privateKeyToAccount_properties(acct, PRIVATE_KEY):
     account = acct.privateKeyToAccount(PRIVATE_KEY)
     assert callable(account.signHash)
     assert callable(account.signTransaction)
+    assert callable(account.sign_message)
     assert is_checksum_address(account.address)
     assert account.address == ACCT_ADDRESS
     assert account.privateKey == PRIVATE_KEY_AS_OBJ
@@ -170,6 +182,7 @@ def test_eth_account_create_properties(acct):
     account = acct.create()
     assert callable(account.signHash)
     assert callable(account.signTransaction)
+    assert callable(account.sign_message)
     assert is_checksum_address(account.address)
     assert isinstance(account.privateKey, bytes) and len(account.privateKey) == 32
 
@@ -280,6 +293,45 @@ def test_eth_account_hash_message_hexstr(acct, message, expected):
     assert defunct_hash_message(hexstr=message) == expected
 
 
+@given(st.text())
+def test_sign_message_against_sign_hash_as_text(keyed_acct, message_text):
+    # sign via hash
+    msg_hash = defunct_hash_message(text=message_text)
+    signed_via_hash = keyed_acct.signHash(msg_hash)
+
+    # sign via message
+    signable_message = encode_defunct(text=message_text)
+    signed_via_message = keyed_acct.sign_message(signable_message)
+
+    assert signed_via_hash == signed_via_message
+
+
+@given(st.binary())
+def test_sign_message_against_sign_hash_as_bytes_and_hex(keyed_acct, message_bytes):
+    # sign via hash
+    msg_hash = defunct_hash_message(message_bytes)
+    signed_via_hash = keyed_acct.signHash(msg_hash)
+
+    # sign via message
+    signable_message = encode_defunct(message_bytes)
+    signed_via_message = keyed_acct.sign_message(signable_message)
+
+    assert signed_via_hash == signed_via_message
+
+    ## Repeat as hex
+    message_hex = to_hex(message_bytes)
+
+    # sign via hash
+    msg_hash_hex = defunct_hash_message(hexstr=message_hex)
+    signed_via_hash_hex = keyed_acct.signHash(msg_hash)
+
+    # sign via message
+    signable_message_hex = encode_defunct(hexstr=message_hex)
+    signed_via_message_hex = keyed_acct.sign_message(signable_message)
+
+    assert signed_via_hash_hex == signed_via_message_hex
+
+
 @pytest.mark.parametrize(
     'message, key, expected_bytes, expected_hash, v, r, s, signature',
     (
@@ -318,9 +370,8 @@ def test_eth_account_hash_message_hexstr(acct, message, expected):
     ids=['web3js_hex_str_example', 'web3js_eth_keys.datatypes.PrivateKey_example', '31byte_r_and_s'],  # noqa: E501
 )
 def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, r, s, signature):
-    msghash = defunct_hash_message(text=message)
-    assert msghash == expected_hash
-    signed = acct.signHash(msghash, private_key=key)
+    signable = encode_defunct(text=message)
+    signed = acct.sign_message(signable, private_key=key)
     assert signed.messageHash == expected_hash
     assert signed.v == v
     assert signed.r == r
@@ -328,23 +379,23 @@ def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, 
     assert signed.signature == signature
 
     account = acct.privateKeyToAccount(key)
-    msghash = defunct_hash_message(text=message)
-    assert account.signHash(msghash) == signed
+    assert account.sign_message(signable) == signed
 
 
-def test_eth_valid_account_address_sign_data_with_intended_validator(acct, signature_kwargs):
+def test_eth_valid_account_address_sign_data_with_intended_validator(acct, message_encodings):
     account = acct.create()
-    hashed_msg = defunct_hash_message(
-        **signature_kwargs,
-        signature_version=b'\x00',
-        version_specific_data=account.address,
+    signable = encode_intended_validator(
+        account.address,
+        **message_encodings,
     )
-    signed = acct.signHash(hashed_msg, account.privateKey)
-    new_addr = acct.recoverHash(hashed_msg, signature=signed.signature)
+    signed = account.sign_message(signable)
+    signed_classmethod = acct.sign_message(signable, account.privateKey)
+    assert signed == signed_classmethod
+    new_addr = acct.recover_message(signable, signature=signed.signature)
     assert new_addr == account.address
 
 
-def test_eth_short_account_address_sign_data_with_intended_validator(acct, signature_kwargs):
+def test_eth_short_account_address_sign_data_with_intended_validator(acct, message_encodings):
     account = acct.create()
 
     address_in_bytes = to_bytes(hexstr=account.address)
@@ -353,20 +404,20 @@ def test_eth_short_account_address_sign_data_with_intended_validator(acct, signa
         with pytest.raises(TypeError):
             # Raise TypeError if the address is less than 20 bytes
             defunct_hash_message(
-                **signature_kwargs,
+                **message_encodings,
                 signature_version=b'\x00',
                 version_specific_data=to_hex(address_in_bytes[:-i]),
             )
 
 
-def test_eth_long_account_address_sign_data_with_intended_validator(acct, signature_kwargs):
+def test_eth_long_account_address_sign_data_with_intended_validator(acct, message_encodings):
     account = acct.create()
 
     address_in_bytes = to_bytes(hexstr=account.address)
     with pytest.raises(TypeError):
         # Raise TypeError if the address is more than 20 bytes
         defunct_hash_message(
-            **signature_kwargs,
+            **message_encodings,
             signature_version=b'\x00',
             version_specific_data=to_hex(address_in_bytes + b'\x00'),
         )

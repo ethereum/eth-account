@@ -61,6 +61,9 @@ class LocalAccount(BaseAccount):
             private_key=self.privateKey,
         )
 
+    def sign_message(self, signable_message):
+        return self._publicapi.sign_message(signable_message, private_key=self.privateKey)
+
     def signTransaction(self, transaction_dict):
         return self._publicapi.signTransaction(transaction_dict, self.privateKey)
 
