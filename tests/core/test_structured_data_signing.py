@@ -58,14 +58,18 @@ def domain(structured_valid_data_json_string):
     return json.loads(structured_valid_data_json_string)["domain"]
 
 
-@pytest.fixture(params=("text", "primitive", "hexstr"))
+@pytest.fixture(params=("text", "dict", "primitive", "hexstr"))
 def message_encodings(request, structured_valid_data_json_string):
-    if request == "text":
+    if request.param == "text":
         return {"text": structured_valid_data_json_string}
-    elif request == "primitive":
+    elif request.param == "primitive":
         return {"primitive": structured_valid_data_json_string.encode()}
-    else:
+    elif request.param == "dict":
+        return {"primitive": json.loads(structured_valid_data_json_string)}
+    elif request.param == "hexstr":
         return {"hexstr": structured_valid_data_json_string.encode().hex()}
+    else:
+        raise Exception("Unreachable")
 
 
 @pytest.mark.parametrize(

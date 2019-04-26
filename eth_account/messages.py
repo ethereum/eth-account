@@ -1,5 +1,10 @@
+from collections.abc import (
+    Mapping,
+)
+import json
 from typing import (
     NamedTuple,
+    Union,
 )
 
 from cytoolz import (
@@ -98,7 +103,7 @@ def encode_intended_validator(
 # watch here for updates to signature format:
 # https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
 def encode_structured_data(
-        primitive: bytes = None,
+        primitive: Union[bytes, int, Mapping] = None,
         *,
         hexstr: str = None,
         text: str = None) -> SignableMessage:
@@ -106,14 +111,19 @@ def encode_structured_data(
     Supply exactly one of the three arguments:
     bytes as a primitive, a hex string, or a unicode string.
 
+    The primary argument may be a :cls:`~collections.abc.Mapping` which defines the typed message.
+
     :param primitive: the binary message to be signed
-    :type primitive: bytes or int
+    :type primitive: bytes or int or Mapping (eg~ dict )
     :param str hexstr: the message encoded as hex
     :param str text: the message as a series of unicode characters (a normal Py3 str)
     :returns: The EIP-191 encoded message, ready for signing
 
     """
-    message_string = to_text(primitive, hexstr=hexstr, text=text)
+    if isinstance(primitive, Mapping):
+        message_string = json.dumps(primitive)
+    else:
+        message_string = to_text(primitive, hexstr=hexstr, text=text)
     structured_data = load_and_validate_structured_message(message_string)
     return SignableMessage(
         b'\x01',
