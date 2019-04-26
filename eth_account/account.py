@@ -48,7 +48,7 @@ from eth_account.datastructures import (
 )
 from eth_account.messages import (
     SignableMessage,
-    hash_eip191_message,
+    _hash_eip191_message,
 )
 from eth_account.signers.local import (
     LocalAccount,
@@ -284,7 +284,7 @@ class Account(object):
             >>> signature = 0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c  # noqa: E501
             >>> Account.recoverHash(msghash, signature=signature)
         '''
-        message_hash = hash_eip191_message(signable_message)
+        message_hash = _hash_eip191_message(signable_message)
         return self._recover_hash(message_hash, vrs, signature)
 
     @combomethod
@@ -405,7 +405,7 @@ class Account(object):
                 key
             )
         '''
-        message_hash = hash_eip191_message(signable_message)
+        message_hash = _hash_eip191_message(signable_message)
         return self._sign_hash(message_hash, private_key)
 
     @combomethod

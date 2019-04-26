@@ -53,7 +53,7 @@ class SignableMessage(NamedTuple):
     body: HexBytes  # aka "data to sign"
 
 
-def hash_eip191_message(signable_message: SignableMessage) -> Hash32:
+def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
     version = signable_message.version
     if len(version) != 1:
         raise ValidationError(
@@ -214,5 +214,5 @@ def defunct_hash_message(
     :returns: The hash of the message, after adding the prefix
     '''
     signable = encode_defunct(primitive, hexstr=hexstr, text=text)
-    hashed = hash_eip191_message(signable)
+    hashed = _hash_eip191_message(signable)
     return HexBytes(hashed)

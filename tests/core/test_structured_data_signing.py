@@ -29,7 +29,7 @@ from eth_account._utils.structured_data.validation import (
 )
 from eth_account.messages import (
     encode_structured_data,
-    hash_eip191_message,
+    _hash_eip191_message,
 )
 
 
@@ -144,7 +144,7 @@ def test_hash_struct_domain(structured_valid_data_json_string):
 
 def test_hashed_structured_data(message_encodings):
     structured_msg = encode_structured_data(**message_encodings)
-    hashed_structured_msg = hash_eip191_message(structured_msg)
+    hashed_structured_msg = _hash_eip191_message(structured_msg)
     expected_hash_value_hex = "be609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2"
     assert hashed_structured_msg.hex() == expected_hash_value_hex
 
@@ -152,7 +152,7 @@ def test_hashed_structured_data(message_encodings):
 def test_signature_verification(message_encodings):
     account = Account.create()
     structured_msg = encode_structured_data(**message_encodings)
-    hashed_structured_msg = hash_eip191_message(structured_msg)
+    hashed_structured_msg = _hash_eip191_message(structured_msg)
     signed = Account.signHash(hashed_structured_msg, account.privateKey)
     new_addr = Account.recoverHash(hashed_structured_msg, signature=signed.signature)
     assert new_addr == account.address
@@ -163,7 +163,7 @@ def test_signature_variables(message_encodings):
     # mentioned in the EIP. The link is as follows
     # https://github.com/ethereum/EIPs/blob/master/assets/eip-712/Example.js
     structured_msg = encode_structured_data(**message_encodings)
-    hashed_structured_msg = hash_eip191_message(structured_msg)
+    hashed_structured_msg = _hash_eip191_message(structured_msg)
     privateKey = keccak(text="cow")
     acc = Account.privateKeyToAccount(privateKey)
     assert HexBytes(acc.address) == HexBytes("0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826")
