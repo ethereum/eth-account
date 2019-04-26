@@ -1,18 +1,11 @@
 from cytoolz import (
-    curry,
     pipe,
 )
 from eth_utils import (
     to_bytes,
     to_int,
-    to_text,
 )
 
-from eth_account._utils.structured_data.hashing import (
-    hash_domain,
-    hash_message,
-    load_and_validate_structured_message,
-)
 from eth_account._utils.transactions import (
     ChainAwareUnsignedTransaction,
     UnsignedTransaction,
@@ -49,48 +42,6 @@ def sign_transaction_dict(eth_key, transaction_dict):
     encoded_transaction = encode_transaction(unsigned_transaction, vrs=(v, r, s))
 
     return (v, r, s, encoded_transaction)
-
-
-# watch here for updates to signature format:
-# https://github.com/ethereum/EIPs/blob/master/EIPS/eip-191.md
-# https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
-@curry
-def signature_wrapper(message, signature_version, version_specific_data):
-    if not isinstance(message, bytes):
-        raise TypeError("Message is of the type {}, expected bytes".format(type(message)))
-    if not isinstance(signature_version, bytes):
-        raise TypeError("Signature Version is of the type {}, expected bytes".format(
-            type(signature_version))
-        )
-
-    if signature_version == PERSONAL_SIGN_VERSION:
-        preamble = b'\x19Ethereum Signed Message:\n'
-        size = str(len(message)).encode('utf-8')
-        return preamble + size + message
-    elif signature_version == INTENDED_VALIDATOR_SIGN_VERSION:
-        wallet_address = to_bytes(hexstr=version_specific_data)
-        if len(wallet_address) != 20:
-            raise TypeError("Invalid Wallet Address: {}".format(version_specific_data))
-        wrapped_message = b'\x19' + signature_version + wallet_address + message
-        return wrapped_message
-    elif signature_version == STRUCTURED_DATA_SIGN_VERSION:
-        message_string = to_text(primitive=message)
-        structured_data = load_and_validate_structured_message(message_string)
-        domainSeparator = hash_domain(structured_data)
-        wrapped_message = (
-            b'\x19' + signature_version + domainSeparator + hash_message(structured_data)
-        )
-        return wrapped_message
-    else:
-        raise NotImplementedError(
-            "Currently supported signature versions are: {0}, {1}, {2}. ".
-            format(
-                '0x' + INTENDED_VALIDATOR_SIGN_VERSION.hex(),
-                '0x' + PERSONAL_SIGN_VERSION.hex(),
-                '0x' + STRUCTURED_DATA_SIGN_VERSION.hex(),
-            ) +
-            "But received signature version {}".format('0x' + signature_version.hex())
-        )
 
 
 def hash_of_signed_transaction(txn_obj):

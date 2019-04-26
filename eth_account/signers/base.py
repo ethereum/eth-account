@@ -46,7 +46,7 @@ class BaseAccount(ABC):
         Sign the hash of a message, as in :meth:`~eth_account.account.Account.signHash`
         but without specifying the private key.
 
-        .. INFO:: Deprecated for :meth:`~eth_account.signers.base.BaseAccount.sign_message`.
+        .. CAUTION:: Deprecated for :meth:`~eth_account.signers.base.BaseAccount.sign_message`.
             To be removed in v0.5
 
         :param bytes message_hash: 32 byte hash of the message to sign

@@ -28,8 +28,8 @@ from eth_account._utils.structured_data.validation import (
     TYPE_REGEX,
 )
 from eth_account.messages import (
-    encode_structured_data,
     _hash_eip191_message,
+    encode_structured_data,
 )
 
 

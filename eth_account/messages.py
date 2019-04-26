@@ -7,27 +7,22 @@ from typing import (
     Union,
 )
 
-from cytoolz import (
-    compose,
-)
 from eth_typing import (
+    Address,
     Hash32,
 )
 from eth_utils.curried import (
+    ValidationError,
     keccak,
     text_if_str,
     to_bytes,
     to_canonical_address,
     to_text,
-    ValidationError,
 )
 from hexbytes import (
     HexBytes,
 )
 
-from eth_account._utils.signing import (
-    signature_wrapper,
-)
 from eth_account._utils.structured_data.hashing import (
     hash_domain,
     hash_message as hash_eip712_message,
@@ -40,11 +35,19 @@ from eth_account._utils.validation import (
 text_to_bytes = text_if_str(to_bytes)
 
 
+# watch for updates to signature format
 class SignableMessage(NamedTuple):
     """
     These are the components of an EIP-191_ signable message. Other message formats
     can be encoded into this format for easy signing. This data structure doesn't need to
     know about the original message format.
+
+    In typical usage, you should never need to create these by hand. Instead, use
+    one of the available encode_* methods in this module, like:
+
+        - :meth:`encode_structured_data`
+        - :meth:`encode_intended_validator`
+        - :meth:`encode_structured_data`
 
     .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
     """
@@ -69,23 +72,32 @@ def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
     )
 
 
+# watch for updates to signature format
 def encode_intended_validator(
-        validator_address,
+        validator_address: Union[Address, str],
         primitive: bytes = None,
         *,
         hexstr: str = None,
         text: str = None) -> SignableMessage:
-    # TODO doc example
     """
-    Supply exactly one of the three arguments:
+    Encode a message using the "intended validator" approach (ie~ version 0)
+    defined in EIP-191_.
+
+    Supply the message as exactly one of these three arguments:
     bytes as a primitive, a hex string, or a unicode string.
 
+    .. WARNING:: Note that this code has not gone through an external audit.
+        Also, watch for updates to the format, as the EIP is still in DRAFT.
+
+    :param validator_address: which on-chain contract is capable of validating this message,
+        provided as a checksummed address or in native bytes.
     :param primitive: the binary message to be signed
     :type primitive: bytes or int
     :param str hexstr: the message encoded as hex
     :param str text: the message as a series of unicode characters (a normal Py3 str)
     :returns: The EIP-191 encoded message, ready for signing
 
+    .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
     """
     if not is_valid_address(validator_address):
         raise ValidationError(
@@ -100,25 +112,32 @@ def encode_intended_validator(
     )
 
 
-# watch here for updates to signature format:
-# https://github.com/ethereum/EIPs/blob/master/EIPS/eip-712.md
 def encode_structured_data(
         primitive: Union[bytes, int, Mapping] = None,
         *,
         hexstr: str = None,
         text: str = None) -> SignableMessage:
     """
-    Supply exactly one of the three arguments:
-    bytes as a primitive, a hex string, or a unicode string.
+    Encode a message using the "structured data" approach (ie~ version 1)
+    defined in EIP-712_.
 
-    The primary argument may be a :cls:`~collections.abc.Mapping` which defines the typed message.
+    Supply the message as exactly one of the three arguments:
+
+        - primitive, as a dict that defines the structured data
+        - primitive, as bytes
+        - text, as a json-encoded string
+        - hexstr, as a hex-encoded (json-encoded) string
+
+    .. WARNING:: Note that this code has not gone through an external audit.
+        Also, watch for updates to the format, as the EIP is still in DRAFT.
 
     :param primitive: the binary message to be signed
     :type primitive: bytes or int or Mapping (eg~ dict )
-    :param str hexstr: the message encoded as hex
-    :param str text: the message as a series of unicode characters (a normal Py3 str)
+    :param hexstr: the message encoded as hex
+    :param text: the message as a series of unicode characters (a normal Py3 str)
     :returns: The EIP-191 encoded message, ready for signing
 
+    .. _EIP-712: https://eips.ethereum.org/EIPS/eip-712
     """
     if isinstance(primitive, Mapping):
         message_string = json.dumps(primitive)
@@ -137,10 +156,10 @@ def encode_defunct(
         *,
         hexstr: str = None,
         text: str = None) -> SignableMessage:
-    # TODO doc example
-    '''
-    Convert the provided message into a signable message.
-    This provides the same prefix and hashing approach as
+    r'''
+    Encode a message for signing, using an old, unrecommended approach.
+
+    Only use this method if you must have compatibility with
     :meth:`w3.eth.sign() <web3.eth.Eth.sign>`.
 
     EIP-191 defines this as "version ``E``".
@@ -150,9 +169,6 @@ def encode_defunct(
         So if the message is 'abcde', then the length is encoded as the ascii
         character '5'. This is one of the reasons that this message format is not preferred.
         There is ambiguity when the message '00' is encoded, for example.
-
-    Only use this method if you must have compatibility with
-    :meth:`w3.eth.sign() <web3.eth.Eth.sign>`.
 
     Supply exactly one of the three arguments: bytes, a hex string, or a unicode string.
 
@@ -164,26 +180,26 @@ def encode_defunct(
 
     .. code-block:: python
 
-        >>> from eth_account.messages import defunct_hash_message
+        >>> from eth_account.messages import encode_defunct
 
-        >>> msg = "I♥SF"
-        >>> defunct_hash_message(text=msg)
-        HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750')
+        >>> message_text = "I♥SF"
+        >>> encode_defunct(text=message_text)
+        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
         # these four also produce the same hash:
-        >>> defunct_hash_message(w3.toBytes(text=msg))
-        HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750')
+        >>> encode_defunct(w3.toBytes(text=message_text))
+        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
-        >>> defunct_hash_message(bytes(msg, encoding='utf-8'))
-        HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750')
+        >>> encode_defunct(bytes(message_text, encoding='utf-8'))
+        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
-        >>> Web3.toHex(text=msg)
+        >>> Web3.toHex(text=message_text)
         '0x49e299a55346'
-        >>> defunct_hash_message(hexstr='0x49e299a55346')
-        HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750')
+        >>> encode_defunct(hexstr='0x49e299a55346')
+        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
-        >>> defunct_hash_message(0x49e299a55346)
-        HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750')
+        >>> encode_defunct(0x49e299a55346)
+        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
     '''
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     msg_length = str(len(message_bytes)).encode('utf-8')
@@ -200,12 +216,13 @@ def defunct_hash_message(
         primitive: bytes = None,
         *,
         hexstr: str = None,
-        text: str = None) -> SignableMessage:
+        text: str = None) -> HexBytes:
     '''
     Convert the provided message into a message hash, to be signed.
 
-    Intented for use with the deprecated Account.signHash(). This is for backwards compatibility
-    only. All new implementations should use :meth:`encode_defunct` instead.
+    .. CAUTION:: Intented for use with the deprecated :meth:`eth_account.account.Account.signHash`.
+        This is for backwards compatibility only. All new implementations
+        should use :meth:`encode_defunct` instead.
 
     :param primitive: the binary message to be signed
     :type primitive: bytes or int

@@ -1,5 +1,9 @@
 # coding=utf-8
 
+from hypothesis import (
+    given,
+    strategies as st,
+)
 import os
 import pytest
 
@@ -20,10 +24,6 @@ from eth_utils import (
 )
 from hexbytes import (
     HexBytes,
-)
-from hypothesis import (
-    given,
-    strategies as st,
 )
 
 from eth_account import (
@@ -210,9 +210,9 @@ def test_eth_account_recover_message(acct):
         '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
         '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce',
     )
-    message = "I♥SF"
-    msghash = defunct_hash_message(text=message)
-    from_account = acct.recoverHash(msghash, vrs=(v, r, s))
+    message_text = "I♥SF"
+    message = encode_defunct(text=message_text)
+    from_account = acct.recover_message(message, vrs=(v, r, s))
     assert from_account == '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
 
 
@@ -312,7 +312,7 @@ def test_sign_message_against_sign_hash_as_text(keyed_acct, message_text):
 
 
 @given(st.binary())
-def test_sign_message_against_sign_hash_as_bytes_and_hex(keyed_acct, message_bytes):
+def test_sign_message_against_sign_hash_as_bytes(keyed_acct, message_bytes):
     # sign via hash
     msg_hash = defunct_hash_message(message_bytes)
     signed_via_hash = keyed_acct.signHash(msg_hash)
@@ -323,16 +323,18 @@ def test_sign_message_against_sign_hash_as_bytes_and_hex(keyed_acct, message_byt
 
     assert signed_via_hash == signed_via_message
 
-    ## Repeat as hex
+
+@given(st.binary())
+def test_sign_message_against_sign_hash_as_hex(keyed_acct, message_bytes):
     message_hex = to_hex(message_bytes)
 
     # sign via hash
     msg_hash_hex = defunct_hash_message(hexstr=message_hex)
-    signed_via_hash_hex = keyed_acct.signHash(msg_hash)
+    signed_via_hash_hex = keyed_acct.signHash(msg_hash_hex)
 
     # sign via message
     signable_message_hex = encode_defunct(hexstr=message_hex)
-    signed_via_message_hex = keyed_acct.sign_message(signable_message)
+    signed_via_message_hex = keyed_acct.sign_message(signable_message_hex)
 
     assert signed_via_hash_hex == signed_via_message_hex
 

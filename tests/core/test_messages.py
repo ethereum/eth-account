@@ -13,18 +13,18 @@ from eth_account.messages import (
 @pytest.mark.parametrize(
     'primitive, hexstr, text, validator_address, expected_signable',
     (
-        (b'', None, None, b'\xff' * 20, SignableMessage(b'\0',  b'\xff' * 20, b'')),
+        (b'', None, None, b'\xff' * 20, SignableMessage(b'\0', b'\xff' * 20, b'')),
         (
             b'',
             None,
             None,
             '0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF',
-            SignableMessage(b'\0',  b'\xff' * 20, b''),
+            SignableMessage(b'\0', b'\xff' * 20, b''),
         ),
-        (None, '0x', None, b'\xff' * 20, SignableMessage(b'\0',  b'\xff' * 20, b'')),
-        (None, '', None, b'\xff' * 20, SignableMessage(b'\0',  b'\xff' * 20, b'')),
-        (None, None, '0x', b'\xff' * 20, SignableMessage(b'\0',  b'\xff' * 20, b'0x')),
-        (None, None, '', b'\xff' * 20, SignableMessage(b'\0',  b'\xff' * 20, b'')),
+        (None, '0x', None, b'\xff' * 20, SignableMessage(b'\0', b'\xff' * 20, b'')),
+        (None, '', None, b'\xff' * 20, SignableMessage(b'\0', b'\xff' * 20, b'')),
+        (None, None, '0x', b'\xff' * 20, SignableMessage(b'\0', b'\xff' * 20, b'0x')),
+        (None, None, '', b'\xff' * 20, SignableMessage(b'\0', b'\xff' * 20, b'')),
     )
 )
 def test_encode_intended_validator(primitive, hexstr, text, validator_address, expected_signable):

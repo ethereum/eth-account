@@ -227,7 +227,6 @@ class Account(object):
 
     @combomethod
     def recover_message(self, signable_message: SignableMessage, vrs=None, signature=None):
-        # TODO update docs
         '''
         Get the address of the account that signed the given message.
         You must specify exactly one of: vrs or signature
@@ -242,47 +241,43 @@ class Account(object):
 
         .. code-block:: python
 
-            >>> msg = "I♥SF"
-            >>> msghash = '0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'
+            >>> from eth_account.messages import encode_defunct
+            >>> message = encode_defunct(text="I♥SF")
             >>> vrs = (
                   28,
                   '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
                   '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
-            >>> Account.recoverHash(msghash, vrs=vrs)
+            >>> Account.recover_message(message, vrs=vrs)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
 
             # All of these recover calls are equivalent:
-
-            # variations on msghash
-            >>> msghash = b"\\x14v\\xab\\xb7E\\xd4#\\xbf\\t'?\\x1a\\xfd\\x88}\\x95\\x11\\x81\\xd2Z\\xdcf\\xc4\\x83JpI\\x19\\x11\\xb7\\xf7P"  # noqa: E501
-            >>> Account.recoverHash(msghash, vrs=vrs)
-            >>> msghash = 0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750
-            >>> Account.recoverHash(msghash, vrs=vrs)
 
             # variations on vrs
             >>> vrs = (
                   '0x1c',
                   '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
                   '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
-            >>> Account.recoverHash(msghash, vrs=vrs)
+            >>> Account.recover_message(message, vrs=vrs)
             >>> vrs = (
                   b'\\x1c',
                   b'\\xe6\\xca\\x9b\\xbaX\\xc8\\x86\\x11\\xfa\\xd6jl\\xe8\\xf9\\x96\\x90\\x81\\x95Y8\\x07\\xc4\\xb3\\x8b\\xd5(\\xd2\\xcf\\xf0\\x9dN\\xb3',  # noqa: E501
                   b'>[\\xfb\\xbfM>9\\xb1\\xa2\\xfd\\x81jv\\x80\\xc1\\x9e\\xbe\\xba\\xf3\\xa1A\\xb29\\x93J\\xd4<\\xb3?\\xce\\xc8\\xce')  # noqa: E501
-            >>> Account.recoverHash(msghash, vrs=vrs)
+            >>> Account.recover_message(message, vrs=vrs)
+            >>> # Caution about this approach: likely problems if there are leading 0s
             >>> vrs = (
                   0x1c,
                   0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3,
                   0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce)
-            >>> Account.recoverHash(msghash, vrs=vrs)
+            >>> Account.recover_message(message, vrs=vrs)
 
             # variations on signature
             >>> signature = '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'  # noqa: E501
-            >>> Account.recoverHash(msghash, signature=signature)
+            >>> Account.recover_message(message, signature=signature)
             >>> signature = b'\\xe6\\xca\\x9b\\xbaX\\xc8\\x86\\x11\\xfa\\xd6jl\\xe8\\xf9\\x96\\x90\\x81\\x95Y8\\x07\\xc4\\xb3\\x8b\\xd5(\\xd2\\xcf\\xf0\\x9dN\\xb3>[\\xfb\\xbfM>9\\xb1\\xa2\\xfd\\x81jv\\x80\\xc1\\x9e\\xbe\\xba\\xf3\\xa1A\\xb29\\x93J\\xd4<\\xb3?\\xce\\xc8\\xce\\x1c'  # noqa: E501
-            >>> Account.recoverHash(msghash, signature=signature)
+            >>> Account.recover_message(message, signature=signature)
+            >>> # Caution about this approach: likely problems if there are leading 0s
             >>> signature = 0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c  # noqa: E501
-            >>> Account.recoverHash(msghash, signature=signature)
+            >>> Account.recover_message(message, signature=signature)
         '''
         message_hash = _hash_eip191_message(signable_message)
         return self._recover_hash(message_hash, vrs, signature)
@@ -293,7 +288,7 @@ class Account(object):
         Get the address of the account that signed the message with the given hash.
         You must specify exactly one of: vrs or signature
 
-        .. INFO:: Deprecated for :meth:`~eth_account.account.Account.recover_message`.
+        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.recover_message`.
             This method might be removed as early as v0.5
 
         :param message_hash: the hash of the message that you want to verify
@@ -305,6 +300,10 @@ class Account(object):
         :returns: address of signer, hex-encoded & checksummed
         :rtype: str
         '''
+        warnings.warn(
+            "recoverHash is deprecated in favor of recover_message",
+            category=DeprecationWarning,
+        )
         return self._recover_hash(message_hash, vrs, signature)
 
     @combomethod
@@ -360,33 +359,33 @@ class Account(object):
 
     @combomethod
     def sign_message(self, signable_message: SignableMessage, private_key):
-        #TODO document
-        '''
+        r'''
         Sign the provided message.
 
-        This API supports any messaging format that will encode to EIP-191 messages.
+        This API supports any messaging format that will encode to EIP-191_ messages.
 
-        If you would like compatibility with
+        If you would like historical compatibility with
         :meth:`w3.eth.sign() <web3.eth.Eth.sign>`
-        you can use :meth:`~eth_account.messages.defunct_hash_message`.
+        you can use :meth:`~eth_account.messages.encode_defunct`.
 
-        Several other message standards are proposed, but none have a clear
-        consensus. You'll need to manually comply with any of those message standards manually.
+        Other options are the "validator", or "structured data" standards. (Both of these
+        are in *DRAFT* status currently, so be aware that the implementation is not
+        guaranteed to be stable). You can import all supported message encoders in
+        ``eth_account.messages``.
 
-        :param message_hash: the 32-byte message hash to be signed
-        :type message_hash: hex str, bytes or int
+        :param signable_message: the encoded message for signing
         :param private_key: the key to sign the message with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
-        :returns: Various details about the signature - most
-          importantly the fields: v, r, and s
+        :returns: Various details about the signature - most importantly the fields: v, r, and s
         :rtype: ~eth_account.datastructures.AttributeDict
 
         .. code-block:: python
 
             >>> msg = "I♥SF"
-            >>> from eth_account.messages import defunct_hash_message
-            >>> msghash = defunct_hash_message(text=msg)
-            HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750')
+            >>> from eth_account.messages import encode_defunct
+            >>> msghash = encode_defunct(text=msg)
+            SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
+            >>> # If you're curious about the internal fields of SignableMessage, take a look at EIP-191, linked above
             >>> key = "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
             >>> Account.sign_message(msghash, key)
             {'messageHash': HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),  # noqa: E501
@@ -395,15 +394,7 @@ class Account(object):
              'signature': HexBytes('0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'),  # noqa: E501
              'v': 28}
 
-            # these are equivalent:
-            >>> Account.sign_message(
-                0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750,
-                key
-            )
-            >>> Account.sign_message(
-                "0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750",
-                key
-            )
+        .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
         '''
         message_hash = _hash_eip191_message(signable_message)
         return self._sign_hash(message_hash, private_key)
@@ -419,15 +410,8 @@ class Account(object):
 
         Sign the provided hash.
 
-        .. INFO:: Deprecated for :meth:`~eth_account.account.Account.sign_message`.
+        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.sign_message`.
             This method will be removed in v0.5
-
-        If you would like compatibility with
-        :meth:`w3.eth.sign() <web3.eth.Eth.sign>`
-        you can use :meth:`~eth_account.messages.defunct_hash_message`.
-
-        Several other message standards are proposed, but none have a clear
-        consensus. You'll need to manually comply with any of those message standards manually.
 
         :param message_hash: the 32-byte message hash to be signed
         :type message_hash: hex str, bytes or int
@@ -436,30 +420,6 @@ class Account(object):
         :returns: Various details about the signature - most
           importantly the fields: v, r, and s
         :rtype: ~eth_account.datastructures.AttributeDict
-
-        .. code-block:: python
-
-            >>> msg = "I♥SF"
-            >>> from eth_account.messages import defunct_hash_message
-            >>> msghash = defunct_hash_message(text=msg)
-            HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750')
-            >>> key = "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
-            >>> Account.signHash(msghash, key)
-            {'messageHash': HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),  # noqa: E501
-             'r': 104389933075820307925104709181714897380569894203213074526835978196648170704563,
-             's': 28205917190874851400050446352651915501321657673772411533993420917949420456142,
-             'signature': HexBytes('0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'),  # noqa: E501
-             'v': 28}
-
-            # these are equivalent:
-            >>> Account.signHash(
-                0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750,
-                key
-            )
-            >>> Account.signHash(
-                "0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750",
-                key
-            )
         '''
         warnings.warn(
             "signHash is deprecated in favor of sign_message",
