@@ -1,6 +1,30 @@
 Release Notes
 =============
 
+v0.4.0
+----------------
+
+Released 2019-04-29
+
+- BREAKING CHANGE: drop python 3.5 (and therefore pypy3 support).
+  `#60 <https://github.com/ethereum/eth-account/pull/60>`_ (includes other housekeeping)
+- New message signing API: :meth:`~eth_account.account.Account.sign_message` and ``recover_message``.
+  `#61 <https://github.com/ethereum/eth-account/pull/61>`_
+
+  - New :meth:`eth_account.messages.encode_intended_validator` for EIP-191's Intended Validator
+    message-signing format.
+    `#56 <https://github.com/ethereum/eth-account/pull/56>`_
+  - New :meth:`eth_account.messages.encode_structured_data` for EIP-712's Structured Data
+    message-signing format.
+    `#57 <https://github.com/ethereum/eth-account/pull/57>`_
+- Add optional param iterations to :meth:`~eth_account.account.Account.encrypt`
+  `#52 <https://github.com/ethereum/eth-account/pull/52>`_
+- Add optional param kdf to :meth:`~eth_account.account.Account.encrypt`, plus env var
+  :envvar:`ETH_ACCOUNT_KDF`. Default kdf switched from hmac-sha256 to scrypt.
+  `#38 <https://github.com/ethereum/eth-account/pull/38>`_
+- Accept "to" addresses formatted as :class:`bytes` in addition to checksummed, hex-encoded.
+  `#36 <https://github.com/ethereum/eth-account/pull/36>`_
+
 v0.3.0
 ----------------
 
