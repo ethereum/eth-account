@@ -45,7 +45,7 @@ def sign_transaction_dict(eth_key, transaction_dict):
 
 
 def hash_of_signed_transaction(txn_obj):
-    '''
+    """
     Regenerate the hash of the signed transaction object.
 
     1. Infer the chain ID from the signature
@@ -57,7 +57,7 @@ def hash_of_signed_transaction(txn_obj):
     See details at https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
 
     :return: the hash of the provided transaction, to be signed
-    '''
+    """
     (chain_id, _v) = extract_chain_id(txn_obj.v)
     unsigned_parts = strip_signature(txn_obj)
     if chain_id is None:
@@ -69,10 +69,10 @@ def hash_of_signed_transaction(txn_obj):
 
 
 def extract_chain_id(raw_v):
-    '''
+    """
     Extracts chain ID, according to EIP-155
     @return (chain_id, v)
-    '''
+    """
     above_id_offset = raw_v - CHAIN_ID_OFFSET
     if above_id_offset < 0:
         if raw_v in {0, 1}:
