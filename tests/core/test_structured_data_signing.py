@@ -152,9 +152,8 @@ def test_hashed_structured_data(message_encodings):
 def test_signature_verification(message_encodings):
     account = Account.create()
     structured_msg = encode_structured_data(**message_encodings)
-    hashed_structured_msg = _hash_eip191_message(structured_msg)
-    signed = Account.signHash(hashed_structured_msg, account.privateKey)
-    new_addr = Account.recoverHash(hashed_structured_msg, signature=signed.signature)
+    signed = Account.sign_message(structured_msg, account.key)
+    new_addr = Account.recover_message(structured_msg, signature=signed.signature)
     assert new_addr == account.address
 
 
@@ -163,11 +162,10 @@ def test_signature_variables(message_encodings):
     # mentioned in the EIP. The link is as follows
     # https://github.com/ethereum/EIPs/blob/master/assets/eip-712/Example.js
     structured_msg = encode_structured_data(**message_encodings)
-    hashed_structured_msg = _hash_eip191_message(structured_msg)
     privateKey = keccak(text="cow")
-    acc = Account.privateKeyToAccount(privateKey)
+    acc = Account.from_key(privateKey)
     assert HexBytes(acc.address) == HexBytes("0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826")
-    sig = Account.signHash(hashed_structured_msg, privateKey)
+    sig = Account.sign_message(structured_msg, privateKey)
     assert sig.v == 28
     assert hex(sig.r) == "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d"
     assert hex(sig.s) == "0x7299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b91562"

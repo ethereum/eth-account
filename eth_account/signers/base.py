@@ -56,7 +56,15 @@ class BaseAccount(ABC):
     @abstractmethod
     def signTransaction(self, transaction_dict):
         '''
-        Sign a transaction, as in :meth:`~eth_account.account.Account.signTransaction`
+        .. CAUTION:: Deprecated for :meth:`~eth_account.account.signers.local.sign_transaction`.
+            This method will be removed in v0.5
+        '''
+        pass
+
+    @abstractmethod
+    def sign_transaction(self, transaction_dict):
+        '''
+        Sign a transaction, as in :meth:`~eth_account.account.Account.sign_transaction`
         but without specifying the private key.
 
         :param dict transaction_dict: transaction with all fields specified

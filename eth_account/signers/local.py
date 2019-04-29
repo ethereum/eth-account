@@ -1,3 +1,5 @@
+import warnings
+
 from eth_account.signers.base import (
     BaseAccount,
 )
@@ -7,13 +9,13 @@ class LocalAccount(BaseAccount):
     '''
     A collection of convenience methods to sign and encrypt, with an embedded private key.
 
-    :var bytes privateKey: the 32-byte private key data
+    :var bytes key: the 32-byte private key data
 
     .. code-block:: python
 
         >>> my_local_account.address
         "0xF0109fC8DF283027b6285cc889F5aA624EaC1F55"
-        >>> my_local_account.privateKey
+        >>> my_local_account.key
         b"\\x01\\x23..."
 
     You can also get the private key by casting the account to :class:`bytes`:
@@ -33,7 +35,7 @@ class LocalAccount(BaseAccount):
         self._address = key.public_key.to_checksum_address()
 
         key_raw = key.to_bytes()
-        self._privateKey = key_raw
+        self._private_key = key_raw
 
         self._key_obj = key
 
@@ -44,28 +46,51 @@ class LocalAccount(BaseAccount):
     @property
     def privateKey(self):
         '''
+        .. CAUTION:: Deprecated for :var:`~eth_account.signers.local.LocalAccount.key`.
+            This attribute will be removed in v0.5
+        '''
+        warnings.warn(
+            "privateKey is deprecated in favor of key",
+            category=DeprecationWarning,
+        )
+        return self._private_key
+
+    @property
+    def key(self):
+        '''
         Get the private key.
         '''
-        return self._privateKey
+        return self._private_key
 
     def encrypt(self, password, kdf=None, iterations=None):
         '''
         Generate a string with the encrypted key, as in
         :meth:`~eth_account.account.Account.encrypt`, but without a private key argument.
         '''
-        return self._publicapi.encrypt(self.privateKey, password, kdf=kdf, iterations=iterations)
+        return self._publicapi.encrypt(self.key, password, kdf=kdf, iterations=iterations)
 
     def signHash(self, message_hash):
         return self._publicapi.signHash(
             message_hash,
-            private_key=self.privateKey,
+            private_key=self.key,
         )
 
     def sign_message(self, signable_message):
-        return self._publicapi.sign_message(signable_message, private_key=self.privateKey)
+        '''
+        Generate a string with the encrypted key, as in
+        :meth:`~eth_account.account.Account.sign_message`, but without a private key argument.
+        '''
+        return self._publicapi.sign_message(signable_message, private_key=self.key)
 
     def signTransaction(self, transaction_dict):
-        return self._publicapi.signTransaction(transaction_dict, self.privateKey)
+        warnings.warn(
+            "signTransaction is deprecated in favor of sign_transaction",
+            category=DeprecationWarning,
+        )
+        return self.sign_transaction(transaction_dict)
+
+    def sign_transaction(self, transaction_dict):
+        return self._publicapi.sign_transaction(transaction_dict, self.key)
 
     def __bytes__(self):
-        return self.privateKey
+        return self.key

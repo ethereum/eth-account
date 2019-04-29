@@ -80,16 +80,16 @@ class Account(object):
             >>> acct = Account.create('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
-            >>> acct.privateKey
+            >>> acct.key
             b"\\xb2\\}\\xb3\\x1f\\xee\\xd9\\x12''\\xbf\\t9\\xdcv\\x9a\\x96VK-\\xe4\\xc4rm\\x03[6\\xec\\xf1\\xe5\\xb3d"
 
-            # These methods are also available: signHash(), signTransaction(), encrypt()
+            # These methods are also available: sign_message(), sign_transaction(), encrypt()
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         '''
         extra_key_bytes = text_if_str(to_bytes, extra_entropy)
         key_bytes = keccak(os.urandom(32) + extra_key_bytes)
-        return self.privateKeyToAccount(key_bytes)
+        return self.from_key(key_bytes)
 
     @staticmethod
     def decrypt(keyfile_json, password):
@@ -202,6 +202,18 @@ class Account(object):
     @combomethod
     def privateKeyToAccount(self, private_key):
         '''
+        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.from_key`.
+            This method will be removed in v0.5
+        '''
+        warnings.warn(
+            "privateKeyToAccount is deprecated in favor of from_key",
+            category=DeprecationWarning,
+        )
+        return self.from_key(private_key)
+
+    @combomethod
+    def from_key(self, private_key):
+        '''
         Returns a convenient object for working with the given private key.
 
         :param private_key: The raw private key
@@ -211,14 +223,14 @@ class Account(object):
 
         .. code-block:: python
 
-            >>> acct = Account.privateKeyToAccount(
+            >>> acct = Account.from_key(
               0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364)
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
-            >>> acct.privateKey
+            >>> acct.key
             b"\\xb2\\}\\xb3\\x1f\\xee\\xd9\\x12''\\xbf\\t9\\xdcv\\x9a\\x96VK-\\xe4\\xc4rm\\x03[6\\xec\\xf1\\xe5\\xb3d"
 
-            # These methods are also available: signHash(), signTransaction(), encrypt()
+            # These methods are also available: sign_message(), sign_transaction(), encrypt()
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         '''
@@ -327,6 +339,18 @@ class Account(object):
     @combomethod
     def recoverTransaction(self, serialized_transaction):
         '''
+        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.recover_transaction`.
+            This method will be removed in v0.5
+        '''
+        warnings.warn(
+            "recoverTransaction is deprecated in favor of recover_transaction",
+            category=DeprecationWarning,
+        )
+        return self.recover_transaction(serialized_transaction)
+
+    @combomethod
+    def recover_transaction(self, serialized_transaction):
+        '''
         Get the address of the account that signed this transaction.
 
         :param serialized_transaction: the complete signed transaction
@@ -337,7 +361,7 @@ class Account(object):
         .. code-block:: python
 
             >>> raw_transaction = '0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428',  # noqa: E501
-            >>> Account.recoverTransaction(raw_transaction)
+            >>> Account.recover_transaction(raw_transaction)
             '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
         '''
         txn_bytes = HexBytes(serialized_transaction)
@@ -346,6 +370,17 @@ class Account(object):
         return self._recover_hash(msg_hash, vrs=vrs_from(txn))
 
     def setKeyBackend(self, backend):
+        '''
+        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.set_key_backend`.
+            This method will be removed in v0.5
+        '''
+        warnings.warn(
+            "setKeyBackend is deprecated in favor of set_key_backend",
+            category=DeprecationWarning,
+        )
+        self.set_key_backend(backend)
+
+    def set_key_backend(self, backend):
         '''
         Change the backend used by the underlying eth-keys library.
 
@@ -447,6 +482,18 @@ class Account(object):
     @combomethod
     def signTransaction(self, transaction_dict, private_key):
         '''
+        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.sign_transaction`.
+            This method will be removed in v0.5
+        '''
+        warnings.warn(
+            "signTransaction is deprecated in favor of sign_transaction",
+            category=DeprecationWarning,
+        )
+        return self.sign_transaction(transaction_dict, private_key)
+
+    @combomethod
+    def sign_transaction(self, transaction_dict, private_key):
+        '''
         Sign a transaction using a local private key. Produces signature details
         and the hex-encoded transaction suitable for broadcast using
         :meth:`w3.eth.sendRawTransaction() <web3.eth.Eth.sendRawTransaction>`.
@@ -475,7 +522,7 @@ class Account(object):
                     'chainId': 1
                 }
             >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
-            >>> signed = Account.signTransaction(transaction, key)
+            >>> signed = Account.sign_transaction(transaction, key)
             {'hash': HexBytes('0x6893a6ee8df79b0f5d64a180cd1ef35d030f3e296a5361cf04d02ce720d32ec5'),
              'r': 4487286261793418179817841024889747115779324305375823110249149479905075174044,
              'rawTransaction': HexBytes('0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'),  # noqa: E501
@@ -486,7 +533,7 @@ class Account(object):
         if not isinstance(transaction_dict, Mapping):
             raise TypeError("transaction_dict must be dict-like, got %r" % transaction_dict)
 
-        account = self.privateKeyToAccount(private_key)
+        account = self.from_key(private_key)
 
         # allow from field, *only* if it matches the private key
         if 'from' in transaction_dict:
