@@ -58,12 +58,7 @@ class Account(object):
     '''
     _keys = keys
 
-    default_kdf = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
-    '''
-    The default key deriviation function (KDF) to use when encrypting a private key. If the
-    environment variable :envvar:`ETH_ACCOUNT_KDF` is set, it's value will be used as the default.
-    Otherwise, 'scrypt' will be used as the default.
-    '''
+    _default_kdf = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
 
     @combomethod
     def create(self, extra_entropy=''):
@@ -149,6 +144,10 @@ class Account(object):
         :returns: The data to use in your encrypted file
         :rtype: dict
 
+        If kdf is not set, the default key derivation function falls back to the
+        environment variable :envvar:`ETH_ACCOUNT_KDF`. If that is not set, then
+        'scrypt' will be used as the default.
+
         .. code-block:: python
 
             >>> import getpass
@@ -188,7 +187,7 @@ class Account(object):
             key_bytes = HexBytes(private_key)
 
         if kdf is None:
-            kdf = cls.default_kdf
+            kdf = cls._default_kdf
 
         password_bytes = text_if_str(to_bytes, password)
         assert len(key_bytes) == 32

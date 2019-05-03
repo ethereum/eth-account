@@ -110,7 +110,7 @@ def signature_kwargs(request):
 
 def test_eth_account_default_kdf(acct, monkeypatch):
     assert os.getenv('ETH_ACCOUNT_KDF') is None
-    assert acct.default_kdf == 'scrypt'
+    assert acct._default_kdf == 'scrypt'
 
     monkeypatch.setenv('ETH_ACCOUNT_KDF', 'pbkdf2')
     assert os.getenv('ETH_ACCOUNT_KDF') == 'pbkdf2'
@@ -118,7 +118,7 @@ def test_eth_account_default_kdf(acct, monkeypatch):
     import importlib
     from eth_account import account
     importlib.reload(account)
-    assert account.Account.default_kdf == 'pbkdf2'
+    assert account.Account._default_kdf == 'pbkdf2'
 
 
 def test_eth_account_create_variation(acct):
