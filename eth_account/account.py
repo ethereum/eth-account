@@ -144,7 +144,7 @@ class Account(object):
         :returns: The data to use in your encrypted file
         :rtype: dict
 
-        If kdf is not set, the default key deriviation function falls back to the
+        If kdf is not set, the default key derivation function falls back to the
         environment variable :envvar:`ETH_ACCOUNT_KDF`. If that is not set, then
         'scrypt' will be used as the default.
 
