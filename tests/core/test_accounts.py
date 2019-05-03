@@ -99,9 +99,14 @@ def PRIVATE_KEY_ALT(request):
     return request.param
 
 
-@pytest.fixture
-def acct():
-    return Account
+@pytest.fixture(params=['instance', 'class'])
+def acct(request):
+    if request.param == 'instance':
+        return Account()
+    elif request.param == 'class':
+        return Account
+    else:
+        raise Exception(f"account invocation {request.param} is not supported")
 
 
 @pytest.fixture
