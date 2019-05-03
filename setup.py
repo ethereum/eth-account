@@ -15,6 +15,7 @@ extras_require = {
     'lint': [
         "flake8==3.4.1",
         "isort>=4.2.15,<5",
+        "mypy==0.701",
         "pydocstyle>=3.0.0,<4",
     ],
     'doc': [
@@ -31,18 +32,24 @@ extras_require = {
 }
 
 extras_require['dev'] = (
-    extras_require['dev'] +
-    extras_require['test'] +
-    extras_require['lint'] +
+    extras_require['dev'] +  # noqa: W504
+    extras_require['test'] +  # noqa: W504
+    extras_require['lint'] +  # noqa: W504
     extras_require['doc']
 )
+
+
+with open('./README.md') as readme:
+    long_description = readme.read()
+
 
 setup(
     name='eth-account',
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
     version='0.3.0',
     description="""eth-account: Sign Ethereum transactions and messages with local private keys""",
-    long_description_markdown_filename='README.md',
+    long_description=long_description,
+    long_description_content_type='text/markdown',
     author='The Ethereum Foundation',
     author_email='snakecharmers@ethereum.org',
     url='https://github.com/ethereum/eth-account',
@@ -57,7 +64,6 @@ setup(
         "hexbytes>=0.1.0,<1",
         "rlp>=1.0.0,<2"
     ],
-    setup_requires=['setuptools-markdown'],
     python_requires='>=3.6, <4',
     extras_require=extras_require,
     py_modules=['eth_account'],
