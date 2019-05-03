@@ -33,6 +33,8 @@ from .validation import (
     is_valid_address,
 )
 
+VALID_EMPTY_ADDRESSES = {None, b'', ''}
+
 
 def serializable_unsigned_transaction_from_dict(transaction_dict):
     assert_valid_fields(transaction_dict)
@@ -67,7 +69,7 @@ def is_int_or_prefixed_hexstr(val):
 
 
 def is_empty_or_checksum_address(val):
-    if val in {None, b'', ''}:
+    if val in VALID_EMPTY_ADDRESSES:
         return True
     else:
         return is_valid_address(val)

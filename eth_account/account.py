@@ -57,7 +57,7 @@ from eth_account.signers.local import (
 
 class Account(object):
     """
-    Account is the primary entry point for working with Ethereum private keys.
+    The primary entry point for working with Ethereum private keys.
 
     It does **not** require a connection to an Ethereum node.
     """
