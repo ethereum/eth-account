@@ -28,7 +28,8 @@ from eth_account._utils.structured_data.validation import (
     TYPE_REGEX,
 )
 from eth_account.messages import (
-    defunct_hash_message,
+    _hash_eip191_message,
+    encode_structured_data,
 )
 
 
@@ -57,14 +58,18 @@ def domain(structured_valid_data_json_string):
     return json.loads(structured_valid_data_json_string)["domain"]
 
 
-@pytest.fixture(params=("text", "primitive", "hexstr"))
-def signature_kwargs(request, structured_valid_data_json_string):
-    if request == "text":
+@pytest.fixture(params=("text", "dict", "primitive", "hexstr"))
+def message_encodings(request, structured_valid_data_json_string):
+    if request.param == "text":
         return {"text": structured_valid_data_json_string}
-    elif request == "primitive":
+    elif request.param == "primitive":
         return {"primitive": structured_valid_data_json_string.encode()}
-    else:
+    elif request.param == "dict":
+        return {"primitive": json.loads(structured_valid_data_json_string)}
+    elif request.param == "hexstr":
         return {"hexstr": structured_valid_data_json_string.encode().hex()}
+    else:
+        raise Exception("Unreachable")
 
 
 @pytest.mark.parametrize(
@@ -137,34 +142,28 @@ def test_hash_struct_domain(structured_valid_data_json_string):
     assert hash_domain(structured_data).hex() == expected_hex_value
 
 
-def test_hashed_structured_data(signature_kwargs):
-    hashed_structured_msg = defunct_hash_message(
-        **signature_kwargs,
-        signature_version=b'\x01',
-    )
-    expected_hash_value_hex = "0xbe609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2"
+def test_hashed_structured_data(message_encodings):
+    structured_msg = encode_structured_data(**message_encodings)
+    hashed_structured_msg = _hash_eip191_message(structured_msg)
+    expected_hash_value_hex = "be609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2"
     assert hashed_structured_msg.hex() == expected_hash_value_hex
 
 
-def test_signature_verification(signature_kwargs):
+def test_signature_verification(message_encodings):
     account = Account.create()
-    hashed_structured_msg = defunct_hash_message(
-        **signature_kwargs,
-        signature_version=b'\x01',
-    )
+    structured_msg = encode_structured_data(**message_encodings)
+    hashed_structured_msg = _hash_eip191_message(structured_msg)
     signed = Account.signHash(hashed_structured_msg, account.privateKey)
     new_addr = Account.recoverHash(hashed_structured_msg, signature=signed.signature)
     assert new_addr == account.address
 
 
-def test_signature_variables(signature_kwargs):
+def test_signature_variables(message_encodings):
     # Check that the signature of typed message is the same as that
     # mentioned in the EIP. The link is as follows
     # https://github.com/ethereum/EIPs/blob/master/assets/eip-712/Example.js
-    hashed_structured_msg = defunct_hash_message(
-        **signature_kwargs,
-        signature_version=b'\x01',
-    )
+    structured_msg = encode_structured_data(**message_encodings)
+    hashed_structured_msg = _hash_eip191_message(structured_msg)
     privateKey = keccak(text="cow")
     acc = Account.privateKeyToAccount(privateKey)
     assert HexBytes(acc.address) == HexBytes("0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826")
