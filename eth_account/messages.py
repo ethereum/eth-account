@@ -156,7 +156,7 @@ def encode_defunct(
         *,
         hexstr: str = None,
         text: str = None) -> SignableMessage:
-    r'''
+    r"""
     Encode a message for signing, using an old, unrecommended approach.
 
     Only use this method if you must have compatibility with
@@ -200,7 +200,7 @@ def encode_defunct(
 
         >>> encode_defunct(0x49e299a55346)
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
-    '''
+    """
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     msg_length = str(len(message_bytes)).encode('utf-8')
 
@@ -217,7 +217,7 @@ def defunct_hash_message(
         *,
         hexstr: str = None,
         text: str = None) -> HexBytes:
-    '''
+    """
     Convert the provided message into a message hash, to be signed.
 
     .. CAUTION:: Intented for use with the deprecated :meth:`eth_account.account.Account.signHash`.
@@ -229,7 +229,7 @@ def defunct_hash_message(
     :param str hexstr: the message encoded as hex
     :param str text: the message as a series of unicode characters (a normal Py3 str)
     :returns: The hash of the message, after adding the prefix
-    '''
+    """
     signable = encode_defunct(primitive, hexstr=hexstr, text=text)
     hashed = _hash_eip191_message(signable)
     return HexBytes(hashed)

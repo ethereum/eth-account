@@ -93,7 +93,7 @@ def hash_struct_type(primary_type, types):
 
 def is_valid_abi_type(type_name):
     """
-    This function is used to make sure that the ``type_name`` is a valid ABI Type.
+    Determine if the ``type_name`` is a valid ABI Type.
 
     Please note that this is a temporary function and should be replaced by the corresponding
     ABI function, once the following issue has been resolved.

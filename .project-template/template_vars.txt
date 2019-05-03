@@ -1,6 +1,6 @@
-<MODULE_NAME>
-<PYPI_NAME>
-<REPO_NAME>
-<RTD_NAME>
-<PROJECT_NAME>
-<SHORT_DESCRIPTION>
+eth_account
+eth-account
+eth-account
+eth-account
+eth-account
+Sign Ethereum transactions and messages with local private keys

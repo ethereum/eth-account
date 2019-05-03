@@ -111,7 +111,7 @@ def acct(request):
 
 @pytest.fixture
 def keyed_acct():
-    return Account.privateKeyToAccount(PRIVATE_KEY_AS_BYTES)
+    return Account.from_key(PRIVATE_KEY_AS_BYTES)
 
 
 @pytest.fixture(params=("text", "primitive", "hexstr"))
@@ -144,63 +144,61 @@ def test_eth_account_create_variation(acct):
 
 
 def test_eth_account_equality(acct, PRIVATE_KEY):
-    acct1 = acct.privateKeyToAccount(PRIVATE_KEY)
-    acct2 = acct.privateKeyToAccount(PRIVATE_KEY)
+    acct1 = acct.from_key(PRIVATE_KEY)
+    acct2 = acct.from_key(PRIVATE_KEY)
     assert acct1 == acct2
 
 
-def test_eth_account_privateKeyToAccount_reproducible(acct, PRIVATE_KEY):
-    account1 = acct.privateKeyToAccount(PRIVATE_KEY)
-    account2 = acct.privateKeyToAccount(PRIVATE_KEY)
+def test_eth_account_from_key_reproducible(acct, PRIVATE_KEY):
+    account1 = acct.from_key(PRIVATE_KEY)
+    account2 = acct.from_key(PRIVATE_KEY)
     assert bytes(account1) == PRIVATE_KEY_AS_BYTES
     assert bytes(account1) == bytes(account2)
     assert isinstance(str(account1), str)
 
 
-def test_eth_account_privateKeyToAccount_diverge(acct, PRIVATE_KEY, PRIVATE_KEY_ALT):
-    account1 = acct.privateKeyToAccount(PRIVATE_KEY)
-    account2 = acct.privateKeyToAccount(PRIVATE_KEY_ALT)
+def test_eth_account_from_key_diverge(acct, PRIVATE_KEY, PRIVATE_KEY_ALT):
+    account1 = acct.from_key(PRIVATE_KEY)
+    account2 = acct.from_key(PRIVATE_KEY_ALT)
     assert bytes(account2) == PRIVATE_KEY_AS_BYTES_ALT
     assert bytes(account1) != bytes(account2)
 
 
-def test_eth_account_privateKeyToAccount_seed_restrictions(acct):
+def test_eth_account_from_key_seed_restrictions(acct):
     with pytest.raises(ValueError):
-        acct.privateKeyToAccount(b'')
+        acct.from_key(b'')
     with pytest.raises(ValueError):
-        acct.privateKeyToAccount(b'\xff' * 31)
+        acct.from_key(b'\xff' * 31)
     with pytest.raises(ValueError):
-        acct.privateKeyToAccount(b'\xff' * 33)
+        acct.from_key(b'\xff' * 33)
 
 
-def test_eth_account_privateKeyToAccount_properties(acct, PRIVATE_KEY):
-    account = acct.privateKeyToAccount(PRIVATE_KEY)
-    assert callable(account.signHash)
-    assert callable(account.signTransaction)
+def test_eth_account_from_key_properties(acct, PRIVATE_KEY):
+    account = acct.from_key(PRIVATE_KEY)
+    assert callable(account.sign_transaction)
     assert callable(account.sign_message)
     assert is_checksum_address(account.address)
     assert account.address == ACCT_ADDRESS
-    assert account.privateKey == PRIVATE_KEY_AS_OBJ
+    assert account.key == PRIVATE_KEY_AS_OBJ
 
 
 def test_eth_account_create_properties(acct):
     account = acct.create()
-    assert callable(account.signHash)
-    assert callable(account.signTransaction)
+    assert callable(account.sign_transaction)
     assert callable(account.sign_message)
     assert is_checksum_address(account.address)
-    assert isinstance(account.privateKey, bytes) and len(account.privateKey) == 32
+    assert isinstance(account.key, bytes) and len(account.key) == 32
 
 
 def test_eth_account_recover_transaction_example(acct):
     raw_tx_hex = '0xf8640d843b9aca00830e57e0945b2063246f2191f18f2675cedb8b28102e957458018025a00c753084e5a8290219324c1a3a86d4064ded2d15979b1ea790734aaa2ceaafc1a0229ca4538106819fd3a5509dd383e8fe4b731c6870339556a5c06feb9cf330bb'  # noqa: E501
-    from_account = acct.recoverTransaction(raw_tx_hex)
+    from_account = acct.recover_transaction(raw_tx_hex)
     assert from_account == '0xFeC2079e80465cc8C687fFF9EE6386ca447aFec4'
 
 
 def test_eth_account_recover_transaction_with_literal(acct):
     raw_tx = 0xf8640d843b9aca00830e57e0945b2063246f2191f18f2675cedb8b28102e957458018025a00c753084e5a8290219324c1a3a86d4064ded2d15979b1ea790734aaa2ceaafc1a0229ca4538106819fd3a5509dd383e8fe4b731c6870339556a5c06feb9cf330bb  # noqa: E501
-    from_account = acct.recoverTransaction(raw_tx)
+    from_account = acct.recover_transaction(raw_tx)
     assert from_account == '0xFeC2079e80465cc8C687fFF9EE6386ca447aFec4'
 
 
@@ -220,41 +218,35 @@ def test_eth_account_recover_message(acct):
     'signature_bytes',
     [
         # test signature bytes with standard v (0 in this case)
-        b'\x0cu0\x84\xe5\xa8)\x02\x192L\x1a:\x86\xd4\x06M\xed-\x15\x97\x9b\x1e\xa7\x90sJ\xaa,\xea\xaf\xc1"\x9c\xa4S\x81\x06\x81\x9f\xd3\xa5P\x9d\xd3\x83\xe8\xfeKs\x1chp3\x95V\xa5\xc0o\xeb\x9c\xf30\xbb\x00',  # noqa: E501
+        b'\0Q[\xc8\xfd2&N!\xec\x08 \xe8\xc5\x12>\xd5\x8c\x11\x95\xc9\xea\x17\xcb\x01\x8b\x1a\xd4\x07<\xc5\xa6\0\x80\xf5\xdc\xec9zZ\x8cR0\x82\xbf\xa4\x17qV\x89\x03\xaaUN\xc0k\xa8G\\\xa9\x05\x0f\xb7\xd5\x00',  # noqa: E501
         # test signature bytes with chain-naive v (27 in this case)
-        b'\x0cu0\x84\xe5\xa8)\x02\x192L\x1a:\x86\xd4\x06M\xed-\x15\x97\x9b\x1e\xa7\x90sJ\xaa,\xea\xaf\xc1"\x9c\xa4S\x81\x06\x81\x9f\xd3\xa5P\x9d\xd3\x83\xe8\xfeKs\x1chp3\x95V\xa5\xc0o\xeb\x9c\xf30\xbb\x1b',  # noqa: E501
+        b'\0Q[\xc8\xfd2&N!\xec\x08 \xe8\xc5\x12>\xd5\x8c\x11\x95\xc9\xea\x17\xcb\x01\x8b\x1a\xd4\x07<\xc5\xa6\0\x80\xf5\xdc\xec9zZ\x8cR0\x82\xbf\xa4\x17qV\x89\x03\xaaUN\xc0k\xa8G\\\xa9\x05\x0f\xb7\xd5\x1b',  # noqa: E501
     ],
     ids=['test_sig_bytes_standard_v', 'test_sig_bytes_chain_naive_v']
 )
 def test_eth_account_recover_signature_bytes(acct, signature_bytes):
-    msg_hash = b'\xbb\r\x8a\xba\x9f\xf7\xa1<N,s{i\x81\x86r\x83{\xba\x9f\xe2\x1d\xaa\xdd\xb3\xd6\x01\xda\x00\xb7)\xa1'  # noqa: E501
-    from_account = acct.recoverHash(msg_hash, signature=signature_bytes)
-    assert from_account == '0xFeC2079e80465cc8C687fFF9EE6386ca447aFec4'
+    # found a signature with a leading 0 byte in both r and s
+    message = encode_defunct(text='10284')
+    from_account = acct.recover_message(message, signature=signature_bytes)
+    assert from_account == '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
 
 
-def test_eth_account_recover_vrs(acct):
-    v, r, s = (
-        27,
-        5634810156301565519126305729385531885322755941350706789683031279718535704513,
-        15655399131600894366408541311673616702363115109327707006109616887384920764603,
+@pytest.mark.parametrize('raw_v', (0, 27))
+@pytest.mark.parametrize('as_hex', (False, True))
+def test_eth_account_recover_vrs(acct, raw_v, as_hex):
+    # found a signature with a leading 0 byte in both r and s
+    raw_r, raw_s = (
+        143748089818580655331728101695676826715814583506606354117109114714663470502,
+        227853308212209543997879651656855994238138056366857653269155208245074180053,
     )
-    msg_hash = b'\xbb\r\x8a\xba\x9f\xf7\xa1<N,s{i\x81\x86r\x83{\xba\x9f\xe2\x1d\xaa\xdd\xb3\xd6\x01\xda\x00\xb7)\xa1'  # noqa: E501
-    from_account = acct.recoverHash(msg_hash, vrs=(v, r, s))
-    assert from_account == '0xFeC2079e80465cc8C687fFF9EE6386ca447aFec4'
+    if as_hex:
+        vrs = map(to_hex, (raw_v, raw_r, raw_s))
+    else:
+        vrs = raw_v, raw_r, raw_s
 
-    from_account = acct.recoverHash(msg_hash, vrs=map(to_hex, (v, r, s)))
-    assert from_account == '0xFeC2079e80465cc8C687fFF9EE6386ca447aFec4'
-
-
-def test_eth_account_recover_vrs_standard_v(acct):
-    v, r, s = (
-        0,
-        5634810156301565519126305729385531885322755941350706789683031279718535704513,
-        15655399131600894366408541311673616702363115109327707006109616887384920764603,
-    )
-    msg_hash = b'\xbb\r\x8a\xba\x9f\xf7\xa1<N,s{i\x81\x86r\x83{\xba\x9f\xe2\x1d\xaa\xdd\xb3\xd6\x01\xda\x00\xb7)\xa1'  # noqa: E501
-    from_account = acct.recoverHash(msg_hash, vrs=(v, r, s))
-    assert from_account == '0xFeC2079e80465cc8C687fFF9EE6386ca447aFec4'
+    message = encode_defunct(text='10284')
+    from_account = acct.recover_message(message, vrs=vrs)
+    assert from_account == '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
 
 
 @pytest.mark.parametrize(
@@ -302,7 +294,8 @@ def test_eth_account_hash_message_hexstr(acct, message, expected):
 def test_sign_message_against_sign_hash_as_text(keyed_acct, message_text):
     # sign via hash
     msg_hash = defunct_hash_message(text=message_text)
-    signed_via_hash = keyed_acct.signHash(msg_hash)
+    with pytest.deprecated_call():
+        signed_via_hash = keyed_acct.signHash(msg_hash)
 
     # sign via message
     signable_message = encode_defunct(text=message_text)
@@ -315,7 +308,8 @@ def test_sign_message_against_sign_hash_as_text(keyed_acct, message_text):
 def test_sign_message_against_sign_hash_as_bytes(keyed_acct, message_bytes):
     # sign via hash
     msg_hash = defunct_hash_message(message_bytes)
-    signed_via_hash = keyed_acct.signHash(msg_hash)
+    with pytest.deprecated_call():
+        signed_via_hash = keyed_acct.signHash(msg_hash)
 
     # sign via message
     signable_message = encode_defunct(message_bytes)
@@ -330,7 +324,8 @@ def test_sign_message_against_sign_hash_as_hex(keyed_acct, message_bytes):
 
     # sign via hash
     msg_hash_hex = defunct_hash_message(hexstr=message_hex)
-    signed_via_hash_hex = keyed_acct.signHash(msg_hash_hex)
+    with pytest.deprecated_call():
+        signed_via_hash_hex = keyed_acct.signHash(msg_hash_hex)
 
     # sign via message
     signable_message_hex = encode_defunct(hexstr=message_hex)
@@ -385,7 +380,7 @@ def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, 
     assert signed.s == s
     assert signed.signature == signature
 
-    account = acct.privateKeyToAccount(key)
+    account = acct.from_key(key)
     assert account.sign_message(signable) == signed
 
 
@@ -396,7 +391,7 @@ def test_eth_valid_account_address_sign_data_with_intended_validator(acct, messa
         **message_encodings,
     )
     signed = account.sign_message(signable)
-    signed_classmethod = acct.sign_message(signable, account.privateKey)
+    signed_classmethod = acct.sign_message(signable, account.key)
     assert signed == signed_classmethod
     new_addr = acct.recover_message(signable, signature=signed.signature)
     assert new_addr == account.address
@@ -485,15 +480,15 @@ def test_eth_long_account_address_sign_data_with_intended_validator(acct, messag
     ids=['web3js_hex_str_example', 'web3js_eth_keys.datatypes.PrivateKey_example', '31byte_r_and_s'],  # noqa: E501
 )
 def test_eth_account_sign_transaction(acct, txn, private_key, expected_raw_tx, tx_hash, r, s, v):
-    signed = acct.signTransaction(txn, private_key)
+    signed = acct.sign_transaction(txn, private_key)
     assert signed.r == r
     assert signed.s == s
     assert signed.v == v
     assert signed.rawTransaction == expected_raw_tx
     assert signed.hash == tx_hash
 
-    account = acct.privateKeyToAccount(private_key)
-    assert account.signTransaction(txn) == signed
+    account = acct.from_key(private_key)
+    assert account.sign_transaction(txn) == signed
 
 
 @pytest.mark.parametrize(
@@ -511,12 +506,12 @@ def test_eth_account_sign_transaction_from_eth_test(acct, transaction):
     # generated from the transaction hash and private key, mostly due to code
     # author's ignorance. The example test fixtures and implementations seem to agree, so far.
     # See ecdsa_raw_sign() in /eth_keys/backends/native/ecdsa.py
-    signed = acct.signTransaction(unsigned_txn, key)
+    signed = acct.sign_transaction(unsigned_txn, key)
     assert signed.r == to_int(hexstr=expected_raw_txn[-130:-66])
 
     # confirm that signed transaction can be recovered to the sender
-    expected_sender = acct.privateKeyToAccount(key).address
-    assert acct.recoverTransaction(signed.rawTransaction) == expected_sender
+    expected_sender = acct.from_key(key).address
+    assert acct.recover_transaction(signed.rawTransaction) == expected_sender
 
 
 @pytest.mark.parametrize(
@@ -526,8 +521,8 @@ def test_eth_account_sign_transaction_from_eth_test(acct, transaction):
 def test_eth_account_recover_transaction_from_eth_test(acct, transaction):
     raw_txn = transaction['signed']
     key = transaction['key']
-    expected_sender = acct.privateKeyToAccount(key).address
-    assert acct.recoverTransaction(raw_txn) == expected_sender
+    expected_sender = acct.from_key(key).address
+    assert acct.recover_transaction(raw_txn) == expected_sender
 
 
 def get_encrypt_test_params():
@@ -660,7 +655,7 @@ def test_eth_account_prepared_encrypt(
         iterations,
         expected_decrypted_key,
         expected_kdf):
-    account = acct.privateKeyToAccount(private_key)
+    account = acct.from_key(private_key)
 
     if kdf is None:
         encrypted = account.encrypt(password, iterations=iterations)
