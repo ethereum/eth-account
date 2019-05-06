@@ -4,12 +4,12 @@ Release Notes
 v0.4.0
 ----------------
 
-Released 2019-04-29
+Released 2019-05-06
 
 - BREAKING CHANGE: drop python 3.5 (and therefore pypy3 support).
   `#60 <https://github.com/ethereum/eth-account/pull/60>`_ (includes other housekeeping)
-- New message signing API: :meth:`~eth_account.account.Account.sign_message` and ``recover_message``.
-  `#61 <https://github.com/ethereum/eth-account/pull/61>`_
+- New message signing API: :meth:`~eth_account.account.Account.sign_message` and
+  ``recover_message``. `#61 <https://github.com/ethereum/eth-account/pull/61>`_
 
   - New :meth:`eth_account.messages.encode_intended_validator` for EIP-191's Intended Validator
     message-signing format.
