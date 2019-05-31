@@ -9,6 +9,7 @@ from operator import (
 from eth_abi import (
     encode_abi,
     is_encodable,
+    is_encodable_type,
 )
 from eth_abi.grammar import (
     parse,
@@ -89,42 +90,6 @@ def encode_type(primary_type, types):
 
 def hash_struct_type(primary_type, types):
     return keccak(text=encode_type(primary_type, types))
-
-
-def is_valid_abi_type(type_name):
-    """
-    Determine if the ``type_name`` is a valid ABI Type.
-
-    Please note that this is a temporary function and should be replaced by the corresponding
-    ABI function, once the following issue has been resolved.
-    https://github.com/ethereum/eth-abi/issues/125
-    """
-    valid_abi_types = {"address", "bool", "bytes", "int", "string", "uint"}
-    is_bytesN = type_name.startswith("bytes") and 1 <= int(type_name[5:]) <= 32
-    is_intN = (
-        type_name.startswith("int") and
-        8 <= int(type_name[3:]) <= 256 and
-        int(type_name[3:]) % 8 == 0
-    )
-    is_uintN = (
-        type_name.startswith("uint") and
-        8 <= int(type_name[4:]) <= 256 and
-        int(type_name[4:]) % 8 == 0
-    )
-
-    if type_name in valid_abi_types:
-        return True
-    elif is_bytesN:
-        # bytes1 to bytes32
-        return True
-    elif is_intN:
-        # int8 to int256
-        return True
-    elif is_uintN:
-        # uint8 to uint256
-        return True
-
-    return False
 
 
 def is_array_type(type):
@@ -269,7 +234,7 @@ def _encode_data(primary_type, types, data):
             yield "bytes32", hashed_value
         else:
             # First checking to see if type is valid as per abi
-            if not is_valid_abi_type(field["type"]):
+            if not is_encodable_type(field["type"]):
                 raise TypeError(
                     "Received Invalid type `{0}` in the struct `{1}`".format(
                         field["type"],
