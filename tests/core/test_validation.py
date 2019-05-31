@@ -4,6 +4,9 @@ from cytoolz import (
     assoc,
     dissoc,
 )
+from eth_abi.exceptions import (
+    ABITypeError,
+)
 
 from eth_account import (
     Account,
@@ -62,7 +65,7 @@ def test_invalid_transaction_fields(txn_dict, bad_fields):
     if not bad_fields:
         Account.sign_transaction(txn_dict, TEST_PRIVATE_KEY)
     else:
-        with pytest.raises(TypeError) as excinfo:
+        with pytest.raises((TypeError, ABITypeError)) as excinfo:
             Account.sign_transaction(txn_dict, TEST_PRIVATE_KEY)
         for field in bad_fields:
             assert field in str(excinfo.value)
