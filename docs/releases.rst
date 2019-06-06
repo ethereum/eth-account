@@ -1,6 +1,14 @@
 Release Notes
 =============
 
+v0.5.0
+----------------
+
+Unreleased
+
+- Dependency change: support eth-keys v0.3.*
+  `#69 <https://github.com/ethereum/eth-account/pull/69>`_
+
 v0.4.0
 ----------------
 
