@@ -1,28 +1,36 @@
-from attrdict import (
-    AttrDict,
+from typing import (
+    NamedTuple,
+)
+
+from hexbytes import (
+    HexBytes,
 )
 
 
-class AttributeDict(AttrDict):
-    """
-    See `AttrDict docs <https://github.com/bcj/AttrDict#attrdict-1>`_
+def __getitem__(self, index):
+    try:
+        return tuple.__getitem__(self, index)
+    except TypeError:
+        return getattr(self, index)
 
-    This class differs only in that it is made immutable. This immutability
-    is **not** a security guarantee. It is only a style-check convenience.
-    """
-    def __setitem__(self, attr, val):
-        raise TypeError(
-            'This data is immutable -- create a copy instead of modifying. '
-            'For example, AttributeDict(old, replace_key=replace_val).'
-        )
 
-    def _repr_pretty_(self, builder, cycle):
-        """
-        Custom pretty output for the IPython console
-        """
-        builder.text(self.__class__.__name__ + "(")
-        if cycle:
-            builder.text("<cycle>")
-        else:
-            builder.pretty(dict(self))
-        builder.text(")")
+class SignedTransaction(NamedTuple):
+    rawTransaction: HexBytes
+    hash: HexBytes
+    r: int
+    s: int
+    v: int
+
+    def __getitem__(self, index):
+        return __getitem__(self, index)
+
+
+class SignedMessage(NamedTuple):
+    messageHash: HexBytes
+    r: int
+    s: int
+    v: int
+    signature: HexBytes
+
+    def __getitem__(self, index):
+        return __getitem__(self, index)

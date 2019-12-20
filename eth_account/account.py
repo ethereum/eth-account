@@ -44,7 +44,8 @@ from eth_account._utils.transactions import (
     vrs_from,
 )
 from eth_account.datastructures import (
-    AttributeDict,
+    SignedMessage,
+    SignedTransaction,
 )
 from eth_account.hdaccount import (
     ETHEREUM_DEFAULT_PATH,
@@ -517,7 +518,7 @@ class Account(object):
         :param private_key: the key to sign the message with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most importantly the fields: v, r, and s
-        :rtype: ~eth_account.datastructures.AttributeDict
+        :rtype: ~eth_account.datastructures.SignedMessage
 
         .. doctest:: python
 
@@ -531,12 +532,13 @@ class Account(object):
             >>> # If you're curious about the internal fields of SignableMessage, take a look at EIP-191, linked above  # noqa: E501
             >>> key = "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
             >>> Account.sign_message(msghash, key)
-            AttrDict({'messageHash':
-             HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),
-             'r': 104389933075820307925104709181714897380569894203213074526835978196648170704563,
-             's': 28205917190874851400050446352651915501321657673772411533993420917949420456142,
-             'v': 28,
-             'signature': HexBytes('...')})
+            SignedMessage(messageHash=HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),
+             r=104389933075820307925104709181714897380569894203213074526835978196648170704563,
+             s=28205917190874851400050446352651915501321657673772411533993420917949420456142,
+             v=28,
+             signature=HexBytes('0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'))
+
+
 
         .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
         """
@@ -563,7 +565,7 @@ class Account(object):
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most
           importantly the fields: v, r, and s
-        :rtype: ~eth_account.datastructures.AttributeDict
+        :rtype: ~eth_account.datastructures.SignedMessage
         """
         warnings.warn(
             "signHash is deprecated in favor of sign_message",
@@ -580,13 +582,13 @@ class Account(object):
         key = self._parsePrivateKey(private_key)
 
         (v, r, s, eth_signature_bytes) = sign_message_hash(key, msg_hash_bytes)
-        return AttributeDict({
-            'messageHash': msg_hash_bytes,
-            'r': r,
-            's': s,
-            'v': v,
-            'signature': HexBytes(eth_signature_bytes),
-        })
+        return SignedMessage(
+            messageHash=msg_hash_bytes,
+            r=r,
+            s=s,
+            v=v,
+            signature=HexBytes(eth_signature_bytes),
+        )
 
     @combomethod
     def signTransaction(self, transaction_dict, private_key):
@@ -666,13 +668,13 @@ class Account(object):
 
         transaction_hash = keccak(rlp_encoded)
 
-        return AttributeDict({
-            'rawTransaction': HexBytes(rlp_encoded),
-            'hash': HexBytes(transaction_hash),
-            'r': r,
-            's': s,
-            'v': v,
-        })
+        return SignedTransaction(
+            rawTransaction=HexBytes(rlp_encoded),
+            hash=HexBytes(transaction_hash),
+            r=r,
+            s=s,
+            v=v,
+        )
 
     @combomethod
     def _parsePrivateKey(self, key):
