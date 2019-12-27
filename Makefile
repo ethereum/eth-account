@@ -31,7 +31,7 @@ lint-roll:
 	$(MAKE) lint
 
 test:
-	pytest tests
+	pytest tests --cov eth_account/
 
 test-all:
 	tox

@@ -10,6 +10,7 @@ extras_require = {
         "hypothesis>=4.18.0,<5",
         "pytest>=4.4.0,<5",
         "pytest-xdist",
+        "pytest-cov",
         "tox>=2.9.1,<3",
     ],
     'lint': [
