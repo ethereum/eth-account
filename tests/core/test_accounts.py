@@ -645,7 +645,7 @@ def get_encrypt_test_params():
             private_key,
             password,
             None,
-            None,
+            2,
             private_key.to_bytes(),
             'scrypt'
         ),
@@ -653,7 +653,7 @@ def get_encrypt_test_params():
             key,
             password,
             'pbkdf2',
-            None,
+            4,
             key_bytes,
             'pbkdf2'
         ),
@@ -661,7 +661,7 @@ def get_encrypt_test_params():
             key,
             password,
             None,
-            1024,
+            8,
             key_bytes,
             'scrypt'
         ),
@@ -669,7 +669,7 @@ def get_encrypt_test_params():
             key,
             password,
             'pbkdf2',
-            1024,
+            16,
             key_bytes,
             'pbkdf2'
         ),
@@ -677,7 +677,7 @@ def get_encrypt_test_params():
             key,
             password,
             'scrypt',
-            1024,
+            32,
             key_bytes,
             'scrypt'
         ),
