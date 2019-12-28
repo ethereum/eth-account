@@ -623,7 +623,7 @@ def test_eth_account_recover_transaction_from_eth_test(acct, transaction):
 def get_encrypt_test_params():
     """
     Params for testing Account#encrypt. Due to not being able to provide fixtures to
-    pytest.mark.parameterize, we opt for creating the params in a non-fixture method
+    pytest.mark.parametrize, we opt for creating the params in a non-fixture method
     here instead of providing fixtures for the private key and password.
     """
     key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
