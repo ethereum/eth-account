@@ -13,16 +13,16 @@ class LocalAccount(BaseAccount):
 
     .. code-block:: python
 
-        >>> my_local_account.address
+        >>> my_local_account.address # doctest: +SKIP
         "0xF0109fC8DF283027b6285cc889F5aA624EaC1F55"
-        >>> my_local_account.key
+        >>> my_local_account.key # doctest: +SKIP
         b"\x01\x23..."
 
     You can also get the private key by casting the account to :class:`bytes`:
 
     .. code-block:: python
 
-        >>> bytes(my_local_account)
+        >>> bytes(my_local_account) # doctest: +SKIP
         b"\\x01\\x23..."
     """
     def __init__(self, key, account):

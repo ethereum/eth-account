@@ -22,7 +22,7 @@ class BaseAccount(ABC):
 
         .. code-block:: python
 
-            >>> my_account.address
+            >>> my_account.address # doctest: +SKIP
             "0xF0109fC8DF283027b6285cc889F5aA624EaC1F55"
 
         """

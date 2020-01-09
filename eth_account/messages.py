@@ -187,13 +187,13 @@ def encode_defunct(
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
         # these four also produce the same hash:
-        >>> encode_defunct(w3.toBytes(text=message_text))
+        >>> encode_defunct(w3.toBytes(text=message_text)) # doctest: +SKIP
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
         >>> encode_defunct(bytes(message_text, encoding='utf-8'))
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
-        >>> Web3.toHex(text=message_text)
+        >>> Web3.toHex(text=message_text) # doctest: +SKIP
         '0x49e299a55346'
         >>> encode_defunct(hexstr='0x49e299a55346')
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
