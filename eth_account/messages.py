@@ -181,19 +181,20 @@ def encode_defunct(
     .. code-block:: python
 
         >>> from eth_account.messages import encode_defunct
+        >>> from eth_utils.curried import to_hex
 
         >>> message_text = "I♥SF"
         >>> encode_defunct(text=message_text)
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
-        # these four also produce the same hash:
-        >>> encode_defunct(w3.toBytes(text=message_text)) # doctest: +SKIP
+        These four also produce the same hash:
+        >>> encode_defunct(to_bytes(text=message_text))
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
         >>> encode_defunct(bytes(message_text, encoding='utf-8'))
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
-        >>> Web3.toHex(text=message_text) # doctest: +SKIP
+        >>> to_hex(text=message_text)
         '0x49e299a55346'
         >>> encode_defunct(hexstr='0x49e299a55346')
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
