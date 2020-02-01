@@ -46,6 +46,7 @@ setup(
     author='The Ethereum Foundation',
     author_email='snakecharmers@ethereum.org',
     url='https://github.com/ethereum/eth-account',
+    package_data={'eth_account': ['hdaccount/wordlist/*.txt']},
     include_package_data=True,
     install_requires=[
         "attrdict>=2.0.0,<3",
