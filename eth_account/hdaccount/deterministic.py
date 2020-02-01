@@ -8,22 +8,28 @@ BIP-0044: https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
 
 Skips serialization and public key derivation as unnecssary for this library's purposes.
 
-    Notes:
-    - Integers are modulo the order of the curve (referred to as n).
-    - Addition (+) of two coordinate pair is defined as application of the EC group operation.
-    - Concatenation (||) is the operation of appending one byte sequence onto another.
+Notes
+-----
 
-    Definitions:
-    - point(p): returns the coordinate pair resulting from EC point multiplication
-      (repeated application of the EC group operation) of the secp256k1 base point
-      with the integer p.
-    - ser_32(i): serialize a 32-bit unsigned integer i as a 4-byte sequence,
-      most significant byte first.
-    - ser_256(p): serializes the integer p as a 32-byte sequence, most significant byte first.
-    - ser_P(P): serializes the coordinate pair P = (x,y) as a byte sequence using SEC1's compressed
-      form: (0x02 or 0x03) || ser_256(x), where the header byte depends on the parity of the
-      omitted y coordinate.
-    - parse_256(p): interprets a 32-byte sequence as a 256-bit number, most significant byte first.
+* Integers are modulo the order of the curve (referred to as n).
+* Addition (+) of two coordinate pair is defined as application of the EC group operation.
+* Concatenation (||) is the operation of appending one byte sequence onto another.
+
+
+Definitions
+-----------
+
+* point(p): returns the coordinate pair resulting from EC point multiplication
+  (repeated application of the EC group operation) of the secp256k1 base point
+  with the integer p.
+* ser_32(i): serialize a 32-bit unsigned integer i as a 4-byte sequence,
+  most significant byte first.
+* ser_256(p): serializes the integer p as a 32-byte sequence, most significant byte first.
+* ser_P(P): serializes the coordinate pair P = (x,y) as a byte sequence using SEC1's compressed
+  form: (0x02 or 0x03) || ser_256(x), where the header byte depends on the parity of the
+  omitted y coordinate.
+* parse_256(p): interprets a 32-byte sequence as a 256-bit number, most significant byte first.
+
 """
 # Additional notes:
 # - This algorithm only implements private parent key → private child key CKD function,
@@ -33,18 +39,19 @@ Skips serialization and public key derivation as unnecssary for this library's p
 #   not intended to be ultimately used for Bitcoin key derivations. This presents a simplified API.
 import hashlib
 import hmac
+from typing import (
+    Tuple,
+    Union,
+)
+
+from eth_keys import (
+    keys,
+)
 from eth_utils import (
     to_int,
 )
 from hexbytes import (
     HexBytes,
-)
-from typing import (
-    Tuple,
-    Union,
-)
-from eth_keys import (
-    keys,
 )
 
 SECP256K1_N = int("FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFE_BAAEDCE6_AF48A03B_BFD25E8C_D0364141", 16)
@@ -170,7 +177,7 @@ def derive_child_key(
 
 class HDPath:
     def __init__(self, path: str):
-        '''
+        """
         Constructor for this class. Initializes an hd account generator and
         if possible the encoded key and the derivation path. If no arguments are
         specified, create a new account with createAccount(...) or initialize
@@ -180,7 +187,7 @@ class HDPath:
                                   where idx_* is either an integer value (soft node)
                                   or an integer value followed by either the "'" char
                                   or the "H" char (hardened node)
-        '''
+        """
         nodes = path.split('/')
         if not nodes[0] == 'm':
             raise ValueError(f'Path is not valid: "{path}". Must start with "m"')
