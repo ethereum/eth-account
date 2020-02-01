@@ -47,7 +47,7 @@ from eth_keys import (
     keys,
 )
 
-SECP256K1_N = 2**256 - 2**32 - 2**9 - 2**8 - 2**7 - 2**6 - 2**4 - 1
+SECP256K1_N = int("FFFFFFFF_FFFFFFFF_FFFFFFFF_FFFFFFFE_BAAEDCE6_AF48A03B_BFD25E8C_D0364141", 16)
 
 
 def hmac_sha512(chain_code: bytes, data: bytes) -> bytes:
@@ -154,6 +154,8 @@ def derive_child_key(
     else:
         assert len(ec_point(parent_key)) == 33  # Should be guarenteed by Account class
         child = hmac_sha512(parent_chain_code, ec_point(parent_key) + node.serialize())
+
+    assert len(child) == 64
 
     if to_int(child[:32]) >= SECP256K1_N:
         # Invalid key, compute using next node (< 2**-127 probability)
