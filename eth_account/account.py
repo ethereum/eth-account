@@ -46,6 +46,10 @@ from eth_account._utils.transactions import (
 from eth_account.datastructures import (
     AttributeDict,
 )
+from eth_account.hdaccount import (
+    derive_ethereum_key,
+    seed_from_mnemonic,
+)
 from eth_account.messages import (
     SignableMessage,
     _hash_eip191_message,
@@ -226,6 +230,13 @@ class Account(object):
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
+        key = self._parsePrivateKey(private_key)
+        return LocalAccount(key, self)
+
+    @combomethod
+    def from_mnemonic(self, mnemonic, account_index=0):
+        seed = seed_from_mnemonic(mnemonic)
+        private_key = derive_ethereum_key(seed, account_index)
         key = self._parsePrivateKey(private_key)
         return LocalAccount(key, self)
 
