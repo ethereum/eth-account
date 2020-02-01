@@ -65,18 +65,12 @@ def b58encode(v):
 class Mnemonic(object):
     def __init__(self, language):
         self.radix = 2048
-        if sys.version < "3":
-            with open("%s/%s.txt" % (self._get_directory(), language), "r") as f:
-                self.wordlist = [w.strip().decode("utf8") for w in f.readlines()]
-        else:
-            with open(
-                "%s/%s.txt" % (self._get_directory(), language), "r", encoding="utf-8"
-            ) as f:
-                self.wordlist = [w.strip() for w in f.readlines()]
+        with open(f"{self._get_directory()}/{language}.txt", "r", encoding="utf-8") as f:
+            self.wordlist = [w.strip() for w in f.readlines()]
         if len(self.wordlist) != self.radix:
             raise ConfigurationError(
-                "Wordlist should contain %d words, but it contains %d words."
-                % (self.radix, len(self.wordlist))
+                f"Wordlist should contain {self.radix} words, "
+                f"but it contains {len(self.wordlist)} words."
             )
 
     @classmethod
@@ -93,9 +87,9 @@ class Mnemonic(object):
 
     @classmethod
     def normalize_string(cls, txt):
-        if isinstance(txt, str if sys.version < "3" else bytes):
+        if isinstance(txt, bytes):
             utxt = txt.decode("utf8")
-        elif isinstance(txt, unicode if sys.version < "3" else str):  # noqa: F821
+        elif isinstance(txt, str):
             utxt = txt
         else:
             raise TypeError("String value expected")
@@ -118,8 +112,7 @@ class Mnemonic(object):
     def generate(self, strength=128):
         if strength not in [128, 160, 192, 224, 256]:
             raise ValueError(
-                "Strength should be one of the following [128, 160, 192, 224, 256], but it is not (%d)."
-                % strength
+                "Strength should be one of the following: [128, 160, 192, 224, 256]"
             )
         return self.to_mnemonic(os.urandom(strength // 8))
 
@@ -129,8 +122,7 @@ class Mnemonic(object):
             words = words.split(" ")
         if len(words) not in [12, 15, 18, 21, 24]:
             raise ValueError(
-                "Number of words must be one of the following: [12, 15, 18, 21, 24], but it is not (%d)."
-                % len(words)
+                "Number of words must be one of the following: [12, 15, 18, 21, 24]"
             )
         # Look up all the words in the list and construct the
         # concatenation of the original entropy and the checksum.
@@ -149,7 +141,7 @@ class Mnemonic(object):
                 else self.wordlist.index(word)
             )
             if ndx < 0:
-                raise LookupError('Unable to find "%s" in word list.' % word)
+                raise LookupError(f'Unable to find "{word}" in word list.')
             # Set the next 11 bits to the value of the index.
             for ii in range(11):
                 concatBits[(wordindex * 11) + ii] = (ndx & (1 << (10 - ii))) != 0
@@ -164,21 +156,11 @@ class Mnemonic(object):
                     entropy[ii] |= 1 << (7 - jj)
         # Take the digest of the entropy.
         hashBytes = hashlib.sha256(entropy).digest()
-        if sys.version < "3":
-            hashBits = list(
-                itertools.chain.from_iterable(
-                    (
-                        [ord(c) & (1 << (7 - i)) != 0 for i in range(8)]
-                        for c in hashBytes
-                    )
-                )
+        hashBits = list(
+            itertools.chain.from_iterable(
+                ([c & (1 << (7 - i)) != 0 for i in range(8)] for c in hashBytes)
             )
-        else:
-            hashBits = list(
-                itertools.chain.from_iterable(
-                    ([c & (1 << (7 - i)) != 0 for i in range(8)] for c in hashBytes)
-                )
-            )
+        )
         # Check all the checksum bits.
         for i in range(checksumLengthBits):
             if concatBits[entropyLengthBits + i] != hashBits[i]:

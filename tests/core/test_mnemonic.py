@@ -38,8 +38,7 @@ class MnemonicTest(unittest.TestCase):
             code = mnemo.to_mnemonic(unhexlify(v[0]))
             seed = hexlify(Mnemonic.to_seed(code, passphrase="TREZOR"))
             xprv = Mnemonic.to_hd_master_key(unhexlify(seed))
-            if sys.version >= "3":
-                seed = seed.decode("utf8")
+            seed = seed.decode("utf8")
             self.assertIs(mnemo.check(v[1]), True)
             self.assertEqual(v[1], code)
             self.assertEqual(v[2], seed)
