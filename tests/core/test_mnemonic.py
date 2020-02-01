@@ -30,11 +30,10 @@ from eth_account.hdaccount.mnemonic import (
 
 
 def test_failed_checksum():
-    code = (
+    mnemo = Mnemonic("english")
+    assert not mnemo.check(
         "bless cloud wheel regular tiny venue bird web grief security dignity zoo"
     )
-    mnemo = Mnemonic("english")
-    assert not mnemo.check(code)
 
 
 def test_detection():
