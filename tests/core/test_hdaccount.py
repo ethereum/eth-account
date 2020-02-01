@@ -1,4 +1,6 @@
-from eth_account import Account
+from eth_account import (
+    Account,
+)
 
 
 # https://github.com/MetaMask/eth-hd-keyring/blob/master/test/index.js
