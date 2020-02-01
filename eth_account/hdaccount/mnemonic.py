@@ -24,10 +24,8 @@
 import binascii
 import bisect
 import hashlib
-import hmac
 import itertools
 import os
-import sys
 import unicodedata
 
 PBKDF2_ROUNDS = 2048
@@ -37,7 +35,7 @@ class ConfigurationError(Exception):
     pass
 
 
-# From <https://stackoverflow.com/questions/212358/binary-search-bisection-in-python/2233940#2233940>
+# https://stackoverflow.com/questions/212358/binary-search-bisection-in-python/2233940#2233940
 def binary_search(a, x, lo=0, hi=None):  # can't use a to specify default for hi
     hi = hi if hi is not None else len(a)  # hi defaults to len(a)
     pos = bisect.bisect_left(a, x, lo, hi)  # find insertion position
@@ -152,17 +150,17 @@ class Mnemonic(object):
     def to_mnemonic(self, data):
         if len(data) not in [16, 20, 24, 28, 32]:
             raise ValueError(
-                "Data length should be one of the following: [16, 20, 24, 28, 32], but it is not (%d)."
+                "Data length should be one of the following: [16, 20, 24, 28, 32]"
                 % len(data)
             )
         h = hashlib.sha256(data).hexdigest()
         b = (
-            bin(int(binascii.hexlify(data), 16))[2:].zfill(len(data) * 8)
-            + bin(int(h, 16))[2:].zfill(256)[: len(data) * 8 // 32]
+            bin(int(binascii.hexlify(data), 16))[2:].zfill(len(data) * 8) +
+            bin(int(h, 16))[2:].zfill(256)[: len(data) * 8 // 32]
         )
         result = []
         for i in range(len(b) // 11):
-            idx = int(b[i * 11 : (i + 1) * 11], 2)
+            idx = int(b[i * 11: (i + 1) * 11], 2)
             result.append(self.wordlist[idx])
         if (
             self.detect_language(" ".join(result)) == "japanese"
@@ -184,7 +182,7 @@ class Mnemonic(object):
             return False
         l = len(b)  # noqa: E741
         d = b[: l // 33 * 32]
-        h = b[-l // 33 :]
+        h = b[-l // 33:]
         nd = binascii.unhexlify(hex(int(d, 2))[2:].rstrip("L").zfill(l // 33 * 8))
         nh = bin(int(hashlib.sha256(nd).hexdigest(), 16))[2:].zfill(256)[: l // 33]
         return h == nh
