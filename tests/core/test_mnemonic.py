@@ -37,12 +37,10 @@ class MnemonicTest(unittest.TestCase):
         for v in vectors:
             code = mnemo.to_mnemonic(unhexlify(v[0]))
             seed = hexlify(Mnemonic.to_seed(code, passphrase="TREZOR"))
-            xprv = Mnemonic.to_hd_master_key(unhexlify(seed))
             seed = seed.decode("utf8")
             self.assertIs(mnemo.check(v[1]), True)
             self.assertEqual(v[1], code)
             self.assertEqual(v[2], seed)
-            self.assertEqual(v[3], xprv)
 
     def test_vectors(self):
         with open(Path(__file__).parent / "vectors.json", "r") as f:

@@ -44,24 +44,6 @@ def binary_search(a, x, lo=0, hi=None):  # can't use a to specify default for hi
     return pos if pos != hi and a[pos] == x else -1  # don't walk off the end
 
 
-# Refactored code segments from <https://github.com/keis/base58>
-def b58encode(v):
-    alphabet = "123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz"
-
-    p, acc = 1, 0
-    for c in reversed(v):
-        if sys.version < "3":
-            c = ord(c)
-        acc += p * c
-        p = p << 8
-
-    string = ""
-    while acc:
-        acc, idx = divmod(acc, 58)
-        string = alphabet[idx : idx + 1] + string
-    return string
-
-
 class Mnemonic(object):
     def __init__(self, language):
         self.radix = 2048
@@ -231,27 +213,3 @@ class Mnemonic(object):
         passphrase = passphrase.encode("utf-8")
         stretched = hashlib.pbkdf2_hmac("sha512", mnemonic, passphrase, PBKDF2_ROUNDS)
         return stretched[:64]
-
-    @classmethod
-    def to_hd_master_key(cls, seed):
-        if len(seed) != 64:
-            raise ValueError("Provided seed should have length of 64")
-
-        # Compute HMAC-SHA512 of seed
-        seed = hmac.new(b"Bitcoin seed", seed, digestmod=hashlib.sha512).digest()
-
-        # Serialization format can be found at: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki#Serialization_format
-        xprv = b"\x04\x88\xad\xe4"  # Version for private mainnet
-        xprv += b"\x00" * 9  # Depth, parent fingerprint, and child number
-        xprv += seed[32:]  # Chain code
-        xprv += b"\x00" + seed[:32]  # Master key
-
-        # Double hash using SHA256
-        hashed_xprv = hashlib.sha256(xprv).digest()
-        hashed_xprv = hashlib.sha256(hashed_xprv).digest()
-
-        # Append 4 bytes of checksum
-        xprv += hashed_xprv[:4]
-
-        # Return base58
-        return b58encode(xprv)
