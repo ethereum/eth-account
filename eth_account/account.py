@@ -234,8 +234,8 @@ class Account(object):
         return LocalAccount(key, self)
 
     @combomethod
-    def from_mnemonic(self, mnemonic, account_index=0):
-        seed = seed_from_mnemonic(mnemonic)
+    def from_mnemonic(self, mnemonic, passphrase="", account_index=0):
+        seed = seed_from_mnemonic(mnemonic, passphrase)
         private_key = derive_ethereum_key(seed, account_index)
         key = self._parsePrivateKey(private_key)
         return LocalAccount(key, self)
