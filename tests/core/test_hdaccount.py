@@ -10,3 +10,9 @@ def test_account_derivation():
     a2 = Account.from_mnemonic(words, account_index=1)
     assert a1.address == "0x1c96099350f13D558464eC79B9bE4445AA0eF579"
     assert a2.address == "0x1b00AeD43a693F3a957F9FeB5cC08AFA031E37a0"
+
+
+def test_account_restore():
+    a1, mnemonic = Account.create_with_mnemonic(extra_entropy="Some extra stuff.")
+    a2 = Account.from_mnemonic(mnemonic)
+    assert a1.address == a2.address
