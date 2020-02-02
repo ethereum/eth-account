@@ -48,6 +48,7 @@ from eth_account.datastructures import (
 )
 from eth_account.hdaccount import (
     derive_ethereum_key,
+    mnemonic_from_entropy,
     seed_from_mnemonic,
 )
 from eth_account.messages import (
@@ -239,6 +240,13 @@ class Account(object):
         private_key = derive_ethereum_key(seed, account_index)
         key = self._parsePrivateKey(private_key)
         return LocalAccount(key, self)
+
+    @combomethod
+    def create_with_mnemonic(self, extra_entropy="", passphrase="", account_index=0):
+        extra_entropy_bytes = text_if_str(to_bytes, extra_entropy)
+        entropy = keccak(os.urandom(32) + extra_entropy_bytes)
+        mnemonic = mnemonic_from_entropy(entropy)
+        return self.from_mnemonic(mnemonic, passphrase, account_index), mnemonic
 
     @combomethod
     def recover_message(self, signable_message: SignableMessage, vrs=None, signature=None):

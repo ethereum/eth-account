@@ -15,3 +15,7 @@ def seed_from_mnemonic(words: str, passphrase="") -> bytes:
     if not Mnemonic(lang).check(words):
         raise ValueError("Provided words are not a valid BIP39 mnemonic phrase!")
     return Mnemonic.to_seed(words, passphrase)
+
+
+def mnemonic_from_entropy(entropy: bytes, lang="english") -> str:
+    return Mnemonic(lang).to_mnemonic(entropy)
