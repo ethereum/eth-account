@@ -52,14 +52,20 @@ from ._utils import (
     hmac_sha512,
 )
 
-class SoftNode(int):
+
+class Node(int):
+    TAG = ""  # No tag
+    OFFSET = 0x0  # No offset
     """
-    Soft node (unhardened), where value = index
+    Base node class
     """
     def __new__(cls, index):
-        obj = int.__new__(cls, index)
+        obj = int.__new__(cls, index + cls.OFFSET)
         obj.index = index
         return obj
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}({self.index})"
 
     def __add__(self, other: int):
         return self.__class__(self.index + other)
@@ -69,48 +75,38 @@ class SoftNode(int):
         return self.to_bytes(4, byteorder="big")
 
     def encode(self) -> str:
-        return str(self.index)
+        return str(self.index) + self.TAG
 
-    def __repr__(self):
-        return f"SoftNode({self.index})"
+    @staticmethod
+    def decode(node: str) -> Union["SoftNode", "HardNode"]:
+        if len(node) < 1:
+            raise ValueError("Cannot use empty string")
+        if node[-1] in ("'", "H"):
+            return HardNode(int(node[:-1]))
+        else:
+            return SoftNode(int(node))
 
 
-class HardNode(int):
+class SoftNode(Node):
+    """
+    Soft node (unhardened), where value = index
+    """
+    TAG = ""  # No tag
+    OFFSET = 0x0  # No offset
+
+
+class HardNode(Node):
     """
     Hard node, where value = index + BIP32_HARDENED_CONSTANT
     """
-    def __new__(cls, index):
-        obj = int.__new__(cls, index + 0x80000000)  # 2**31, BIP32 "Hardening constant"
-        obj.index = index
-        return obj
-
-    def __add__(self, other: int):
-        return self.__class__(self.index + other)
-
-    def serialize(self) -> bytes:
-        assert 0 <= self < 2**32
-        return self.to_bytes(4, byteorder="big")
-
-    def encode(self):
-        return str(self.index) + "'"
-
-    def __repr__(self):
-        return f"HardNode({self.index})"
-
-
-def decode_node(node: str) -> Union[SoftNode, HardNode]:
-    if len(node) < 1:
-        raise ValueError("Cannot use empty string")
-    if node[-1] in ("'", "H"):
-        return HardNode(int(node[:-1]))
-    else:
-        return SoftNode(int(node))
+    TAG = "H"  # "H" (or "'") means hard node (but use "H" for clarity)
+    OFFSET = 0x80000000  # 2**31, BIP32 "Hardening constant"
 
 
 def derive_child_key(
     parent_key: bytes,
     parent_chain_code: bytes,
-    node: Union[SoftNode, HardNode],
+    node: Node,
 ) -> Tuple[bytes, bytes]:
     """
     From BIP32:
@@ -173,7 +169,7 @@ class HDPath:
         decoded_path = []
         try:
             for node in nodes[1:]:  # We don't need the root node 'm'
-                decoded_path.append(decode_node(node))
+                decoded_path.append(Node.decode(node))
         except ValueError as e:
             raise ValueError(f'Path is not valid: "{path}". Issue with node "{node}": {e}')
         self._path = decoded_path
