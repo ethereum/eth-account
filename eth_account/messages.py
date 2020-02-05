@@ -1,7 +1,6 @@
 from collections.abc import (
     Mapping,
 )
-import json
 from typing import (
     NamedTuple,
     Union,
@@ -27,6 +26,9 @@ from eth_account._utils.structured_data.hashing import (
     hash_domain,
     hash_message as hash_eip712_message,
     load_and_validate_structured_message,
+)
+from eth_account._utils.structured_data.validation import (
+    validate_structured_data,
 )
 from eth_account._utils.validation import (
     is_valid_address,
@@ -143,10 +145,11 @@ def encode_structured_data(
     .. _EIP-712: https://eips.ethereum.org/EIPS/eip-712
     """
     if isinstance(primitive, Mapping):
-        message_string = json.dumps(primitive)
+        validate_structured_data(primitive)
+        structured_data = primitive
     else:
         message_string = to_text(primitive, hexstr=hexstr, text=text)
-    structured_data = load_and_validate_structured_message(message_string)
+        structured_data = load_and_validate_structured_message(message_string)
     return SignableMessage(
         HexBytes(b'\x01'),
         hash_domain(structured_data),
