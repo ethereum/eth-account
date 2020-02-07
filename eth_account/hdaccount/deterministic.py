@@ -153,10 +153,14 @@ def derive_child_key(
 class HDPath:
     def __init__(self, path: str):
         """
-        Constructor for this class. Initializes an hd account generator and
-        if possible the encoded key and the derivation path. If no arguments are
-        specified, create a new account with createAccount(...) or initialize
-        an account given a mnemonic and an optional password with initAccount(...)
+        Constructor for this class. Initializes an hd account generator using the
+        given path string (from BIP-0032). The path is decoded into nodes of the
+        derivation key tree, which define a pathway from a given master seed to
+        the child key that is used for a given purpose. Please also reference BIP-
+        0043 (which definites the first level as the "purpose" field of an HD path)
+        and BIP-0044 (which defines a commonly-used, 5-level scheme for BIP32 paths)
+        for examples of how this object may be used. Please note however that this
+        object makes no such assumptions of the use of BIP43 or BIP44, or later BIPs.
         :param path             : BIP32-compatible derivation path
         :type path              : str as "m/idx_0/.../idx_n" or "m/idx_0/.../idx_n"
                                   where idx_* is either an integer value (soft node)
@@ -178,12 +182,22 @@ class HDPath:
         return f'{self.__class__.__name__}(path="{self.encode()}")'
 
     def encode(self) -> str:
+        """
+        Encodes this class to a string (reversing the decoding in the constructor)
+        """
         encoded_path = ['m']
         for node in self._path:
             encoded_path.append(node.encode())
         return '/'.join(encoded_path)
 
     def derive(self, seed: bytes) -> bytes:
+        """
+        Perform the BIP32 Heirarchical Derivation recursive loop with the given Path
+
+        Note that the key and chain_code are initialized with the master seed, and that
+        the key that is returned is the child key at the end of derivation process (and
+        the chain code is discarded)
+        """
         master_node = hmac_sha512(b"Bitcoin seed", seed)
         key = master_node[:32]
         chain_code = master_node[32:]
