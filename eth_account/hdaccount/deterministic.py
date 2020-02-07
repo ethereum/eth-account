@@ -32,11 +32,13 @@ Definitions
 
 """
 # Additional notes:
-# - This algorithm only implements private parent key → private child key CKD function,
-#   as it is unnecessary to the HD key derivation functions used in this library to implement
-#   the other functions (as Ethereum uses an Account-based system)
+# - This module currently only implements private parent key => private child key CKD function,
+#   as it is not necessary to the HD key derivation functions used in this library to implement
+#   the other functions yet (as this module is only used for derivation of private keys). That
+#   could change, but wasn't deemed necessary at the time this module was introduced.
 # - Unlike other libraries, this library does not use Bitcoin key serialization, because it is
-#   not intended to be ultimately used for Bitcoin key derivations. This presents a simplified API.
+#   not intended to be ultimately used for Bitcoin key derivations. This presents a simplified
+#   API, and no expectation is given for `xpub/xpriv` key derivation.
 from typing import (
     Tuple,
     Union,
