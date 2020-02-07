@@ -116,7 +116,7 @@ def derive_child_key(
 
     - Check whether i ≥ 2**31 (whether the child is a hardened key).
       - If so (hardened child):
-        let I = HMAC-SHA512(Key = c_par, Data = 0x00 || ser_256(kpar) || ser_32(i)).
+        let I = HMAC-SHA512(Key = c_par, Data = 0x00 || ser_256(k_par) || ser_32(i)).
         (Note: The 0x00 pads the private key to make it 33 bytes long.)
       - If not (normal child):
         let I = HMAC-SHA512(Key = c_par, Data = ser_P(point(k_par)) || ser_32(i)).
@@ -130,11 +130,11 @@ def derive_child_key(
     assert len(parent_chain_code) == 32
     if isinstance(node, HardNode):
         # NOTE Empty byte is added to align to SoftNode case
-        assert len(parent_key) == 32  # Should be guarenteed here in return statment
+        assert len(parent_key) == 32  # Should be guaranteed here in return statment
         child = hmac_sha512(parent_chain_code, b"\x00" + parent_key + node.serialize())
 
     else:
-        assert len(ec_point(parent_key)) == 33  # Should be guarenteed by Account class
+        assert len(ec_point(parent_key)) == 33  # Should be guaranteed by Account class
         child = hmac_sha512(parent_chain_code, ec_point(parent_key) + node.serialize())
 
     assert len(child) == 64
