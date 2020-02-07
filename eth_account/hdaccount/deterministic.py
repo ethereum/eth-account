@@ -147,7 +147,10 @@ def derive_child_key(
     if child_key == 0:
         # Invalid key, compute using next node (< 2**-127 probability)
         return derive_child_key(parent_key, parent_chain_code, node + 1)
-    return child_key.to_bytes(32, byteorder="big"), child[32:]
+
+    child_key = child_key.to_bytes(32, byteorder="big")
+    child_chain_code = child[32:]
+    return child_key, child_chain_code
 
 
 class HDPath:
