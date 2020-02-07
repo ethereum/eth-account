@@ -168,7 +168,7 @@ class HDPath:
                                   or the "H" char (hardened node)
         """
         nodes = path.split('/')
-        if not nodes[0] == 'm':
+        if nodes[0] not in ('m', 'M'):
             raise ValueError(f'Path is not valid: "{path}". Must start with "m"')
         decoded_path = []
         try:
