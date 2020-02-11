@@ -152,9 +152,12 @@ def derive_child_key(
         assert len(parent_key) == 32  # Should be guaranteed here in return statment
         child = hmac_sha512(parent_chain_code, b"\x00" + parent_key + node.serialize())
 
-    else:
+    elif isinstance(node, SoftNode):
         assert len(ec_point(parent_key)) == 33  # Should be guaranteed by Account class
         child = hmac_sha512(parent_chain_code, ec_point(parent_key) + node.serialize())
+
+    else:
+        raise ValidationError(f"Cannot process: {node}")
 
     assert len(child) == 64
 
