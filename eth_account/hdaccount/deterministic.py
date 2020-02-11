@@ -214,9 +214,7 @@ class HDPath:
         """
         Encodes this class to a string (reversing the decoding in the constructor)
         """
-        encoded_path = ['m']
-        for node in self._path:
-            encoded_path.append(node.encode())
+        encoded_path = ('m',) + tuple(node.encode() for node in self._path)
         return '/'.join(encoded_path)
 
     def derive(self, seed: bytes) -> bytes:
