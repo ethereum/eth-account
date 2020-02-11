@@ -34,3 +34,22 @@ def test_account_restore():
     a1, mnemonic = Account.create_with_mnemonic(extra_entropy="Some extra stuff.")
     a2 = Account.from_mnemonic(mnemonic)
     assert a1.address == a2.address
+
+
+def test_incorrect_size():
+    with pytest.raises(ValueError):
+        Account.from_mnemonic("this is not a seed phrase")
+
+
+def test_malformed_seed():
+    with pytest.raises(ValueError):
+        # Missing 12th word
+        Account.from_mnemonic("into trim cross then helmet popular suit hammer cart shrug oval")
+
+
+def test_incorrect_checksum():
+    with pytest.raises(ValueError):
+        # Moved 12th word of valid phrase to be 1st
+        Account.from_mnemonic(
+            "student into trim cross then helmet popular suit hammer cart shrug oval"
+        )
