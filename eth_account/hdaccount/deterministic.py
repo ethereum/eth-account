@@ -45,6 +45,7 @@ from typing import (
 )
 
 from eth_utils import (
+    ValidationError,
     to_int,
 )
 
@@ -54,6 +55,8 @@ from ._utils import (
     hmac_sha512,
 )
 
+HARD_NODE_SUFFIXES = {"'", "H"}
+
 
 class Node(int):
     TAG = ""  # No tag
@@ -62,6 +65,10 @@ class Node(int):
     Base node class
     """
     def __new__(cls, index):
+        if 0 > index or index > 2**31:
+            raise ValidationError(
+                    f"{cls} cannot be initialized with value {index}"
+                )
         obj = int.__new__(cls, index + cls.OFFSET)
         obj.index = index
         return obj
@@ -73,7 +80,6 @@ class Node(int):
         return self.__class__(self.index + other)
 
     def serialize(self) -> bytes:
-        assert 0 <= self < 2**32
         return self.to_bytes(4, byteorder="big")
 
     def encode(self) -> str:
@@ -82,11 +88,21 @@ class Node(int):
     @staticmethod
     def decode(node: str) -> Union["SoftNode", "HardNode"]:
         if len(node) < 1:
-            raise ValueError("Cannot use empty string")
-        if node[-1] in ("'", "H"):
-            return HardNode(int(node[:-1]))
+            raise ValidationError("Cannot use empty string")
+
+        if node[-1] in HARD_NODE_SUFFIXES:
+            node_class = HardNode
+            node_index = node[:-1]
         else:
-            return SoftNode(int(node))
+            node_class = SoftNode
+            node_index = node
+
+        try:
+            node_value = int(node_index)
+        except ValueError as err:
+            raise ValidationError(f"'{node_index}' is not a valid node index.") from err
+
+        return node_class(node_value)
 
 
 class SoftNode(Node):
