@@ -236,6 +236,26 @@ class Account(object):
 
     @combomethod
     def from_mnemonic(self, mnemonic, passphrase="", account_index=0):
+        """
+        :param str mnemonic: space-separated list of BIP39 mnemonic seed words
+        :param str passphrase: Optional passphrase used to encrypt the mnemonic
+        :param int account_index: Specify an alternate BIP44 account index used for deriving an
+            account from the seed using BIP32 HD wallet key derivation
+        :return: object with methods for signing and encrypting
+        :rtype: LocalAccount
+
+        .. code-block:: python
+
+            >>> acct = Account.from_mnemonic(
+              "coral allow abandon recipe top tray caught video climb similar prepare bracket "
+              "antenna rubber announce gauge volume hub hood burden skill immense add acid")
+            >>> acct.address
+            '0x9AdA5dAD14d925f4df1378409731a9B71Bc8569d'
+
+            # These methods are also available: sign_message(), sign_transaction(), encrypt()
+            # They correspond to the same-named methods in Account.*
+            # but without the private key argument
+        """
         seed = seed_from_mnemonic(mnemonic, passphrase)
         private_key = derive_ethereum_key(seed, account_index)
         key = self._parsePrivateKey(private_key)
@@ -243,6 +263,27 @@ class Account(object):
 
     @combomethod
     def create_with_mnemonic(self, extra_entropy="", passphrase="", account_index=0):
+        r"""
+        Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
+        alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
+
+        :param extra_entropy: Add extra randomness to whatever randomness your OS can provide
+        :type extra_entropy: str or bytes or int
+        :returns: an object with private key and convenience methods
+
+        .. code-block:: python
+
+            >>> from eth_account import Account
+            >>> acct, mnemonic = Account.create_with_mnemonic('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+            >>> acct.address
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+            >>> acct == Account.from_mnemonic(mnemonic)
+            True
+
+            # These methods are also available: sign_message(), sign_transaction(), encrypt()
+            # They correspond to the same-named methods in Account.*
+            # but without the private key argument
+        """
         extra_entropy_bytes = text_if_str(to_bytes, extra_entropy)
         entropy = keccak(os.urandom(32) + extra_entropy_bytes)
         mnemonic = mnemonic_from_entropy(entropy)
