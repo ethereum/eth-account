@@ -55,6 +55,7 @@ from ._utils import (
     hmac_sha512,
 )
 
+BASE_NODE_IDENTIFIERS = {"m", "M"}
 HARD_NODE_SUFFIXES = {"'", "H"}
 
 
@@ -188,15 +189,22 @@ class HDPath:
                                   or an integer value followed by either the "'" char
                                   or the "H" char (hardened node)
         """
-        nodes = path.split('/')
-        if nodes[0] not in ('m', 'M'):
-            raise ValueError(f'Path is not valid: "{path}". Must start with "m"')
+        if len(path) < 1:
+            raise ValidationError("Cannot parse path from empty string.")
+
+        nodes = path.split('/')  # Should at least make 1 entry in resulting list
+        if nodes[0] not in BASE_NODE_IDENTIFIERS:
+            raise ValidationError(f'Path is not valid: "{path}". Must start with "m"')
+
         decoded_path = []
-        try:
-            for node in nodes[1:]:  # We don't need the root node 'm'
+        for idx, node in enumerate(nodes[1:]):  # We don't need the root node 'm'
+            try:
                 decoded_path.append(Node.decode(node))
-        except ValueError as e:
-            raise ValueError(f'Path is not valid: "{path}". Issue with node "{node}": {e}')
+            except ValidationError as err:
+                raise ValidationError(
+                        f'Path "{path}" is not valid. Issue with node "{node}": {err}'
+                    ) from err
+
         self._path = decoded_path
 
     def __repr__(self) -> str:
