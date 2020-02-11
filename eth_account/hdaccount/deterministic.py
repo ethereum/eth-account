@@ -68,8 +68,8 @@ class Node(int):
     def __new__(cls, index):
         if 0 > index or index > 2**31:
             raise ValidationError(
-                    f"{cls} cannot be initialized with value {index}"
-                )
+                f"{cls} cannot be initialized with value {index}"
+            )
         obj = int.__new__(cls, index + cls.OFFSET)
         obj.index = index
         return obj
@@ -205,8 +205,8 @@ class HDPath:
                 decoded_path.append(Node.decode(node))
             except ValidationError as err:
                 raise ValidationError(
-                        f'Path "{path}" is not valid. Issue with node "{node}": {err}'
-                    ) from err
+                    f'Path "{path}" is not valid. Issue with node "{node}": {err}'
+                ) from err
 
         self._path = decoded_path
 
