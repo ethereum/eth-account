@@ -21,7 +21,6 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 import pytest
-import random
 
 from eth_account.hdaccount.mnemonic import (
     ConfigurationError,
@@ -41,16 +40,6 @@ def test_detection():
 
     with pytest.raises(ConfigurationError):
         Mnemonic.detect_language("xxxxxxx")
-
-
-def test_to_entropy():
-    data = [
-        bytearray((random.getrandbits(8) for _ in range(32))) for _ in range(1024)
-    ]
-    data.append(b"Lorem ipsum dolor sit amet amet.")
-    m = Mnemonic("english")
-    for d in data:
-        assert m.to_entropy(m.to_mnemonic(d).split()) == d
 
 
 def test_expand_word():
