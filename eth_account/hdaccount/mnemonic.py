@@ -146,8 +146,14 @@ class Mnemonic(object):
     def to_seed(cls, mnemonic, passphrase=""):
         mnemonic = cls.normalize_string(mnemonic)
         passphrase = cls.normalize_string(passphrase)
+        # NOTE: This domain separater ("mnemonic") is added per BIP39 spec to the passphrase
+        # https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed
         passphrase = "mnemonic" + passphrase
         mnemonic = mnemonic.encode("utf-8")
         passphrase = passphrase.encode("utf-8")
+        # From BIP39:
+        #   To create a binary seed from the mnemonic, we use the PBKDF2 function with a
+        # mnemonic sentence (in UTF-8 NFKD) used as the password and the string "mnemonic"
+        # and passphrase (again in UTF-8 NFKD) used as the salt.
         stretched = hashlib.pbkdf2_hmac("sha512", mnemonic, passphrase, PBKDF2_ROUNDS)
         return stretched[:64]
