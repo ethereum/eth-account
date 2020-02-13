@@ -24,6 +24,9 @@
 import binascii
 import hashlib
 import os
+from pathlib import (
+    Path,
+)
 import unicodedata
 
 from eth_utils import (
@@ -34,7 +37,7 @@ from eth_utils import (
 PBKDF2_ROUNDS = 2048
 VALID_SEED_SIZES = [16, 20, 24, 28, 32]
 VALID_WORD_LENGTHS = [12, 15, 18, 21, 24]
-WORDLIST_DIR = os.path.join(os.path.dirname(__file__), "wordlist")
+WORDLIST_DIR = Path(__file__).parent / "wordlist"
 
 
 class ConfigurationError(Exception):
@@ -60,7 +63,7 @@ class Mnemonic(object):
             )
         self.language = language
         self.radix = 2048
-        with open(f"{WORDLIST_DIR}/{language}.txt", "r", encoding="utf-8") as f:
+        with open(WORDLIST_DIR / f"{language}.txt", "r", encoding="utf-8") as f:
             self.wordlist = [w.strip() for w in f.readlines()]
         if len(self.wordlist) != self.radix:
             raise ConfigurationError(
@@ -70,11 +73,7 @@ class Mnemonic(object):
 
     @combomethod
     def list_languages(self):
-        return [
-            f.split(".")[0]
-            for f in os.listdir(WORDLIST_DIR)
-            if f.endswith(".txt")
-        ]
+        return sorted(Path(f).stem for f in WORDLIST_DIR.rglob("*.txt"))
 
     @classmethod
     def detect_language(cls, raw_mnemonic):
