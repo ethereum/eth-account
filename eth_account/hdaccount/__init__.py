@@ -14,9 +14,10 @@ def derive_ethereum_key(seed: bytes, account_index: int=0):
 
 def seed_from_mnemonic(words: str, passphrase="") -> bytes:
     lang = Mnemonic.detect_language(words)
-    if not Mnemonic(lang).check(words):
+    expanded_words = Mnemonic(lang).expand(words)
+    if not Mnemonic(lang).check(expanded_words):
         raise ValueError("Provided words are not a valid BIP39 mnemonic phrase!")
-    return Mnemonic.to_seed(words, passphrase)
+    return Mnemonic.to_seed(expanded_words, passphrase)
 
 
 def mnemonic_from_entropy(entropy: bytes, lang="english") -> str:
