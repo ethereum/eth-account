@@ -60,7 +60,7 @@ def test_expand():
     assert "access access acb acc act action" == m.expand("access acce acb acc act acti")
 
 
-@pytest.mark.parametrize("encrypted_mnemonic,decrypted_mnemonic,expected_seed", [
+@pytest.mark.parametrize("entropy,expected_mnemonic,expected_seed", [
     (
         "00000000000000000000000000000000",
         "abandon abandon abandon abandon abandon abandon "
@@ -252,12 +252,13 @@ def test_expand():
         "point ten exist slush involve unfold",
         "01f5bced59dec48e362f2c45b5de68b9fd6c92c6634f44d6d40aab69056506f0"
         "e35524a518034ddc1192e1dacd32c1ed3eaa3c3b131c88ed8e7e54c49a5d0998"
-    )
+    ),
 ])
-def test_english_mnemonics(encrypted_mnemonic, decrypted_mnemonic, expected_seed):
+def test_english_mnemonics(entropy, expected_mnemonic, expected_seed):
     m = Mnemonic("english")
-    mnemonic = m.to_mnemonic(bytes.fromhex(encrypted_mnemonic))
+    mnemonic = m.to_mnemonic(bytes.fromhex(entropy))
+    assert m.check(mnemonic)
+    assert mnemonic == expected_mnemonic
+
     seed = Mnemonic.to_seed(mnemonic, passphrase="TREZOR")
-    assert m.check(decrypted_mnemonic)
-    assert decrypted_mnemonic == mnemonic
-    assert expected_seed == seed.hex()
+    assert seed.hex() == expected_seed

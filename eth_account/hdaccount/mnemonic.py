@@ -72,7 +72,7 @@ class Mnemonic(object):
             )
 
     @combomethod
-    def list_languages(self):
+    def list_languages(_Mnemonic):
         return sorted(Path(f).stem for f in WORDLIST_DIR.rglob("*.txt"))
 
     @classmethod
@@ -151,8 +151,8 @@ class Mnemonic(object):
     @classmethod
     def to_seed(cls, checked_mnemonic: str, passphrase: str="") -> bytes:
         """
-        :param str raw_checked_mnemonic: Must be a correct, fully-expended BIP39 seed phrase.
-        :param str raw_passphrase: Encryption passphrase used to secure the mnemonic.
+        :param str checked_mnemonic: Must be a correct, fully-expanded BIP39 seed phrase.
+        :param str passphrase: Encryption passphrase used to secure the mnemonic.
         :returns bytes: 64 bytes of raw seed material from PRNG
         """
         mnemonic = normalize_string(checked_mnemonic)
