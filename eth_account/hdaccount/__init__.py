@@ -20,5 +20,5 @@ def seed_from_mnemonic(words: str, passphrase="") -> bytes:
     return Mnemonic.to_seed(expanded_words, passphrase)
 
 
-def mnemonic_from_entropy(entropy: bytes, lang="english") -> str:
-    return Mnemonic(lang).to_mnemonic(entropy)
+def generate_mnemonic(num_words: int=12, lang="english") -> str:
+    return Mnemonic(lang).generate(num_words)

@@ -31,8 +31,8 @@ def test_account_derivation(mnemonic, expected_addresses):
 
 
 def test_account_restore():
-    a1, mnemonic = Account.create_with_mnemonic(extra_entropy="Some extra stuff.")
-    a2 = Account.from_mnemonic(mnemonic)
+    a1, mnemonic = Account.create_with_mnemonic(num_words=24, passphrase="TESTING")
+    a2 = Account.from_mnemonic(mnemonic, passphrase="TESTING")
     assert a1.address == a2.address
 
 

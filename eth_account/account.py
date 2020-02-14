@@ -48,7 +48,7 @@ from eth_account.datastructures import (
 )
 from eth_account.hdaccount import (
     derive_ethereum_key,
-    mnemonic_from_entropy,
+    generate_mnemonic,
     seed_from_mnemonic,
 )
 from eth_account.messages import (
@@ -262,19 +262,26 @@ class Account(object):
         return LocalAccount(key, self)
 
     @combomethod
-    def create_with_mnemonic(self, extra_entropy="", passphrase="", account_index=0):
+    def create_with_mnemonic(self, passphrase="", num_words=12, account_index=0):
         r"""
         Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
         alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
 
         :param extra_entropy: Add extra randomness to whatever randomness your OS can provide
         :type extra_entropy: str or bytes or int
-        :returns: an object with private key and convenience methods
+        :param str passphrase: Extra passphrase to encrypt the seed phrase
+        :param int num_words: Number of words to use with seed phrase. Default is 12 words.
+                              Must be one of [12, 15, 18, 21, 24].
+        :param int account_index: Index to use to derive account. Must be positive integer.
+                                  Default is 0.
+        :returns: A tuple consisting of an object with private key and convenience methods,
+                  and the mnemonic seed phrase that can be used to restore the account.
+        :rtype: (LocalAccount, str)
 
         .. code-block:: python
 
             >>> from eth_account import Account
-            >>> acct, mnemonic = Account.create_with_mnemonic('KEYSMASH FJAFJKLDSKF7JKFDJ 1530')
+            >>> acct, mnemonic = Account.create_with_mnemonic()
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> acct == Account.from_mnemonic(mnemonic)
@@ -284,9 +291,7 @@ class Account(object):
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
-        extra_entropy_bytes = text_if_str(to_bytes, extra_entropy)
-        entropy = keccak(os.urandom(32) + extra_entropy_bytes)
-        mnemonic = mnemonic_from_entropy(entropy)
+        mnemonic = generate_mnemonic(num_words)
         return self.from_mnemonic(mnemonic, passphrase, account_index), mnemonic
 
     @combomethod
