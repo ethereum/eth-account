@@ -262,7 +262,11 @@ class Account(object):
         return LocalAccount(key, self)
 
     @combomethod
-    def create_with_mnemonic(self, passphrase="", num_words=12, account_index=0):
+    def create_with_mnemonic(self,
+                             passphrase="",
+                             num_words=12,
+                             language="english",
+                             account_index=0):
         r"""
         Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
         alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
@@ -270,6 +274,7 @@ class Account(object):
         :param str passphrase: Extra passphrase to encrypt the seed phrase
         :param int num_words: Number of words to use with seed phrase. Default is 12 words.
                               Must be one of [12, 15, 18, 21, 24].
+        :param str language: Language to use for BIP39 mnemonic seed phrase.
         :param int account_index: Index to use to derive account. Must be positive integer.
                                   Default is 0.
         :returns: A tuple consisting of an object with private key and convenience methods,
@@ -289,7 +294,7 @@ class Account(object):
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
-        mnemonic = generate_mnemonic(num_words)
+        mnemonic = generate_mnemonic(num_words, lang=language)
         return self.from_mnemonic(mnemonic, passphrase, account_index), mnemonic
 
     @combomethod
