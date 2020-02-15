@@ -1,5 +1,9 @@
 import pytest
 
+from eth_utils import (
+    ValidationError,
+)
+
 from eth_account import (
     Account,
 )
@@ -37,18 +41,18 @@ def test_account_restore():
 
 
 def test_incorrect_size():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError, match="Language not detected .*"):
         Account.from_mnemonic("this is not a seed phrase")
 
 
 def test_malformed_seed():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError, match=".* not a valid BIP39 mnemonic phrase!"):
         # Missing 12th word
         Account.from_mnemonic("into trim cross then helmet popular suit hammer cart shrug oval")
 
 
 def test_incorrect_checksum():
-    with pytest.raises(ValueError):
+    with pytest.raises(ValidationError, match=".* not a valid BIP39 mnemonic phrase!"):
         # Moved 12th word of valid phrase to be 1st
         Account.from_mnemonic(
             "student into trim cross then helmet popular suit hammer cart shrug oval"

@@ -1,3 +1,7 @@
+from eth_utils import (
+    ValidationError,
+)
+
 from .deterministic import (
     HDPath,
 )
@@ -16,7 +20,7 @@ def seed_from_mnemonic(words: str, passphrase="") -> bytes:
     lang = Mnemonic.detect_language(words)
     expanded_words = Mnemonic(lang).expand(words)
     if not Mnemonic(lang).is_mnemonic_valid(expanded_words):
-        raise ValueError(
+        raise ValidationError(
             f"Provided words: '{expanded_words}', are not a valid BIP39 mnemonic phrase!"
         )
     return Mnemonic.to_seed(expanded_words, passphrase)
