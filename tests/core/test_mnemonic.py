@@ -500,3 +500,7 @@ def test_japanese_mnemonics(entropy, expected_mnemonic, passphrase, expected_see
 
     seed = Mnemonic.to_seed(mnemonic, passphrase)
     assert seed.hex() == expected_seed
+
+    # Check this because we had to normalize the string for unicode artifacts
+    seed = Mnemonic.to_seed(expected_mnemonic, passphrase)
+    assert seed.hex() == expected_seed
