@@ -1,11 +1,10 @@
-import pytest
-import subprocess
-
 from hypothesis import (
     given,
-    strategies as st,
     settings,
+    strategies as st,
 )
+import pytest
+import subprocess
 
 from eth_account import (
     Account,
@@ -13,7 +12,6 @@ from eth_account import (
 from eth_account.hdaccount.mnemonic import (
     Mnemonic,
 )
-
 
 language_st = st.sampled_from(Mnemonic.list_languages())
 

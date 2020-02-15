@@ -1,10 +1,11 @@
 import pytest
 
-from eth_account import (
-    Account,
-)
 from eth_utils import (
     ValidationError,
+)
+
+from eth_account import (
+    Account,
 )
 
 
