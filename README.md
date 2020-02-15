@@ -40,6 +40,15 @@ virtualenv -p python3 venv
 pip install -e .[dev]
 ```
 
+To run the integration test cases, you need to install node and the custom cli tool as follows:
+
+```sh
+apt-get install -y nodejs  # As sudo
+./tests/integration/ethers-cli/setup_node_v12.sh  # As sudo
+cd tests/integration/ethers-cli
+npm install -g .  # As sudo
+```
+
 ### Testing Setup
 
 During development, you might like to have tests run on every file save.
