@@ -40,17 +40,13 @@ VALID_WORD_LENGTHS = [12, 15, 18, 21, 24]
 WORDLIST_DIR = Path(__file__).parent / "wordlist"
 
 
-class ConfigurationError(Exception):
-    pass
-
-
 def normalize_string(txt):
     if isinstance(txt, bytes):
         utxt = txt.decode("utf8")
     elif isinstance(txt, str):
         utxt = txt
     else:
-        raise TypeError("String value expected")
+        raise ValidationError("String value expected")
 
     return unicodedata.normalize("NFKD", utxt)
 
@@ -66,7 +62,7 @@ class Mnemonic(object):
         with open(WORDLIST_DIR / f"{language}.txt", "r", encoding="utf-8") as f:
             self.wordlist = [w.strip() for w in f.readlines()]
         if len(self.wordlist) != self.radix:
-            raise ConfigurationError(
+            raise ValidationError(
                 f"Wordlist should contain {self.radix} words, "
                 f"but it contains {len(self.wordlist)} words."
             )
@@ -85,11 +81,11 @@ class Mnemonic(object):
             if first in cls(lang).wordlist:
                 return lang
 
-        raise ConfigurationError("Language not detected")
+        raise ValidationError("Language not detected")
 
     def generate(self, num_words=12):
         if num_words not in VALID_WORD_LENGTHS:
-            raise ValueError(
+            raise ValidationError(
                 f"Invalid choice for number of words: {num_words}, should be one of "
                 f"{VALID_WORD_LENGTHS}"
             )
@@ -97,7 +93,7 @@ class Mnemonic(object):
 
     def to_mnemonic(self, seed):
         if len(seed) not in VALID_SEED_SIZES:
-            raise ValueError(
+            raise ValidationError(
                 f"Invalid data length {len(seed)}, should be one of "
                 f"{VALID_WORD_LENGTHS}"
             )
@@ -117,14 +113,14 @@ class Mnemonic(object):
         return result_phrase
 
     def check(self, mnemonic):
-        mnemonic = normalize_string(mnemonic).split(" ")
+        words = normalize_string(mnemonic).split(" ")
         # list of valid mnemonic lengths
-        if len(mnemonic) not in VALID_WORD_LENGTHS:
+        if len(words) not in VALID_WORD_LENGTHS:
             return False
         try:
-            idx = map(lambda x: bin(self.wordlist.index(x))[2:].zfill(11), mnemonic)
+            idx = map(lambda x: bin(self.wordlist.index(x))[2:].zfill(11), words)
             encoded_seed = "".join(idx)
-        except ValueError:
+        except ValidationError:
             return False
         l = len(encoded_seed)  # noqa: E741
         bits = encoded_seed[: l // 33 * 32]

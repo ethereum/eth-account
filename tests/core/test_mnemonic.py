@@ -23,8 +23,8 @@
 import pytest
 
 from eth_account.hdaccount.mnemonic import (
-    ConfigurationError,
     Mnemonic,
+    ValidationError,
     normalize_string,
 )
 
@@ -52,7 +52,7 @@ def test_detection(language, word):
 
 
 def test_undetected_language():
-    with pytest.raises(ConfigurationError):
+    with pytest.raises(ValidationError):
         Mnemonic.detect_language("xxxxxxx")
 
 
