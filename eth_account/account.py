@@ -239,8 +239,9 @@ class Account(object):
         """
         :param str mnemonic: space-separated list of BIP39 mnemonic seed words
         :param str passphrase: Optional passphrase used to encrypt the mnemonic
-        :param int account_index: Specify an alternate BIP44 account index used for deriving an
-            account from the seed using BIP32 HD wallet key derivation
+        :param account_index: Specify an alternate BIP44 account index used for deriving an
+            account from the seed using BIP32 HD wallet key derivation. Default is 0.
+        :type account_index: Either a positive integer, or a list of positive integers.
         :return: object with methods for signing and encrypting
         :rtype: LocalAccount
 
@@ -257,9 +258,20 @@ class Account(object):
             # but without the private key argument
         """
         seed = seed_from_mnemonic(mnemonic, passphrase)
-        private_key = derive_ethereum_key(seed, account_index)
-        key = self._parsePrivateKey(private_key)
-        return LocalAccount(key, self)
+        if isinstance(account_index, int):
+            private_key = derive_ethereum_key(seed, account_index)
+            key = self._parsePrivateKey(private_key)
+            return LocalAccount(key, self)
+        if isinstance(account_index, list):
+            accounts = []
+            for idx in account_index:
+                private_key = derive_ethereum_key(seed, idx)
+                key = self._parsePrivateKey(private_key)
+                accounts.append(LocalAccount(key, self))
+            return accounts
+        raise ValidationError(
+            f"Account index must be either int or list of int, instead: '{account_index}'."
+        )
 
     @combomethod
     def create_with_mnemonic(self,
@@ -277,8 +289,9 @@ class Account(object):
         :param int num_words: Number of words to use with seed phrase. Default is 12 words.
                               Must be one of [12, 15, 18, 21, 24].
         :param str language: Language to use for BIP39 mnemonic seed phrase.
-        :param int account_index: Index to use to derive account. Must be positive integer.
-                                  Default is 0.
+        :param account_index: Specify an alternate BIP44 account index used for deriving an
+            account from the seed using BIP32 HD wallet key derivation. Default is 0.
+        :type account_index: Either a positive integer, or a list of positive integers.
         :returns: A tuple consisting of an object with private key and convenience methods,
                   and the mnemonic seed phrase that can be used to restore the account.
         :rtype: (LocalAccount, str)
