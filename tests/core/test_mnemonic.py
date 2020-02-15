@@ -36,9 +36,22 @@ def test_failed_checksum():
     )
 
 
-def test_detection():
-    assert "english" == Mnemonic.detect_language("security")
+@pytest.mark.parametrize("language,word", [
+    ("english", "security"),
+    ("french", "baguette"),
+    ("spanish", "leche"),
+    ("italian", "cordata"),
+    ("czech", "nitro"),
+    ("japanese", "あらためる"),
+    ("korean", "강북"),
+    ("chinese_simplified", "也"),
+    ("chinese_traditional", "滅"),
+])
+def test_detection(language, word):
+    assert language == Mnemonic.detect_language(word)
 
+
+def test_undetected_language():
     with pytest.raises(ConfigurationError):
         Mnemonic.detect_language("xxxxxxx")
 
