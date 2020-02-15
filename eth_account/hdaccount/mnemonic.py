@@ -74,14 +74,24 @@ class Mnemonic(object):
     @classmethod
     def detect_language(cls, raw_mnemonic):
         mnemonic = normalize_string(raw_mnemonic)
-        first = mnemonic.split(" ")[0]
+        words = mnemonic.split(" ")
         languages = cls.list_languages()
 
+        language_counts = {lang: 0 for lang in languages}
         for lang in languages:
-            if first in cls(lang).wordlist:
-                return lang
+            wordlist = cls(lang).wordlist
+            for word in words:
+                if word in wordlist:
+                    language_counts[lang] += 1
 
-        raise ValidationError("Language not detected")
+        # No language had all words match it, so the language can't be fully determined
+        if max(language_counts.values()) < len(words):
+            raise ValidationError("Language not detected")
+
+        # Because certain wordlists share some similar words, we detect the language
+        # by seeing which of the languages have the most hits, and returning that one
+        most_matched_language = max(language_counts.items(), key=lambda c: c[1])[0]
+        return most_matched_language
 
     def generate(self, num_words=12):
         if num_words not in VALID_WORD_LENGTHS:
