@@ -13,6 +13,8 @@ from eth_account.hdaccount.mnemonic import (
     Mnemonic,
 )
 
+Account.enable_unaudited_features()
+
 language_st = st.sampled_from(Mnemonic.list_languages())
 
 seed_st = st.binary(min_size=16, max_size=32) \

@@ -8,6 +8,8 @@ from eth_account import (
     Account,
 )
 
+Account.enable_unaudited_features()
+
 
 @pytest.mark.parametrize("mnemonic,expected_address", [
     (
