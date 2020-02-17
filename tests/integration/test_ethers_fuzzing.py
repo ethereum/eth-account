@@ -33,5 +33,6 @@ def test_compatibility(seed, language):
         ['ethers-cli', '-m', mnemonic, '-l', language],
         capture_output=True,
     )
+    assert not ethers_cli.stderr, ethers_cli.stderr
     ethers_address = ethers_cli.stdout.decode("utf-8").strip()
     assert acct.address == ethers_address
