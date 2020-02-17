@@ -70,6 +70,13 @@ class Account(object):
 
     _default_kdf = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
 
+    # Enable unaudited features (off by default)
+    _use_unaudited_hdwallet_features = False
+
+    @classmethod
+    def enable_unaudited_hdwallet_features(cls):
+        cls._use_unaudited_hdwallet_features = True
+
     @combomethod
     def create(self, extra_entropy=''):
         r"""
@@ -247,6 +254,8 @@ class Account(object):
 
         .. code-block:: python
 
+            >>> from eth_account import Account
+            >>> Account.enable_unaudited_hdwallet_features()
             >>> acct = Account.from_mnemonic(
               "coral allow abandon recipe top tray caught video climb similar prepare bracket "
               "antenna rubber announce gauge volume hub hood burden skill immense add acid")
@@ -257,6 +266,12 @@ class Account(object):
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
+        if not self._use_unaudited_hdwallet_features:
+            raise AttributeError(
+                "The use of the Mnemonic features of Account is disabled by default until "
+                "its API stabilizes. To use these features, please enable them by running "
+                "`Account.enable_unaudited_hdwallet_features()` and try again."
+            )
         seed = seed_from_mnemonic(mnemonic, passphrase)
         if isinstance(account_index, int):
             private_key = derive_ethereum_key(seed, account_index)
@@ -297,6 +312,7 @@ class Account(object):
         .. code-block:: python
 
             >>> from eth_account import Account
+            >>> Account.enable_unaudited_hdwallet_features()
             >>> acct, mnemonic = Account.create_with_mnemonic()
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
@@ -307,6 +323,12 @@ class Account(object):
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
+        if not self._use_unaudited_hdwallet_features:
+            raise AttributeError(
+                "The use of the Mnemonic features of Account is disabled by default until "
+                "its API stabilizes. To use these features, please enable them by running "
+                "`Account.enable_unaudited_hdwallet_features()` and try again."
+            )
         mnemonic = generate_mnemonic(num_words, lang=language)
         return self.from_mnemonic(mnemonic, passphrase, account_index), mnemonic
 

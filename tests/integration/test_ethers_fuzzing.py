@@ -14,6 +14,8 @@ from eth_account.hdaccount.mnemonic import (
     Mnemonic,
 )
 
+Account.enable_unaudited_hdwallet_features()
+
 language_st = st.sampled_from(Mnemonic.list_languages())
 
 seed_st = st.binary(min_size=min(VALID_ENTROPY_SIZES), max_size=max(VALID_ENTROPY_SIZES)) \
