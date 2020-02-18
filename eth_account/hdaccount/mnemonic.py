@@ -35,8 +35,8 @@ from eth_utils import (
 )
 
 PBKDF2_ROUNDS = 2048
-VALID_SEED_SIZES = [16, 20, 24, 28, 32]
-VALID_WORD_LENGTHS = [12, 15, 18, 21, 24]
+VALID_ENTROPY_SIZES = [16, 20, 24, 28, 32]
+VALID_WORD_COUNTS = [12, 15, 18, 21, 24]
 WORDLIST_DIR = Path(__file__).parent / "wordlist"
 
 
@@ -94,23 +94,23 @@ class Mnemonic(object):
         return most_matched_language
 
     def generate(self, num_words=12):
-        if num_words not in VALID_WORD_LENGTHS:
+        if num_words not in VALID_WORD_COUNTS:
             raise ValidationError(
                 f"Invalid choice for number of words: {num_words}, should be one of "
-                f"{VALID_WORD_LENGTHS}"
+                f"{VALID_WORD_COUNTS}"
             )
         return self.to_mnemonic(os.urandom(4 * num_words // 3))  # 4/3 bytes per word
 
-    def to_mnemonic(self, seed):
-        if len(seed) not in VALID_SEED_SIZES:
+    def to_mnemonic(self, entropy):
+        if len(entropy) not in VALID_ENTROPY_SIZES:
             raise ValidationError(
-                f"Invalid data length {len(seed)}, should be one of "
-                f"{VALID_WORD_LENGTHS}"
+                f"Invalid data length {len(entropy)}, should be one of "
+                f"{VALID_ENTROPY_SIZES}"
             )
-        checksum = hashlib.sha256(seed).hexdigest()
+        checksum = hashlib.sha256(entropy).hexdigest()
         bits = (
-            bin(int(binascii.hexlify(seed), 16))[2:].zfill(len(seed) * 8) +
-            bin(int(checksum, 16))[2:].zfill(256)[: len(seed) * 8 // 32]
+            bin(int(binascii.hexlify(entropy), 16))[2:].zfill(len(entropy) * 8) +
+            bin(int(checksum, 16))[2:].zfill(256)[: len(entropy) * 8 // 32]
         )
         result = []
         for i in range(len(bits) // 11):
@@ -125,7 +125,7 @@ class Mnemonic(object):
     def check(self, mnemonic):
         words = normalize_string(mnemonic).split(" ")
         # list of valid mnemonic lengths
-        if len(words) not in VALID_WORD_LENGTHS:
+        if len(words) not in VALID_WORD_COUNTS:
             return False
         try:
             idx = map(lambda x: bin(self.wordlist.index(x))[2:].zfill(11), words)
