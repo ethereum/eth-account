@@ -38,6 +38,7 @@ PBKDF2_ROUNDS = 2048
 VALID_ENTROPY_SIZES = [16, 20, 24, 28, 32]
 VALID_WORD_COUNTS = [12, 15, 18, 21, 24]
 WORDLIST_DIR = Path(__file__).parent / "wordlist"
+WORDLIST_LEN = 2048
 
 _cached_wordlists = dict()
 
@@ -47,6 +48,11 @@ def get_wordlist(language):
         return _cached_wordlists[language]
     with open(WORDLIST_DIR / f"{language}.txt", "r", encoding="utf-8") as f:
         wordlist = [w.strip() for w in f.readlines()]
+    if len(wordlist) != WORDLIST_LEN:
+        raise ValidationError(
+            f"Wordlist should contain {WORDLIST_LEN} words, "
+            f"but it contains {len(wordlist)} words."
+        )
     _cached_wordlists[language] = wordlist
     return wordlist
 
@@ -64,44 +70,44 @@ def normalize_string(txt):
 
 class Mnemonic(object):
     def __init__(self, language):
-        if language not in self.list_languages():
+        if language not in Mnemonic.list_languages():
             raise ValidationError(
                 f'Invalid language choice "{language}", must be one of {self.list_langauges()}'
             )
         self.language = language
-        self.radix = 2048
         self.wordlist = get_wordlist(language)
-        if len(self.wordlist) != self.radix:
-            raise ValidationError(
-                f"Wordlist should contain {self.radix} words, "
-                f"but it contains {len(self.wordlist)} words."
-            )
 
-    @combomethod
-    def list_languages(_Mnemonic):
+    @staticmethod
+    def list_languages():
         return sorted(Path(f).stem for f in WORDLIST_DIR.rglob("*.txt"))
 
     @classmethod
     def detect_language(cls, raw_mnemonic):
         mnemonic = normalize_string(raw_mnemonic)
-        words = mnemonic.split(" ")
-        languages = cls.list_languages()
 
-        language_counts = {lang: 0 for lang in languages}
-        for lang in languages:
-            wordlist = cls(lang).wordlist
-            for word in words:
-                if word in wordlist:
-                    language_counts[lang] += 1
+        words = set(mnemonic.split(" "))
+        matching_languages = {
+            lang
+            for lang in Mnemonic.list_languages()
+            if len(words.intersection(cls(lang).wordlist)) == len(words)
+        }
 
         # No language had all words match it, so the language can't be fully determined
-        if max(language_counts.values()) < len(words):
-            raise ValidationError("Language not detected")
+        if len(matching_languages) < 1:
+            raise ValidationError(f"Language not detected for word(s): {raw_mnemonic}")
 
-        # Because certain wordlists share some similar words, we detect the language
-        # by seeing which of the languages have the most hits, and returning that one
-        most_matched_language = max(language_counts.items(), key=lambda c: c[1])[0]
-        return most_matched_language
+        # If both chinese simplified and chinese traditional match (because one is a subset of the
+        # other) then return simplified. This doesn't hold for other languages.
+        if len(matching_languages) == 2 and all("chinese" in lang for lang in matching_languages):
+            return "chinese_simplified"
+
+        # Because certain wordlists share some similar words, if we detect multiple languages
+        # that the provided mnemonic word(s) could be valid in, we have to throw
+        if len(matching_languages) > 1:
+            raise ValidationError(f"Word(s) are valid in multiple languages: {raw_mnemonic}")
+
+        (language,) = matching_languages
+        return language
 
     def generate(self, num_words=12):
         if num_words not in VALID_WORD_COUNTS:
