@@ -44,8 +44,8 @@ def test_failed_checksum():
     ("czech", "nitro"),
     ("japanese", "あらためる"),
     ("korean", "강북"),
-    ("chinese_simplified", "也"),
-    ("chinese_traditional", "滅"),
+    ("chinese_simplified", "也"),  # NOTE: This succeeds even though this character is in both
+    ("chinese_traditional", "滅"),  # traditional and simplified Chinese, assumes simplified
 ])
 def test_detection(language, word):
     assert language == Mnemonic.detect_language(word)
@@ -68,10 +68,23 @@ def test_expand_word():
     assert "action" == m.expand_word("acti")  # unique prefix expanded to word in list
 
 
-def test_expand():
-    m = Mnemonic("english")
-    assert "access" == m.expand("access")
-    assert "access access acb acc act action" == m.expand("access acce acb acc act acti")
+@pytest.mark.parametrize("lang", set(
+    lang for lang in Mnemonic.list_languages() if lang not in (
+        # These languages can't support word expansion
+        "japanese",
+        "korean",
+        "chinese_simplified",
+        "chinese_traditional",
+    )
+))
+def test_expand(lang):
+    m = Mnemonic(lang)
+    # Generates a random set of words, so will never be the same set of words
+    words = m.generate()
+    for word in words.split(" "):
+        # BIP39 can support word expansion with as little as 4 characters
+        for size in range(4, len(word)):
+            assert m.expand(word[:size + 1]) == word
 
 
 @pytest.mark.parametrize("lang", Mnemonic.list_languages())
