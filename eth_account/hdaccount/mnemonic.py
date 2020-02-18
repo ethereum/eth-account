@@ -145,7 +145,7 @@ class Mnemonic(object):
         try:
             idx = map(lambda x: bin(self.wordlist.index(x))[2:].zfill(11), words)
             encoded_seed = "".join(idx)
-        except ValidationError:
+        except ValueError:
             return False
         l = len(encoded_seed)  # noqa: E741
         bits = encoded_seed[: l // 33 * 32]
