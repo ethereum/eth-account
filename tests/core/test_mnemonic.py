@@ -31,7 +31,7 @@ from eth_account.hdaccount.mnemonic import (
 
 def test_failed_checksum():
     mnemo = Mnemonic("english")
-    assert not mnemo.check(
+    assert not mnemo.is_mnemonic_valid(
         "bless cloud wheel regular tiny venue bird web grief security dignity zoo"
     )
 
@@ -79,7 +79,7 @@ def test_expand():
 def test_generation(lang, num_words):
     m = Mnemonic(lang)
     mnemonic = m.generate(num_words)
-    assert m.check(mnemonic)
+    assert m.is_mnemonic_valid(mnemonic)
     assert Mnemonic.detect_language(mnemonic) == lang
     assert len(Mnemonic.to_seed(mnemonic)) == 64
 
@@ -281,7 +281,7 @@ def test_generation(lang, num_words):
 def test_english_mnemonics(entropy, expected_mnemonic, expected_seed):
     m = Mnemonic("english")
     mnemonic = m.to_mnemonic(bytes.fromhex(entropy))
-    assert m.check(mnemonic)
+    assert m.is_mnemonic_valid(mnemonic)
     assert mnemonic == expected_mnemonic
 
     seed = Mnemonic.to_seed(mnemonic, passphrase="TREZOR")
@@ -509,7 +509,7 @@ def test_english_mnemonics(entropy, expected_mnemonic, expected_seed):
 def test_japanese_mnemonics(entropy, expected_mnemonic, passphrase, expected_seed):
     m = Mnemonic("japanese")
     mnemonic = m.to_mnemonic(bytes.fromhex(entropy))
-    assert m.check(mnemonic)
+    assert m.is_mnemonic_valid(mnemonic)
     # NOTE For some reason, the strings weren't appearing in normalized form as
     #      copied rrom BIP39 test vectors
     assert normalize_string(mnemonic) == normalize_string(expected_mnemonic)

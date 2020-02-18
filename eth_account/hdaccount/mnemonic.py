@@ -31,7 +31,6 @@ import unicodedata
 
 from eth_utils import (
     ValidationError,
-    combomethod,
 )
 
 PBKDF2_ROUNDS = 2048
@@ -138,7 +137,7 @@ class Mnemonic(object):
             result_phrase = " ".join(result)
         return result_phrase
 
-    def check(self, mnemonic):
+    def is_mnemonic_valid(self, mnemonic):
         words = normalize_string(mnemonic).split(" ")
         # list of valid mnemonic lengths
         if len(words) not in VALID_WORD_COUNTS:
