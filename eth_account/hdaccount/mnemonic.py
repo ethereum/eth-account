@@ -67,7 +67,7 @@ def normalize_string(txt):
     return unicodedata.normalize("NFKD", utxt)
 
 
-class Mnemonic(object):
+class Mnemonic:
     def __init__(self, language):
         if language not in Mnemonic.list_languages():
             raise ValidationError(
