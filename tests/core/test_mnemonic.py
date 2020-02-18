@@ -74,11 +74,14 @@ def test_expand():
     assert "access access acb acc act action" == m.expand("access acce acb acc act acti")
 
 
-def test_languages():
-    for lang in Mnemonic.list_languages():
-        m = Mnemonic(lang)
-        mnemonic = m.generate()
-        assert m.check(mnemonic)
+@pytest.mark.parametrize("lang", Mnemonic.list_languages())
+@pytest.mark.parametrize("num_words", [12, 15, 18, 21, 24])
+def test_generation(lang, num_words):
+    m = Mnemonic(lang)
+    mnemonic = m.generate(num_words)
+    assert m.check(mnemonic)
+    assert Mnemonic.detect_language(mnemonic) == lang
+    assert len(Mnemonic.to_seed(mnemonic)) == 64
 
 
 @pytest.mark.parametrize("entropy,expected_mnemonic,expected_seed", [
