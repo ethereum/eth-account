@@ -39,6 +39,17 @@ VALID_ENTROPY_SIZES = [16, 20, 24, 28, 32]
 VALID_WORD_COUNTS = [12, 15, 18, 21, 24]
 WORDLIST_DIR = Path(__file__).parent / "wordlist"
 
+_cached_wordlists = dict()
+
+
+def get_wordlist(language):
+    if language in _cached_wordlists.keys():
+        return _cached_wordlists[language]
+    with open(WORDLIST_DIR / f"{language}.txt", "r", encoding="utf-8") as f:
+        wordlist = [w.strip() for w in f.readlines()]
+    _cached_wordlists[language] = wordlist
+    return wordlist
+
 
 def normalize_string(txt):
     if isinstance(txt, bytes):
@@ -59,8 +70,7 @@ class Mnemonic(object):
             )
         self.language = language
         self.radix = 2048
-        with open(WORDLIST_DIR / f"{language}.txt", "r", encoding="utf-8") as f:
-            self.wordlist = [w.strip() for w in f.readlines()]
+        self.wordlist = get_wordlist(language)
         if len(self.wordlist) != self.radix:
             raise ValidationError(
                 f"Wordlist should contain {self.radix} words, "
