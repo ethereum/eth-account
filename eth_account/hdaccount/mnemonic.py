@@ -25,6 +25,7 @@ import os
 from pathlib import (
     Path,
 )
+import secrets
 
 from bitarray import (
     bitarray,
@@ -161,12 +162,14 @@ class Mnemonic:
         # Checksum the raw entropy bits
         checksum = bitarray()
         checksum.frombytes(sha256(encoded_seed[:entropy_size * 8].tobytes()))
+        computed_checksum = checksum[:len(encoded_seed) - entropy_size * 8].tobytes()
 
         # Extract the stored checksum bits
-        stored_checksum = encoded_seed[entropy_size * 8:]
+        stored_checksum = encoded_seed[entropy_size * 8:].tobytes()
 
         # Check that the stored matches the relevant slice of the actual checksum
-        return stored_checksum == checksum[:len(encoded_seed) - entropy_size * 8]
+        # NOTE: Use secrets.compare_digest for protection again timing attacks
+        return secrets.compare_digest(stored_checksum, computed_checksum)
 
     def expand_word(self, prefix):
         if prefix in self.wordlist:
