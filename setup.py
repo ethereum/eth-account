@@ -49,6 +49,7 @@ setup(
     include_package_data=True,
     install_requires=[
         "attrdict>=2.0.0,<3",
+        "bitarray>=1.2.1,<1.3.0",
         "eth-abi>=2.0.0b7,<3",
         "eth-keyfile>=0.5.0,<0.6.0",
         "eth-keys>=0.2.1,<0.4.0",

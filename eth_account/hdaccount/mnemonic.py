@@ -21,19 +21,28 @@
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
-import binascii
-import hashlib
 import os
 from pathlib import (
     Path,
 )
-import unicodedata
 
+from bitarray import (
+    bitarray,
+)
+from bitarray.util import (
+    ba2int,
+    int2ba,
+)
 from eth_utils import (
     ValidationError,
 )
 
-PBKDF2_ROUNDS = 2048
+from ._utils import (
+    normalize_string,
+    pbkdf2_hmac_sha512,
+    sha256,
+)
+
 VALID_ENTROPY_SIZES = [16, 20, 24, 28, 32]
 VALID_WORD_COUNTS = [12, 15, 18, 21, 24]
 WORDLIST_DIR = Path(__file__).parent / "wordlist"
@@ -54,17 +63,6 @@ def get_wordlist(language):
         )
     _cached_wordlists[language] = wordlist
     return wordlist
-
-
-def normalize_string(txt):
-    if isinstance(txt, bytes):
-        utxt = txt.decode("utf8")
-    elif isinstance(txt, str):
-        utxt = txt
-    else:
-        raise ValidationError("String value expected")
-
-    return unicodedata.normalize("NFKD", utxt)
 
 
 class Mnemonic:
@@ -117,42 +115,58 @@ class Mnemonic:
         return self.to_mnemonic(os.urandom(4 * num_words // 3))  # 4/3 bytes per word
 
     def to_mnemonic(self, entropy):
-        if len(entropy) not in VALID_ENTROPY_SIZES:
+        entropy_size = len(entropy)
+        if entropy_size not in VALID_ENTROPY_SIZES:
             raise ValidationError(
                 f"Invalid data length {len(entropy)}, should be one of "
                 f"{VALID_ENTROPY_SIZES}"
             )
-        checksum = hashlib.sha256(entropy).hexdigest()
-        bits = (
-            bin(int(binascii.hexlify(entropy), 16))[2:].zfill(len(entropy) * 8) +
-            bin(int(checksum, 16))[2:].zfill(256)[: len(entropy) * 8 // 32]
-        )
-        result = []
-        for i in range(len(bits) // 11):
-            idx = int(bits[i * 11: (i + 1) * 11], 2)
-            result.append(self.wordlist[idx])
+
+        bits = bitarray()
+        bits.frombytes(entropy)
+
+        checksum = bitarray()
+        checksum.frombytes(sha256(entropy))
+
+        # Add enough bits from the checksum to make it modulo 11 (2**11 = 2048)
+        bits.extend(checksum[:entropy_size // 4])
+        indices = tuple(ba2int(bits[i * 11: (i + 1) * 11]) for i in range(len(bits) // 11))
+        words = tuple(self.wordlist[idx] for idx in indices)
+
         if self.language == "japanese":  # Japanese must be joined by ideographic space.
-            result_phrase = u"\u3000".join(result)
+            phrase = u"\u3000".join(words)
         else:
-            result_phrase = " ".join(result)
-        return result_phrase
+            phrase = " ".join(words)
+        return phrase
 
     def is_mnemonic_valid(self, mnemonic):
         words = normalize_string(mnemonic).split(" ")
-        # list of valid mnemonic lengths
-        if len(words) not in VALID_WORD_COUNTS:
+        num_words = len(words)
+
+        if num_words not in VALID_WORD_COUNTS:
             return False
+
         try:
-            idx = map(lambda x: bin(self.wordlist.index(x))[2:].zfill(11), words)
-            encoded_seed = "".join(idx)
+            indices = tuple(self.wordlist.index(w) for w in words)
         except ValueError:
             return False
-        l = len(encoded_seed)  # noqa: E741
-        bits = encoded_seed[: l // 33 * 32]
-        stored_checksum = encoded_seed[-l // 33:]
-        raw_seed = binascii.unhexlify(hex(int(bits, 2))[2:].rstrip("L").zfill(l // 33 * 8))
-        checksum = bin(int(hashlib.sha256(raw_seed).hexdigest(), 16))[2:].zfill(256)[: l // 33]
-        return stored_checksum == checksum
+
+        encoded_seed = bitarray()
+        for idx in indices:
+            # Build bitarray from tightly packing indices (which are 11-bits integers)
+            encoded_seed.extend(int2ba(idx, length=11))
+
+        entropy_size = 4 * num_words // 3
+
+        # Checksum the raw entropy bits
+        checksum = bitarray()
+        checksum.frombytes(sha256(encoded_seed[:entropy_size * 8].tobytes()))
+
+        # Extract the stored checksum bits
+        stored_checksum = encoded_seed[entropy_size * 8:]
+
+        # Check that the stored matches the relevant slice of the actual checksum
+        return stored_checksum == checksum[:len(encoded_seed) - entropy_size * 8]
 
     def expand_word(self, prefix):
         if prefix in self.wordlist:
@@ -184,10 +198,5 @@ class Mnemonic:
         #   To create a binary seed from the mnemonic, we use the PBKDF2 function with a
         # mnemonic sentence (in UTF-8 NFKD) used as the password and the string "mnemonic"
         # and passphrase (again in UTF-8 NFKD) used as the salt.
-        stretched = hashlib.pbkdf2_hmac(
-            "sha512",
-            mnemonic.encode("utf-8"),
-            salt.encode("utf-8"),
-            PBKDF2_ROUNDS,
-        )
+        stretched = pbkdf2_hmac_sha512(mnemonic, salt)
         return stretched[:64]
