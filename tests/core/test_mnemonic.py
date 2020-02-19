@@ -93,7 +93,12 @@ def test_generation(lang, num_words):
     m = Mnemonic(lang)
     mnemonic = m.generate(num_words)
     assert m.is_mnemonic_valid(mnemonic)
-    assert Mnemonic.detect_language(mnemonic) == lang
+    # NOTE: Sometimes traditional chinese can return characters that are also valid simplified
+    # chinese characters. In that scenario, the detection algorithm will assume simplified.
+    if lang == "chinese_traditional":
+        assert "chinese" in Mnemonic.detect_language(mnemonic)
+    else:
+        assert Mnemonic.detect_language(mnemonic) == lang
     assert len(Mnemonic.to_seed(mnemonic)) == 64
 
 
