@@ -10,6 +10,7 @@ from eth_account import (
     Account,
 )
 from eth_account.hdaccount.mnemonic import (
+    VALID_ENTROPY_SIZES,
     Mnemonic,
 )
 
@@ -17,8 +18,8 @@ Account.enable_unaudited_features()
 
 language_st = st.sampled_from(Mnemonic.list_languages())
 
-seed_st = st.binary(min_size=16, max_size=32) \
-    .filter(lambda x: len(x) in (16, 20, 24, 28, 32)) \
+seed_st = st.binary(min_size=min(VALID_ENTROPY_SIZES), max_size=max(VALID_ENTROPY_SIZES)) \
+    .filter(lambda x: len(x) in VALID_ENTROPY_SIZES) \
     .filter(lambda s: int.from_bytes(s, byteorder="big") != 0)
 
 
