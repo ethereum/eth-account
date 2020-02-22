@@ -32,7 +32,8 @@ def test_compatibility(seed, language):
     # NOTE Must do `cd ethers-cli && npm install -g .
     ethers_cli = subprocess.run(
         ['ethers-cli', '-m', mnemonic, '-l', language],
-        capture_output=True,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.PIPE,
     )
     if ethers_cli.stderr:
         raise IOError(ethers_cli.stderr.decode("utf-8"))
