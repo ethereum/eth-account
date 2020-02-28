@@ -67,7 +67,8 @@ def get_wordlist(language):
 
 
 class Mnemonic:
-    def __init__(self, language):
+    def __init__(self, raw_language="english"):
+        language = raw_language.lower().replace(' ', '_')
         if language not in Mnemonic.list_languages():
             raise ValidationError(
                 f'Invalid language choice "{language}", must be one of {Mnemonic.list_langauges()}'
