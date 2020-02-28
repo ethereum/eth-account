@@ -70,7 +70,7 @@ class Mnemonic:
     def __init__(self, language):
         if language not in Mnemonic.list_languages():
             raise ValidationError(
-                f'Invalid language choice "{language}", must be one of {self.list_langauges()}'
+                f'Invalid language choice "{language}", must be one of {Mnemonic.list_langauges()}'
             )
         self.language = language
         self.wordlist = get_wordlist(language)
