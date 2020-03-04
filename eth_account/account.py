@@ -255,7 +255,7 @@ class Account(object):
         .. code-block:: python
 
             >>> from eth_account import Account
-            >>> Account.enabled_unaudited_features()
+            >>> Account.enable_unaudited_features()
             >>> acct = Account.from_mnemonic(
               "coral allow abandon recipe top tray caught video climb similar prepare bracket "
               "antenna rubber announce gauge volume hub hood burden skill immense add acid")
@@ -314,7 +314,7 @@ class Account(object):
         .. code-block:: python
 
             >>> from eth_account import Account
-            >>> Account.enabled_unaudited_features()
+            >>> Account.enable_unaudited_features()
             >>> acct, mnemonic = Account.create_with_mnemonic()
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
