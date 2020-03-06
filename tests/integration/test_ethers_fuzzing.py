@@ -14,7 +14,7 @@ from eth_account.hdaccount.mnemonic import (
     Mnemonic,
 )
 
-Account.enable_unaudited_features()
+Account.enable_unaudited_hdwallet_features()
 
 language_st = st.sampled_from(Mnemonic.list_languages())
 

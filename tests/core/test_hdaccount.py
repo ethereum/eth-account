@@ -8,7 +8,7 @@ from eth_account import (
     Account,
 )
 
-Account.enable_unaudited_features()
+Account.enable_unaudited_hdwallet_features()
 
 
 @pytest.mark.parametrize("mnemonic,expected_address", [
