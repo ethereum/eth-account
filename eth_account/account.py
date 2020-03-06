@@ -97,7 +97,7 @@ class Account(object):
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> acct.key
-            b"\xb2\}\xb3\x1f\xee\xd9\x12''\xbf\t9\xdcv\x9a\x96VK-\xe4\xc4rm\x03[6\xec\xf1\xe5\xb3d"
+            HexBytes('0x8676e9a8c86c8921e922e61e0bb6e9e9689aad4c99082620610b00140e5f21b8')
 
             # These methods are also available: sign_message(), sign_transaction(), encrypt()
             # They correspond to the same-named methods in Account.*
@@ -119,7 +119,7 @@ class Account(object):
         :returns: the raw private key
         :rtype: ~hexbytes.main.HexBytes
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> encrypted = {
             ... 'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
@@ -169,7 +169,7 @@ class Account(object):
         environment variable :envvar:`ETH_ACCOUNT_KDF`. If that is not set, then
         'scrypt' will be used as the default.
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> from pprint import pprint
             >>> encrypted = Account.encrypt(
@@ -229,14 +229,14 @@ class Account(object):
         :return: object with methods for signing and encrypting
         :rtype: LocalAccount
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> acct = Account.from_key(
-              0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364)
+            ... 0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364)
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> acct.key
-            b"\xb2\}\xb3\x1f\xee\xd9\x12''xbf\t9\xdcv\x9a\x96VK-\xe4\xc4rm\x03[6\xec\xf1\xe5\xb3d"
+            HexBytes('0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364')
 
             # These methods are also available: sign_message(), sign_transaction(), encrypt()
             # They correspond to the same-named methods in Account.*
@@ -261,13 +261,13 @@ class Account(object):
         :return: object with methods for signing and encrypting
         :rtype: LocalAccount
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> from eth_account import Account
             >>> Account.enable_unaudited_hdwallet_features()
             >>> acct = Account.from_mnemonic(
-              "coral allow abandon recipe top tray caught video climb similar prepare bracket "
-              "antenna rubber announce gauge volume hub hood burden skill immense add acid")
+            ...  "coral allow abandon recipe top tray caught video climb similar prepare bracket "
+            ...  "antenna rubber announce gauge volume hub hood burden skill immense add acid")
             >>> acct.address
             '0x9AdA5dAD14d925f4df1378409731a9B71Bc8569d'
 
@@ -309,12 +309,12 @@ class Account(object):
                   and the mnemonic seed phrase that can be used to restore the account.
         :rtype: (LocalAccount, str)
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> from eth_account import Account
             >>> Account.enable_unaudited_hdwallet_features()
             >>> acct, mnemonic = Account.create_with_mnemonic()
-            >>> acct.address
+            >>> acct.address # doctest: +SKIP
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> acct == Account.from_mnemonic(mnemonic)
             True
@@ -346,45 +346,55 @@ class Account(object):
         :returns: address of signer, hex-encoded & checksummed
         :rtype: str
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> from eth_account.messages import encode_defunct
+            >>> from eth_account import Account
             >>> message = encode_defunct(text="I♥SF")
             >>> vrs = (
-                  28,
-                  '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
-                  '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
+            ...   28,
+            ...   '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
+            ...   '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
             >>> Account.recover_message(message, vrs=vrs)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+
 
             # All of these recover calls are equivalent:
 
             # variations on vrs
             >>> vrs = (
-                  '0x1c',
-                  '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
-                  '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
+            ...   '0x1c',
+            ...   '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
+            ...   '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
             >>> Account.recover_message(message, vrs=vrs)
-            >>> vrs = (
-                  b'\x1c',
-                  b'\\xe6\\xca\\x9b\\xbaX\\xc8\\x86\\x11\\xfa\\xd6jl\\xe8\\xf9\\x96\\x90\\x81\\x95Y8\\x07\\xc4\\xb3\\x8b\\xd5(\\xd2\\xcf\\xf0\\x9dN\\xb3',  # noqa: E501
-                  b'>[\\xfb\\xbfM>9\\xb1\\xa2\\xfd\\x81jv\\x80\\xc1\\x9e\\xbe\\xba\\xf3\\xa1A\\xb29\\x93J\\xd4<\\xb3?\\xce\\xc8\\xce')  # noqa: E501
-            >>> Account.recover_message(message, vrs=vrs)
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+
             >>> # Caution about this approach: likely problems if there are leading 0s
             >>> vrs = (
-                  0x1c,
-                  0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3,
-                  0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce)
+            ...   0x1c,
+            ...   0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3,
+            ...   0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce)
             >>> Account.recover_message(message, vrs=vrs)
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+
+            >>> vrs = (
+            ...   b'\x1c',
+            ...   b'\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3',  # noqa: E501
+            ...   b'>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce')  # noqa: E501
+            >>> Account.recover_message(message, vrs=vrs)
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
 
             # variations on signature
             >>> signature = '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'  # noqa: E501
             >>> Account.recover_message(message, signature=signature)
-            >>> signature = b'\\xe6\\xca\\x9b\\xbaX\\xc8\\x86\\x11\\xfa\\xd6jl\\xe8\\xf9\\x96\\x90\\x81\\x95Y8\\x07\\xc4\\xb3\\x8b\\xd5(\\xd2\\xcf\\xf0\\x9dN\\xb3>[\\xfb\\xbfM>9\\xb1\\xa2\\xfd\\x81jv\\x80\\xc1\\x9e\\xbe\\xba\\xf3\\xa1A\\xb29\\x93J\\xd4<\\xb3?\\xce\\xc8\\xce\\x1c'  # noqa: E501
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+            >>> signature = b'\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce\x1c'  # noqa: E501
             >>> Account.recover_message(message, signature=signature)
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> # Caution about this approach: likely problems if there are leading 0s
             >>> signature = 0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c  # noqa: E501
             >>> Account.recover_message(message, signature=signature)
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
         """
         message_hash = _hash_eip191_message(signable_message)
         return self._recover_hash(message_hash, vrs, signature)
@@ -453,9 +463,9 @@ class Account(object):
         :returns: address of signer, hex-encoded & checksummed
         :rtype: str
 
-        .. code-block:: python
+        .. doctest:: python
 
-            >>> raw_transaction = '0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428',  # noqa: E501
+            >>> raw_transaction = '0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'  # noqa: E501
             >>> Account.recover_transaction(raw_transaction)
             '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
         """
@@ -509,20 +519,24 @@ class Account(object):
         :returns: Various details about the signature - most importantly the fields: v, r, and s
         :rtype: ~eth_account.datastructures.AttributeDict
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> msg = "I♥SF"
             >>> from eth_account.messages import encode_defunct
             >>> msghash = encode_defunct(text=msg)
-            SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
-            >>> # If you're curious about the internal fields of SignableMessage, take a look at EIP-191, linked above
+            >>> msghash
+            SignableMessage(version=b'E',
+             header=b'thereum Signed Message:\n6',
+             body=b'I\xe2\x99\xa5SF')
+            >>> # If you're curious about the internal fields of SignableMessage, take a look at EIP-191, linked above  # noqa: E501
             >>> key = "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
             >>> Account.sign_message(msghash, key)
-            {'messageHash': HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),  # noqa: E501
+            AttrDict({'messageHash':
+             HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),
              'r': 104389933075820307925104709181714897380569894203213074526835978196648170704563,
              's': 28205917190874851400050446352651915501321657673772411533993420917949420456142,
-             'signature': HexBytes('0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'),  # noqa: E501
-             'v': 28}
+             'v': 28,
+             'signature': HexBytes('...')})
 
         .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
         """
