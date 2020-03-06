@@ -178,10 +178,10 @@ def encode_defunct(
     :param str text: the message as a series of unicode characters (a normal Py3 str)
     :returns: The EIP-191 encoded message, ready for signing
 
-    .. code-block:: python
+    .. doctest:: python
 
         >>> from eth_account.messages import encode_defunct
-        >>> from eth_utils.curried import to_hex
+        >>> from eth_utils.curried import to_hex, to_bytes
 
         >>> message_text = "I♥SF"
         >>> encode_defunct(text=message_text)
