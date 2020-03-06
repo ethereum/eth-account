@@ -298,8 +298,6 @@ class Account(object):
         Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
         alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
 
-        :param extra_entropy: Add extra randomness to whatever randomness your OS can provide
-        :type extra_entropy: str or bytes or int
         :param str passphrase: Extra passphrase to encrypt the seed phrase
         :param int num_words: Number of words to use with seed phrase. Default is 12 words.
                               Must be one of [12, 15, 18, 21, 24].
