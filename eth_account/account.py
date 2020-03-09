@@ -47,8 +47,9 @@ from eth_account.datastructures import (
     AttributeDict,
 )
 from eth_account.hdaccount import (
-    derive_ethereum_key,
+    ETHEREUM_DEFAULT_PATH,
     generate_mnemonic,
+    key_from_seed,
     seed_from_mnemonic,
 )
 from eth_account.messages import (
@@ -242,13 +243,12 @@ class Account(object):
         return LocalAccount(key, self)
 
     @combomethod
-    def from_mnemonic(self, mnemonic, passphrase="", account_index=0):
+    def from_mnemonic(self, mnemonic, passphrase="", account_path=ETHEREUM_DEFAULT_PATH):
         """
         :param str mnemonic: space-separated list of BIP39 mnemonic seed words
         :param str passphrase: Optional passphrase used to encrypt the mnemonic
-        :param account_index: Specify an alternate BIP44 account index used for deriving an
-            account from the seed using BIP32 HD wallet key derivation. Default is 0.
-        :type account_index: Either a positive integer, or a list of positive integers.
+        :param str account_path: Specify an alternate HD path for deriving the seed using
+            BIP32 HD wallet key derivation.
         :return: object with methods for signing and encrypting
         :rtype: LocalAccount
 
@@ -273,27 +273,16 @@ class Account(object):
                 "`Account.enable_unaudited_hdwallet_features()` and try again."
             )
         seed = seed_from_mnemonic(mnemonic, passphrase)
-        if isinstance(account_index, int):
-            private_key = derive_ethereum_key(seed, account_index)
-            key = self._parsePrivateKey(private_key)
-            return LocalAccount(key, self)
-        if isinstance(account_index, list):
-            accounts = []
-            for idx in account_index:
-                private_key = derive_ethereum_key(seed, idx)
-                key = self._parsePrivateKey(private_key)
-                accounts.append(LocalAccount(key, self))
-            return accounts
-        raise ValidationError(
-            f"Account index must be either int or list of int, instead: '{account_index}'."
-        )
+        private_key = key_from_seed(seed, account_path)
+        key = self._parsePrivateKey(private_key)
+        return LocalAccount(key, self)
 
     @combomethod
     def create_with_mnemonic(self,
                              passphrase="",
                              num_words=12,
                              language="english",
-                             account_index=0):
+                             account_path=ETHEREUM_DEFAULT_PATH):
         r"""
         Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
         alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
@@ -302,9 +291,8 @@ class Account(object):
         :param int num_words: Number of words to use with seed phrase. Default is 12 words.
                               Must be one of [12, 15, 18, 21, 24].
         :param str language: Language to use for BIP39 mnemonic seed phrase.
-        :param account_index: Specify an alternate BIP44 account index used for deriving an
-            account from the seed using BIP32 HD wallet key derivation. Default is 0.
-        :type account_index: Either a positive integer, or a list of positive integers.
+        :param str account_path: Specify an alternate HD path for deriving the seed using
+            BIP32 HD wallet key derivation.
         :returns: A tuple consisting of an object with private key and convenience methods,
                   and the mnemonic seed phrase that can be used to restore the account.
         :rtype: (LocalAccount, str)
@@ -329,8 +317,8 @@ class Account(object):
                 "its API stabilizes. To use these features, please enable them by running "
                 "`Account.enable_unaudited_hdwallet_features()` and try again."
             )
-        mnemonic = generate_mnemonic(num_words, lang=language)
-        return self.from_mnemonic(mnemonic, passphrase, account_index), mnemonic
+        mnemonic = generate_mnemonic(num_words, language)
+        return self.from_mnemonic(mnemonic, passphrase, account_path), mnemonic
 
     @combomethod
     def recover_message(self, signable_message: SignableMessage, vrs=None, signature=None):

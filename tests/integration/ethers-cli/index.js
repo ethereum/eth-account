@@ -16,6 +16,11 @@ const options = yargs
         describe: "Wordlist language used for mnemonic",
         type: "String",
     })
+    .option("p", {
+        alias: "path",
+        describe: "HD Path used for derivation",
+        type: "String",
+    })
     .argv;
 
 var wordlist;
@@ -52,9 +57,12 @@ switch(options.language) {
         wordlist = ethers.wordlists.en;
 }
 
+// If specified, use the given path, else default to Ethereum
+const path = options.path ? options.path : "m/44'/60'/0'/0/0";
+
 const account = ethers.Wallet.fromMnemonic(
     options.mnemonic.join(" "),
-    "m/44'/60'/0'/0/0", // path (default)
+    path,
     wordlist,
 );
 

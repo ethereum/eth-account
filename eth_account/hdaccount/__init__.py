@@ -9,14 +9,14 @@ from .mnemonic import (
     Mnemonic,
 )
 
-ETHEREUM_BASE_PATH = "m/44'/60'/0'/0"
+ETHEREUM_DEFAULT_PATH = "m/44'/60'/0'/0/0"
 
 
-def derive_ethereum_key(seed: bytes, account_index: int=0):
-    return HDPath(f"{ETHEREUM_BASE_PATH}/{account_index}").derive(seed)
+def generate_mnemonic(num_words: int, lang: str) -> str:
+    return Mnemonic(lang).generate(num_words)
 
 
-def seed_from_mnemonic(words: str, passphrase="") -> bytes:
+def seed_from_mnemonic(words: str, passphrase: str) -> bytes:
     lang = Mnemonic.detect_language(words)
     expanded_words = Mnemonic(lang).expand(words)
     if not Mnemonic(lang).is_mnemonic_valid(expanded_words):
@@ -26,5 +26,5 @@ def seed_from_mnemonic(words: str, passphrase="") -> bytes:
     return Mnemonic.to_seed(expanded_words, passphrase)
 
 
-def generate_mnemonic(num_words: int=12, lang="english") -> str:
-    return Mnemonic(lang).generate(num_words)
+def key_from_seed(seed: bytes, account_path: str):
+    return HDPath(account_path).derive(seed)
