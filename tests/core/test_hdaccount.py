@@ -46,6 +46,12 @@ def test_account_restore():
     assert a1.address == a2.address
 
 
+def test_bad_passphrase():
+    a1, mnemonic = Account.create_with_mnemonic(passphrase="My passphrase")
+    a2 = Account.from_mnemonic(mnemonic, passphrase="Not my passphrase")
+    assert a1.address != a2.address
+
+
 def test_incorrect_size():
     with pytest.raises(ValidationError, match="Language not detected .*"):
         Account.from_mnemonic("this is not a seed phrase")
@@ -63,3 +69,26 @@ def test_incorrect_checksum():
         Account.from_mnemonic(
             "student into trim cross then helmet popular suit hammer cart shrug oval"
         )
+
+
+def test_incorrect_num_words():
+    with pytest.raises(ValidationError, match="Invalid choice for number of words.*"):
+        Account.create_with_mnemonic(num_words=11)
+
+
+def test_bad_account_path1():
+    with pytest.raises(ValidationError, match="Path is not valid.*"):
+        Account.from_mnemonic(
+            "finish oppose decorate face calm tragic certain desk hour urge dinosaur mango",
+            account_path='not an account path'
+        )
+
+
+def test_bad_account_path2():
+    with pytest.raises(ValidationError, match="Path.*is not valid.*"):
+        Account.create_with_mnemonic(account_path='m/not/an/account/path')
+
+
+def test_unknown_language():
+    with pytest.raises(ValidationError, match="Invalid language choice.*"):
+        Account.create_with_mnemonic(language="pig latin")
