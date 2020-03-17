@@ -243,7 +243,10 @@ class Account(object):
         return LocalAccount(key, self)
 
     @combomethod
-    def from_mnemonic(self, mnemonic, passphrase="", account_path=ETHEREUM_DEFAULT_PATH):
+    def from_mnemonic(self,
+                      mnemonic: str,
+                      passphrase: str="",
+                      account_path: str=ETHEREUM_DEFAULT_PATH):
         """
         :param str mnemonic: space-separated list of BIP39 mnemonic seed words
         :param str passphrase: Optional passphrase used to encrypt the mnemonic
@@ -279,10 +282,10 @@ class Account(object):
 
     @combomethod
     def create_with_mnemonic(self,
-                             passphrase="",
-                             num_words=12,
-                             language="english",
-                             account_path=ETHEREUM_DEFAULT_PATH):
+                             passphrase: str="",
+                             num_words: int=12,
+                             language: str="english",
+                             account_path: str=ETHEREUM_DEFAULT_PATH):
         r"""
         Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
         alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
