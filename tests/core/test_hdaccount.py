@@ -16,14 +16,14 @@ Account.enable_unaudited_hdwallet_features()
 
 @pytest.mark.parametrize("mnemonic,account_path,expected_address", [
     # Ganache
-    # https://github.com/trufflesuite/ganache-core/blob/master/test/accounts.js
+    # https://github.com/trufflesuite/ganache-core/blob/d1cb5318cb3c694743f86f29d74/test/accounts.js
     (
         "into trim cross then helmet popular suit hammer cart shrug oval student",
         ETHEREUM_DEFAULT_PATH,
         "0x604a95C9165Bc95aE016a5299dd7d400dDDBEa9A",
     ),
     # Metamask
-    # https://github.com/MetaMask/eth-hd-keyring/blob/master/test/index.js
+    # https://github.com/MetaMask/eth-hd-keyring/blob/79d088e4a73624537e924b3943830526/test/index.js
     (
         "finish oppose decorate face calm tragic certain desk hour urge dinosaur mango",
         ETHEREUM_DEFAULT_PATH,
