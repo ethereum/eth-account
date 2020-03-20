@@ -76,6 +76,9 @@ class Account(object):
 
     @classmethod
     def enable_unaudited_hdwallet_features(cls):
+        """
+        Use this flag to enable unaudited HD Wallet features.
+        """
         cls._use_unaudited_hdwallet_features = True
 
     @combomethod
@@ -248,6 +251,9 @@ class Account(object):
                       passphrase: str="",
                       account_path: str=ETHEREUM_DEFAULT_PATH):
         """
+
+        .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
+
         :param str mnemonic: space-separated list of BIP39 mnemonic seed words
         :param str passphrase: Optional passphrase used to encrypt the mnemonic
         :param str account_path: Specify an alternate HD path for deriving the seed using
@@ -287,6 +293,9 @@ class Account(object):
                              language: str="english",
                              account_path: str=ETHEREUM_DEFAULT_PATH):
         r"""
+
+        .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
+
         Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
         alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
 
