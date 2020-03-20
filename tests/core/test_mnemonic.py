@@ -83,10 +83,11 @@ def test_expand(lang):
     m = Mnemonic(lang)
     # Generates a random set of words, so will never be the same set of words
     words = m.generate()
-    for word in words.split(" "):
+    for word in words.split(" "):  # Space delinates in languages not excluded above
         # BIP39 can support word expansion with as little as 4 characters
-        for size in range(4, len(word)):
-            assert m.expand(word[:size + 1]) == word
+        norm_word = normalize_string(word)
+        for size in range(4, len(norm_word)):
+            assert m.expand(norm_word[:size + 1]) == word
 
 
 @pytest.mark.parametrize("lang", Mnemonic.list_languages())

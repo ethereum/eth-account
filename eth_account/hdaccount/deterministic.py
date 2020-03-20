@@ -133,18 +133,18 @@ def derive_child_key(
     The function CKDpriv((k_par, c_par), i) → (k_i, c_i) computes a child extended
     private key from the parent extended private key:
 
-    - Check whether i ≥ 2**31 (whether the child is a hardened key).
-      - If so (hardened child):
-        let I = HMAC-SHA512(Key = c_par, Data = 0x00 || ser_256(k_par) || ser_32(i)).
-        (Note: The 0x00 pads the private key to make it 33 bytes long.)
-      - If not (normal child):
-        let I = HMAC-SHA512(Key = c_par, Data = ser_P(point(k_par)) || ser_32(i)).
-    - Split I into two 32-byte sequences, I_L and I_R.
-    - The returned child key k_i is parse_256(I_L) + k_par (mod n).
-    - The returned chain code c_i is I_R.
-    - In case parse_256(I_L) ≥ n or k_i = 0, the resulting key is invalid,
-      and one should proceed with the next value for i.
-      (Note: this has probability lower than 1 in 2**127.)
+    1. Check whether the child is a hardened key (i ≥ 2**31). If the child is a hardened key,
+       let I = HMAC-SHA512(Key = c_par, Data = 0x00 || ser_256(k_par) || ser_32(i)).
+       (Note: The 0x00 pads the private key to make it 33 bytes long.)
+       If it is not a hardened key, then
+       let I = HMAC-SHA512(Key = c_par, Data = ser_P(point(k_par)) || ser_32(i)).
+    2. Split I into two 32-byte sequences, I_L and I_R.
+    3. The returned child key k_i is parse_256(I_L) + k_par (mod n).
+    4. The returned chain code c_i is I_R.
+    5. In case parse_256(I_L) ≥ n or k_i = 0, the resulting key is invalid,
+       and one should proceed with the next value for i.
+       (Note: this has probability lower than 1 in 2**127.)
+
     """
     assert len(parent_chain_code) == 32
     if isinstance(node, HardNode):

@@ -46,6 +46,12 @@ from eth_account._utils.transactions import (
 from eth_account.datastructures import (
     AttributeDict,
 )
+from eth_account.hdaccount import (
+    ETHEREUM_DEFAULT_PATH,
+    generate_mnemonic,
+    key_from_seed,
+    seed_from_mnemonic,
+)
 from eth_account.messages import (
     SignableMessage,
     _hash_eip191_message,
@@ -64,6 +70,16 @@ class Account(object):
     _keys = keys
 
     _default_kdf = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
+
+    # Enable unaudited features (off by default)
+    _use_unaudited_hdwallet_features = False
+
+    @classmethod
+    def enable_unaudited_hdwallet_features(cls):
+        """
+        Use this flag to enable unaudited HD Wallet features.
+        """
+        cls._use_unaudited_hdwallet_features = True
 
     @combomethod
     def create(self, extra_entropy=''):
@@ -228,6 +244,93 @@ class Account(object):
         """
         key = self._parsePrivateKey(private_key)
         return LocalAccount(key, self)
+
+    @combomethod
+    def from_mnemonic(self,
+                      mnemonic: str,
+                      passphrase: str="",
+                      account_path: str=ETHEREUM_DEFAULT_PATH):
+        """
+
+        .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
+
+        :param str mnemonic: space-separated list of BIP39 mnemonic seed words
+        :param str passphrase: Optional passphrase used to encrypt the mnemonic
+        :param str account_path: Specify an alternate HD path for deriving the seed using
+            BIP32 HD wallet key derivation.
+        :return: object with methods for signing and encrypting
+        :rtype: LocalAccount
+
+        .. code-block:: python
+
+            >>> from eth_account import Account
+            >>> Account.enable_unaudited_hdwallet_features()
+            >>> acct = Account.from_mnemonic(
+              "coral allow abandon recipe top tray caught video climb similar prepare bracket "
+              "antenna rubber announce gauge volume hub hood burden skill immense add acid")
+            >>> acct.address
+            '0x9AdA5dAD14d925f4df1378409731a9B71Bc8569d'
+
+            # These methods are also available: sign_message(), sign_transaction(), encrypt()
+            # They correspond to the same-named methods in Account.*
+            # but without the private key argument
+        """
+        if not self._use_unaudited_hdwallet_features:
+            raise AttributeError(
+                "The use of the Mnemonic features of Account is disabled by default until "
+                "its API stabilizes. To use these features, please enable them by running "
+                "`Account.enable_unaudited_hdwallet_features()` and try again."
+            )
+        seed = seed_from_mnemonic(mnemonic, passphrase)
+        private_key = key_from_seed(seed, account_path)
+        key = self._parsePrivateKey(private_key)
+        return LocalAccount(key, self)
+
+    @combomethod
+    def create_with_mnemonic(self,
+                             passphrase: str="",
+                             num_words: int=12,
+                             language: str="english",
+                             account_path: str=ETHEREUM_DEFAULT_PATH):
+        r"""
+
+        .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
+
+        Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
+        alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
+
+        :param str passphrase: Extra passphrase to encrypt the seed phrase
+        :param int num_words: Number of words to use with seed phrase. Default is 12 words.
+                              Must be one of [12, 15, 18, 21, 24].
+        :param str language: Language to use for BIP39 mnemonic seed phrase.
+        :param str account_path: Specify an alternate HD path for deriving the seed using
+            BIP32 HD wallet key derivation.
+        :returns: A tuple consisting of an object with private key and convenience methods,
+                  and the mnemonic seed phrase that can be used to restore the account.
+        :rtype: (LocalAccount, str)
+
+        .. code-block:: python
+
+            >>> from eth_account import Account
+            >>> Account.enable_unaudited_hdwallet_features()
+            >>> acct, mnemonic = Account.create_with_mnemonic()
+            >>> acct.address
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+            >>> acct == Account.from_mnemonic(mnemonic)
+            True
+
+            # These methods are also available: sign_message(), sign_transaction(), encrypt()
+            # They correspond to the same-named methods in Account.*
+            # but without the private key argument
+        """
+        if not self._use_unaudited_hdwallet_features:
+            raise AttributeError(
+                "The use of the Mnemonic features of Account is disabled by default until "
+                "its API stabilizes. To use these features, please enable them by running "
+                "`Account.enable_unaudited_hdwallet_features()` and try again."
+            )
+        mnemonic = generate_mnemonic(num_words, language)
+        return self.from_mnemonic(mnemonic, passphrase, account_path), mnemonic
 
     @combomethod
     def recover_message(self, signable_message: SignableMessage, vrs=None, signature=None):
