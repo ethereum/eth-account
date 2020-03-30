@@ -1,10 +1,17 @@
 Release Notes
 =============
 
-v0.5.0
+v?
 ----------------
 
 Unreleased
+
+- None
+
+v0.5.0
+----------------
+
+Released 2020-03-30
 
 - Add Python 3.8 support
   `#86 <https://github.com/ethereum/eth-account/pull/86>`_
