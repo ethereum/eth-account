@@ -6,6 +6,11 @@ v0.5.0
 
 Unreleased
 
+- Add Python 3.8 support
+  `#86 <https://github.com/ethereum/eth-account/pull/86>`_
+- Add opt-in support for Mnemonic seed phrases
+  `#87 <https://github.com/ethereum/eth-account/pull/87>`_
+  (NOTE: This API is unaudited and likely to change)
 - Dependency change: support eth-keys v0.3.*
   `#69 <https://github.com/ethereum/eth-account/pull/69>`_
 
