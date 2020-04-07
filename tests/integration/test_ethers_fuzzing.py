@@ -31,6 +31,7 @@ path_st = st.lists(node_st, min_size=0, max_size=10) \
 @given(seed=seed_st, language=language_st, account_path=path_st)
 @settings(deadline=1000)
 @pytest.mark.compatibility
+@pytest.mark.skip
 def test_compatibility(seed, language, account_path):
     mnemonic = Mnemonic(language).to_mnemonic(seed)
     acct = Account.from_mnemonic(mnemonic, account_path=account_path)

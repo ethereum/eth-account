@@ -56,7 +56,7 @@ from ._utils import (
 )
 
 BASE_NODE_IDENTIFIERS = {"m", "M"}
-HARD_NODE_SUFFIXES = {"'", "H"}
+HARD_NODE_SUFFIXES = {"'", "h", "H"}
 
 
 class Node(int):
