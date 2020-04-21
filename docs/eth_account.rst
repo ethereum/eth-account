@@ -10,7 +10,7 @@ Account
 
 See :doc:`eth_account.signers` for alternative signers.
 
-AttributeDict
+SignedTransaction & SignedMessage
 -----------------------------------
 
 .. automodule:: eth_account.datastructures
