@@ -51,9 +51,9 @@ class SignableMessage(NamedTuple):
 
     .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
     """
-    version: HexBytes  # must be length 1
-    header: HexBytes  # aka "version specific data"
-    body: HexBytes  # aka "data to sign"
+    version: bytes  # must be length 1
+    header: bytes  # aka "version specific data"
+    body: bytes  # aka "data to sign"
 
 
 def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
@@ -64,12 +64,12 @@ def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
             "The EIP-191 signable message standard only supports one-byte versions."
         )
 
-    return keccak(
+    return Hash32(keccak(
         b'\x19' +
         version +
         signable_message.header +
         signable_message.body
-    )
+    ))
 
 
 # watch for updates to signature format
@@ -106,7 +106,7 @@ def encode_intended_validator(
         )
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     return SignableMessage(
-        b'\x00',  # version 0, as defined in EIP-191
+        HexBytes(b'\x00'),  # version 0, as defined in EIP-191
         to_canonical_address(validator_address),
         message_bytes,
     )
@@ -146,7 +146,7 @@ def encode_structured_data(
         message_string = to_text(primitive, hexstr=hexstr, text=text)
     structured_data = load_and_validate_structured_message(message_string)
     return SignableMessage(
-        b'\x01',
+        HexBytes(b'\x01'),
         hash_domain(structured_data),
         hash_eip712_message(structured_data),
     )

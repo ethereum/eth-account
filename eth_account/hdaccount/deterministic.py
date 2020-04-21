@@ -41,6 +41,7 @@ Definitions
 #   API, and no expectation is given for `xpub/xpriv` key derivation.
 from typing import (
     Tuple,
+    Type,
     Union,
 )
 
@@ -60,17 +61,22 @@ HARD_NODE_SUFFIXES = {"'", "H"}
 
 
 class Node(int):
-    TAG = ""  # No tag
-    OFFSET = 0x0  # No offset
     """
     Base node class
     """
+
+    TAG = ""  # No tag
+    OFFSET = 0x0  # No offset
+    index: int
+
     def __new__(cls, index):
         if 0 > index or index > 2**31:
             raise ValidationError(
                 f"{cls} cannot be initialized with value {index}"
             )
-        obj = int.__new__(cls, index + cls.OFFSET)
+
+        # mypy/typeshed bug requires type ignore: https://github.com/python/typeshed/issues/2686
+        obj = int.__new__(cls, index + cls.OFFSET)  # type: ignore
         obj.index = index
         return obj
 
@@ -91,6 +97,7 @@ class Node(int):
         if len(node) < 1:
             raise ValidationError("Cannot use empty string")
 
+        node_class: Union[Type["SoftNode"], Type["HardNode"]]
         if node[-1] in HARD_NODE_SUFFIXES:
             node_class = HardNode
             node_index = node[:-1]
@@ -170,9 +177,9 @@ def derive_child_key(
         # Invalid key, compute using next node (< 2**-127 probability)
         return derive_child_key(parent_key, parent_chain_code, node + 1)
 
-    child_key = child_key.to_bytes(32, byteorder="big")
+    child_key_bytes = child_key.to_bytes(32, byteorder="big")
     child_chain_code = child[32:]
-    return child_key, child_chain_code
+    return child_key_bytes, child_chain_code
 
 
 class HDPath:

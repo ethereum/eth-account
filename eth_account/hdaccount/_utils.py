@@ -56,4 +56,4 @@ def ec_point(pkey: bytes) -> bytes:
 
     Note: Result is ecdsa public key serialized to compressed form
     """
-    return keys.PrivateKey(HexBytes(pkey)).public_key.to_compressed_bytes()
+    return keys.PrivateKey(HexBytes(pkey)).public_key.to_compressed_bytes()  # type: ignore

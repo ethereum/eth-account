@@ -26,6 +26,10 @@ from pathlib import (
     Path,
 )
 import secrets
+from typing import (
+    Dict,
+    List,
+)
 
 from bitarray import (
     bitarray,
@@ -49,7 +53,7 @@ VALID_WORD_COUNTS = [12, 15, 18, 21, 24]
 WORDLIST_DIR = Path(__file__).parent / "wordlist"
 WORDLIST_LEN = 2048
 
-_cached_wordlists = dict()
+_cached_wordlists: Dict[str, List[str]] = dict()
 
 
 def get_wordlist(language):
@@ -109,7 +113,7 @@ class Mnemonic:
         (language,) = matching_languages
         return language
 
-    def generate(self, num_words=12):
+    def generate(self, num_words=12) -> str:
         if num_words not in VALID_WORD_COUNTS:
             raise ValidationError(
                 f"Invalid choice for number of words: {num_words}, should be one of "
@@ -117,7 +121,7 @@ class Mnemonic:
             )
         return self.to_mnemonic(os.urandom(4 * num_words // 3))  # 4/3 bytes per word
 
-    def to_mnemonic(self, entropy):
+    def to_mnemonic(self, entropy) -> str:
         entropy_size = len(entropy)
         if entropy_size not in VALID_ENTROPY_SIZES:
             raise ValidationError(
