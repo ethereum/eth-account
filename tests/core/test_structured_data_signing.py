@@ -278,12 +278,15 @@ def test_unequal_array_lengths_between_schema_and_data():
     with pytest.raises(TypeError) as e:
         hash_message(invalid_structured_data)
     assert (
-        str(e.value) == "Array data "
-        "`[{'name': 'Bob', 'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'}]` has "
-        "dimensions `(1,)` whereas the schema has dimensions `(2,)`" or
-        str(e.value) == "Array data "
-        "`[{'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', 'name': 'Bob'}]` has "
-        "dimensions `(1,)` whereas the schema has dimensions `(2,)`"
+        str(e.value) == (
+            "Array data "
+            "`[{'name': 'Bob', 'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'}]` has "
+            "dimensions `(1,)` whereas the schema has dimensions `(2,)`"
+        ) or str(e.value) == (
+            "Array data "
+            "`[{'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', 'name': 'Bob'}]` has "
+            "dimensions `(1,)` whereas the schema has dimensions `(2,)`"
+        )
     )
 
 
@@ -295,10 +298,13 @@ def test_unequal_array_dimension_between_schema_and_data():
     with pytest.raises(TypeError) as e:
         hash_message(invalid_structured_data)
     assert (
-        str(e.value) == "Array data "
-        "`[{'name': 'Bob', 'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'}]` has "
-        "dimensions `(1,)` whereas the schema has dimensions `(2, 3, 4)`" or
-        str(e.value) == "Array data "
-        "`[{'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', 'name': 'Bob'}]` has "
-        "dimensions `(1,)` whereas the schema has dimensions `(2, 3, 4)`"
+        str(e.value) == (
+            "Array data "
+            "`[{'name': 'Bob', 'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'}]` has "
+            "dimensions `(1,)` whereas the schema has dimensions `(2, 3, 4)`"
+        ) or str(e.value) == (
+            "Array data "
+            "`[{'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', 'name': 'Bob'}]` has "
+            "dimensions `(1,)` whereas the schema has dimensions `(2, 3, 4)`"
+        )
     )

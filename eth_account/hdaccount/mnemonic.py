@@ -193,7 +193,7 @@ class Mnemonic:
         return " ".join(map(self.expand_word, mnemonic.split(" ")))
 
     @classmethod
-    def to_seed(cls, checked_mnemonic: str, passphrase: str="") -> bytes:
+    def to_seed(cls, checked_mnemonic: str, passphrase: str = "") -> bytes:
         """
         :param str checked_mnemonic: Must be a correct, fully-expanded BIP39 seed phrase.
         :param str passphrase: Encryption passphrase used to secure the mnemonic.

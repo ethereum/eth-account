@@ -64,12 +64,8 @@ def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
             "The EIP-191 signable message standard only supports one-byte versions."
         )
 
-    return Hash32(keccak(
-        b'\x19' +
-        version +
-        signable_message.header +
-        signable_message.body
-    ))
+    joined = b'\x19' + version + signable_message.header + signable_message.body
+    return Hash32(keccak(joined))
 
 
 # watch for updates to signature format

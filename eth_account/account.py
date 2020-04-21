@@ -249,8 +249,8 @@ class Account(object):
     @combomethod
     def from_mnemonic(self,
                       mnemonic: str,
-                      passphrase: str="",
-                      account_path: str=ETHEREUM_DEFAULT_PATH):
+                      passphrase: str = "",
+                      account_path: str = ETHEREUM_DEFAULT_PATH):
         """
 
         .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
@@ -289,10 +289,10 @@ class Account(object):
 
     @combomethod
     def create_with_mnemonic(self,
-                             passphrase: str="",
-                             num_words: int=12,
-                             language: str="english",
-                             account_path: str=ETHEREUM_DEFAULT_PATH):
+                             passphrase: str = "",
+                             num_words: int = 12,
+                             language: str = "english",
+                             account_path: str = ETHEREUM_DEFAULT_PATH):
         r"""
 
         .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
