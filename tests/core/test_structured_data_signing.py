@@ -89,7 +89,7 @@ def test_get_dependencies(primary_type, types, expected):
 @pytest.mark.parametrize(
     'struct_name, expected',
     (
-        ("Mail", "Mail(Person from,Person to,string contents)"),
+        ("Mail", "Mail(Person from,Person to,Person[] cc,string contents)"),
         ("Person", "Person(string name,address wallet)"),
         ("EIP712Domain", (
             "EIP712Domain(string name,string version,"
@@ -104,7 +104,7 @@ def test_encode_struct(struct_name, types, expected):
 @pytest.mark.parametrize(
     'primary_type, expected',
     (
-        ('Mail', 'Mail(Person from,Person to,string contents)Person(string name,address wallet)'),
+        ('Mail', 'Mail(Person from,Person to,Person[] cc,string contents)Person(string name,address wallet)'),  # noqa: E501
         ('Person', 'Person(string name,address wallet)'),
     )
 )
@@ -115,7 +115,7 @@ def test_encode_type(primary_type, types, expected):
 @pytest.mark.parametrize(
     'primary_type, expected_hex_value',
     (
-        ('Mail', 'a0cedeb2dc280ba39b857546d74f5549c3a1d7bdc2dd96bf881f76108e23dac2'),
+        ('Mail', 'b19c5c7781083ed7325660d847f8c547b744917d67b38858b00bce7e62a4866b'),
         ('Person', 'b9d8c78acf9b987311de6c7b45bb6a9c8e1bf361fa7fd3467a2163f994c79500'),
     )
 )
@@ -126,16 +126,17 @@ def test_hash_struct_type(primary_type, types, expected_hex_value):
 def test_encode_data(types, message):
     primary_type = "Mail"
     expected_hex_value = (
-        "a0cedeb2dc280ba39b857546d74f5549c3a1d7bdc2dd96bf881f76108e23dac2fc71e5fa27ff56c350aa531b"
-        "c129ebdf613b772b6604664f5d8dbe21b85eb0c8cd54f074a4af31b4411ff6a60c9719dbd559c221c8ac3492d9"
-        "d872b041d703d1b5aadf3154a261abdd9086fc627b61efca26ae5702701d05cd2305f7c52a2fc8"
+        "b19c5c7781083ed7325660d847f8c547b744917d67b38858b00bce7e62a4866bfc71e5fa27ff56c350aa531bc1"
+        "29ebdf613b772b6604664f5d8dbe21b85eb0c8cd54f074a4af31b4411ff6a60c9719dbd559c221c8ac3492d9d8"
+        "72b041d703d1a88b5e35e8f6bccc3d72ef467ed581615888f8cf34df19d068d04225439be65ab5aadf3154a261"
+        "abdd9086fc627b61efca26ae5702701d05cd2305f7c52a2fc8"
     )
     assert encode_data(primary_type, types, message).hex() == expected_hex_value
 
 
 def test_hash_struct_main_message(structured_valid_data_json_string):
     structured_data = json.loads(structured_valid_data_json_string)
-    expected_hex_value = "c52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e"
+    expected_hex_value = "76649452daa3e4101beef5b01669fd0de45ece35188d529703c73526a2454521"
     assert hash_message(structured_data).hex() == expected_hex_value
 
 
@@ -148,7 +149,7 @@ def test_hash_struct_domain(structured_valid_data_json_string):
 def test_hashed_structured_data(message_encodings):
     structured_msg = encode_structured_data(**message_encodings)
     hashed_structured_msg = _hash_eip191_message(structured_msg)
-    expected_hash_value_hex = "be609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2"
+    expected_hash_value_hex = "4e3c4173651b3054c0635dfae57a3b65ae1527ed0ba9ff76cecb6d9807687a7f"
     assert hashed_structured_msg.hex() == expected_hash_value_hex
 
 
@@ -169,9 +170,9 @@ def test_signature_variables(message_encodings):
     acc = Account.from_key(privateKey)
     assert HexBytes(acc.address) == HexBytes("0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826")
     sig = Account.sign_message(structured_msg, privateKey)
-    assert sig.v == 28
-    assert hex(sig.r) == "0x4355c47d63924e8a72e509b65029052eb6c299d53a04e167c5775fd466751c9d"
-    assert hex(sig.s) == "0x7299936d304c153f6443dfa05f40ff007d72911b6f72307f996231605b91562"
+    assert sig.v == 27
+    assert hex(sig.r) == "0x58635e9afd7a2a5338cf2af3d711b50235a1955c43f8bca1657c9d0834fcdb5a"
+    assert hex(sig.s) == "0x44a7c0169616cfdfc16815714c9bc1c94139e17a0761a17530cf3dd1746bc10b"
 
 
 @pytest.mark.parametrize(
