@@ -156,7 +156,7 @@ def get_array_dimensions(data):
 @to_tuple
 def flatten_multidimensional_array(array):
     for item in array:
-        if not isinstance(item, (list, tuple)):
+        if isinstance(item, (list, tuple)):
             # Not checking for Iterable instance, because even Dictionaries and strings
             # are considered as iterables, but that's not what we want the condition to be.
             yield from flatten_multidimensional_array(item)
@@ -229,7 +229,7 @@ def _encode_data(primary_type, types, data):
                 encode_data(parsed_type.base, types, array_item)
                 for array_item in array_items
             ]
-            concatenated_array_encodings = ''.join(array_items_encoding)
+            concatenated_array_encodings = b''.join(array_items_encoding)
             hashed_value = keccak(concatenated_array_encodings)
             yield "bytes32", hashed_value
         else:

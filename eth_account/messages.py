@@ -128,7 +128,8 @@ def encode_structured_data(
         - text, as a json-encoded string
         - hexstr, as a hex-encoded (json-encoded) string
 
-    .. WARNING:: Note that this code has not gone through an external audit.
+    .. WARNING:: Note that this code has not gone through an external audit, and
+        the test cases are incomplete.
         Also, watch for updates to the format, as the EIP is still in DRAFT.
 
     :param primitive: the binary message to be signed
