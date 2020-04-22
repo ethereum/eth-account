@@ -55,6 +55,7 @@ setup(
     author_email='snakecharmers@ethereum.org',
     url='https://github.com/ethereum/eth-account',
     include_package_data=True,
+    package_data={"eth_account": ["hdaccount/wordlist/*.txt"]},
     install_requires=[
         "bitarray>=1.2.1,<1.3.0",
         "eth-abi>=2.0.0b7,<3",
