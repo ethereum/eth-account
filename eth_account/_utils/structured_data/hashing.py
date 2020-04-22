@@ -16,7 +16,10 @@ from eth_abi.grammar import (
 )
 from eth_utils import (
     ValidationError,
+    is_checksum_address,
+    is_checksum_formatted_address,
     keccak,
+    to_checksum_address,
     to_tuple,
     toolz,
 )
@@ -232,6 +235,24 @@ def _encode_data(primary_type, types, data):
             concatenated_array_encodings = b''.join(array_items_encoding)
             hashed_value = keccak(concatenated_array_encodings)
             yield "bytes32", hashed_value
+        elif field["type"] == "address":
+            # custom handling for address type, to:
+            #   1. run the EIP55 checksum
+            #   2. do a custom encoding as uint160
+            if is_checksum_address(value):
+                return "uint160", value
+            else:
+                if is_checksum_formatted_address(value):
+                    raise ValueError(
+                        "Expected a checksummed address, but got "
+                        f"{value!r} which fails EIP55 checksum"
+                    )
+                else:
+                    checksummed_addr = to_checksum_address(value)
+                    raise ValueError(
+                        f"Expected a checksummed address, but got {value!r}, which does not "
+                        f"encode a checksum. The checksum version would be: {checksummed_addr!r}"
+                    )
         else:
             # First checking to see if type is valid as per abi
             if not is_encodable_type(field["type"]):

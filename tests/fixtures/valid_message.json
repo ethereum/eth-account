@@ -36,11 +36,11 @@
 		"cc": [
       {
         "name": "Alice",
-        "wallet": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        "wallet": "0xaAaAaAaaAaAaAaaAaAAAAAAAAaaaAaAaAaaAaaAa"
       },
       {
         "name": "Dot",
-        "wallet": "0xdddddddddddddddddddddddddddddddddddddddd"
+        "wallet": "0xDDdDddDdDdddDDddDDddDDDDdDdDDdDDdDDDDDDd"
       }
     ],
 		"contents": "Hello, Bob!"
