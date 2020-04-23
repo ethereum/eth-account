@@ -76,12 +76,12 @@ integration: &integration
         key: cache-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
 
 jobs:
-  doctest:
+  docs:
     <<: *common
     docker:
       - image: circleci/python:3.6
         environment:
-          TOXENV: doctest
+          TOXENV: docs
   lint:
     <<: *common
     docker:
@@ -128,7 +128,7 @@ workflows:
   version: 2
   test:
     jobs:
-      - doctest
+      - docs
       - lint
       - py36-core
       - py37-core
