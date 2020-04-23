@@ -40,7 +40,7 @@ extras_require['dev'] = (
 setup(
     name='eth-account',
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
-    version='0.5.0',
+    version='0.5.1',
     description="""eth-account: Sign Ethereum transactions and messages with local private keys""",
     long_description_markdown_filename='README.md',
     author='The Ethereum Foundation',
