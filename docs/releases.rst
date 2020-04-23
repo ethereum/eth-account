@@ -1,12 +1,17 @@
 Release Notes
 =============
 
-v?
+v0.5.1
 ----------------
 
-Unreleased
+Released 2020-04-23
 
-- None
+- Fix a crash in signing typed messages with arrays
+  `#97 <https://github.com/ethereum/eth-account/pull/97>`_
+- Replace attrdict with NamedTuple to silence a deprecation warning
+  `#76 <https://github.com/ethereum/eth-account/pull/76>`_
+- Run more doctests & improve docs
+  `#94 <https://github.com/ethereum/eth-account/pull/94>`_
 
 v0.5.0
 ----------------
