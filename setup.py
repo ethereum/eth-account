@@ -56,17 +56,6 @@ setup(
     url='https://github.com/ethereum/eth-account',
     include_package_data=True,
     package_data={"eth_account": ["hdaccount/wordlist/*.txt"]},
-    data_files=[('eth_account', [
-        'eth_account/hdaccount/wordlist/chinese_simplified.txt',
-        'eth_account/hdaccount/wordlist/chinese_traditional.txt',
-        'eth_account/hdaccount/wordlist/czech.txt',
-        'eth_account/hdaccount/wordlist/english.txt',
-        'eth_account/hdaccount/wordlist/french.txt',
-        'eth_account/hdaccount/wordlist/italian.txt',
-        'eth_account/hdaccount/wordlist/japanese.txt',
-        'eth_account/hdaccount/wordlist/korean.txt',
-        'eth_account/hdaccount/wordlist/spanish.txt',
-    ])],
     install_requires=[
         "bitarray>=1.2.1,<1.3.0",
         "eth-abi>=2.0.0b7,<3",
