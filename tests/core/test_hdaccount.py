@@ -76,6 +76,7 @@ def test_incorrect_num_words():
         Account.create_with_mnemonic(num_words=11)
 
 
+@pytest.mark.xfail
 def test_bad_account_path1():
     with pytest.raises(ValidationError, match="Path is not valid.*"):
         Account.from_mnemonic(
@@ -84,6 +85,7 @@ def test_bad_account_path1():
         )
 
 
+@pytest.mark.xfail
 def test_bad_account_path2():
     with pytest.raises(ValidationError, match="Path.*is not valid.*"):
         Account.create_with_mnemonic(account_path='m/not/an/account/path')

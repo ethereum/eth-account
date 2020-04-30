@@ -64,6 +64,7 @@ setup(
         "eth-rlp>=0.1.2,<1",
         "eth-utils>=1.3.0,<2",
         "hexbytes>=0.1.0,<1",
+        "py-hdwallet>=0.1.0a1",
         "rlp>=1.0.0,<2"
     ],
     python_requires='>=3.6, <4',

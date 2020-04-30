@@ -50,7 +50,6 @@ from eth_account.datastructures import (
 from eth_account.hdaccount import (
     ETHEREUM_DEFAULT_PATH,
     generate_mnemonic,
-    key_from_seed,
     seed_from_mnemonic,
 )
 from eth_account.messages import (
@@ -59,6 +58,9 @@ from eth_account.messages import (
 )
 from eth_account.signers.local import (
     LocalAccount,
+)
+from hdwallet.keys import (
+    PrivateWalletNode
 )
 
 
@@ -283,7 +285,11 @@ class Account(object):
                 "`Account.enable_unaudited_hdwallet_features()` and try again."
             )
         seed = seed_from_mnemonic(mnemonic, passphrase)
-        private_key = key_from_seed(seed, account_path)
+        master_node = PrivateWalletNode.master_from_bytes(seed)
+        # py-hdwallet recognizes hardened paths with `h`
+        normalized_account_path = account_path.replace("'", "h")
+        private_wallet_node = master_node.child_from_path(normalized_account_path)
+        private_key = private_wallet_node.ext_private_key.private_key.to_bytes(32, "big")
         key = self._parsePrivateKey(private_key)
         return LocalAccount(key, self)
 
