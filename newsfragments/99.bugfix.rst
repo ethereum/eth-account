@@ -1,1 +1,0 @@
-Makes sure that the raw txt files needed for Mnemonics get packaged with the release.

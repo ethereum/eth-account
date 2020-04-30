@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+v0.5.2 (2020-04-30)
+------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Makes sure that the raw txt files needed for Mnemonics get packaged with the release. (`#99 <https://github.com/ethereum/eth-account/issues/99>`__)
+
+
 v0.5.1
 ----------------
 
