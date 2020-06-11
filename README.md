@@ -40,6 +40,15 @@ virtualenv -p python3 venv
 pip install -e .[dev]
 ```
 
+To run the integration test cases, you need to install node and the custom cli tool as follows:
+
+```sh
+apt-get install -y nodejs  # As sudo
+./tests/integration/ethers-cli/setup_node_v12.sh  # As sudo
+cd tests/integration/ethers-cli
+npm install -g .  # As sudo
+```
+
 ### Testing Setup
 
 During development, you might like to have tests run on every file save.
@@ -88,9 +97,7 @@ The version format for this repo is `{major}.{minor}.{patch}` for stable, and
 To issue the next version in line, specify which part to bump,
 like `make release bump=minor` or `make release bump=devnum`. This is typically done from the
 master branch, except when releasing a beta (in which case the beta is released from master,
-and the previous stable branch is released from said branch). To include changes made with each
-release, update "docs/releases.rst" with the changes, and apply commit directly to master 
-before release.
+and the previous stable branch is released from said branch).
 
 If you are in a beta version, `make release bump=stage` will switch to a stable.
 

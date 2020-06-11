@@ -300,7 +300,6 @@ def test_sign_message_against_sign_hash_as_text(keyed_acct, message_text):
     # sign via message
     signable_message = encode_defunct(text=message_text)
     signed_via_message = keyed_acct.sign_message(signable_message)
-
     assert signed_via_hash == signed_via_message
 
 
@@ -374,11 +373,11 @@ def test_sign_message_against_sign_hash_as_hex(keyed_acct, message_bytes):
 def test_eth_account_sign(acct, message, key, expected_bytes, expected_hash, v, r, s, signature):
     signable = encode_defunct(text=message)
     signed = acct.sign_message(signable, private_key=key)
-    assert signed.messageHash == expected_hash
-    assert signed.v == v
-    assert signed.r == r
-    assert signed.s == s
-    assert signed.signature == signature
+    assert signed.messageHash == signed['messageHash'] == expected_hash
+    assert signed.v == signed['v'] == v
+    assert signed.r == signed['r'] == r
+    assert signed.s == signed['s'] == s
+    assert signed.signature == signed['signature'] == signature
 
     account = acct.from_key(key)
     assert account.sign_message(signable) == signed
@@ -481,11 +480,11 @@ def test_eth_long_account_address_sign_data_with_intended_validator(acct, messag
 )
 def test_eth_account_sign_transaction(acct, txn, private_key, expected_raw_tx, tx_hash, r, s, v):
     signed = acct.sign_transaction(txn, private_key)
-    assert signed.r == r
-    assert signed.s == s
-    assert signed.v == v
-    assert signed.rawTransaction == expected_raw_tx
-    assert signed.hash == tx_hash
+    assert signed.r == signed['r'] == r
+    assert signed.s == signed['s'] == s
+    assert signed.v == signed['v'] == v
+    assert signed.rawTransaction == signed['rawTransaction'] == expected_raw_tx
+    assert signed.hash == signed['hash'] == tx_hash
 
     account = acct.from_key(private_key)
     assert account.sign_transaction(txn) == signed

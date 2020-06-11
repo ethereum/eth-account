@@ -44,7 +44,14 @@ from eth_account._utils.transactions import (
     vrs_from,
 )
 from eth_account.datastructures import (
-    AttributeDict,
+    SignedMessage,
+    SignedTransaction,
+)
+from eth_account.hdaccount import (
+    ETHEREUM_DEFAULT_PATH,
+    generate_mnemonic,
+    key_from_seed,
+    seed_from_mnemonic,
 )
 from eth_account.messages import (
     SignableMessage,
@@ -65,6 +72,16 @@ class Account(object):
 
     _default_kdf = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
 
+    # Enable unaudited features (off by default)
+    _use_unaudited_hdwallet_features = False
+
+    @classmethod
+    def enable_unaudited_hdwallet_features(cls):
+        """
+        Use this flag to enable unaudited HD Wallet features.
+        """
+        cls._use_unaudited_hdwallet_features = True
+
     @combomethod
     def create(self, extra_entropy=''):
         r"""
@@ -81,7 +98,7 @@ class Account(object):
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> acct.key
-            b"\xb2\}\xb3\x1f\xee\xd9\x12''\xbf\t9\xdcv\x9a\x96VK-\xe4\xc4rm\x03[6\xec\xf1\xe5\xb3d"
+            HexBytes('0x8676e9a8c86c8921e922e61e0bb6e9e9689aad4c99082620610b00140e5f21b8')
 
             # These methods are also available: sign_message(), sign_transaction(), encrypt()
             # They correspond to the same-named methods in Account.*
@@ -103,24 +120,24 @@ class Account(object):
         :returns: the raw private key
         :rtype: ~hexbytes.main.HexBytes
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> encrypted = {
             ... 'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
             ... 'crypto': {'cipher': 'aes-128-ctr',
-            ...  'cipherparams': {'iv': '78f214584844e0b241b433d7c3bb8d5f'},
-            ...  'ciphertext': 'd6dbb56e4f54ba6db2e8dc14df17cb7352fdce03681dd3f90ce4b6c1d5af2c4f',
-            ...  'kdf': 'pbkdf2',
-            ...  'kdfparams': {'c': 1000000,
-            ...   'dklen': 32,
-            ...   'prf': 'hmac-sha256',
-            ...   'salt': '45cf943b4de2c05c2c440ef96af914a2'},
-            ...  'mac': 'f5e1af09df5ded25c96fcf075ada313fb6f79735a914adc8cb02e8ddee7813c3'},
+            ...  'cipherparams': {'iv': '482ef54775b0cc59f25717711286f5c8'},
+            ...  'ciphertext': 'cb636716a9fd46adbb31832d964df2082536edd5399a3393327dc89b0193a2be',
+            ...  'kdf': 'scrypt',
+            ...  'kdfparams': {},
+            ...  'kdfparams': {'dklen': 32,
+            ...                'n': 262144,
+            ...                'p': 8,
+            ...                'r': 1,
+            ...                'salt': 'd3c9a9945000fcb6c9df0f854266d573'},
+            ...  'mac': '4f626ec5e7fea391b2229348a65bfef532c2a4e8372c0a6a814505a350a7689d'},
             ... 'id': 'b812f3f9-78cc-462a-9e89-74418aa27cb0',
             ... 'version': 3}
-
-            >>> import getpass
-            >>> Account.decrypt(encrypted, getpass.getpass()) # doctest: +SKIP
+            >>> Account.decrypt(encrypted, 'password')
             HexBytes('0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364')
 
         """
@@ -153,34 +170,27 @@ class Account(object):
         environment variable :envvar:`ETH_ACCOUNT_KDF`. If that is not set, then
         'scrypt' will be used as the default.
 
-        .. code-block:: python
+        .. doctest:: python
 
-            >>> import getpass
-            >>> encrypted = Account.encrypt( # doctest: +SKIP
+            >>> from pprint import pprint
+            >>> encrypted = Account.encrypt(
             ...     0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364,
-            ...     getpass.getpass()
+            ...     'password'
             ... )
-            {
-                'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
-                'crypto': {
-                    'cipher': 'aes-128-ctr',
-                    'cipherparams': {
-                        'iv': '0b7845a5c3597d3d378bde9b7c7319b7'
-                    },
-                    'ciphertext': 'a494f1feb3c854e99c1ff01e6aaa17d43c0752009073503b908457dc8de5d2a5',  # noqa: E501
-                    'kdf': 'scrypt',
-                    'kdfparams': {
-                        'dklen': 32,
-                        'n': 262144,
-                        'p': 8,
-                        'r': 1,
-                        'salt': '13c4a48123affaa29189e9097726c698'
-                    },
-                    'mac': 'f4cfb027eb0af9bd7a320b4374a3fa7bef02cfbafe0ec5d1fd7ad129401de0b1'
-                },
-                'id': 'a60e0578-0e5b-4a75-b991-d55ec6451a6f',
-                'version': 3
-            }
+            >>> pprint(encrypted)
+            {'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
+             'crypto': {'cipher': 'aes-128-ctr',
+                        'cipherparams': {'iv': '...'},
+                        'ciphertext': '...',
+                        'kdf': 'scrypt',
+                        'kdfparams': {'dklen': 32,
+                                      'n': 262144,
+                                      'p': 8,
+                                      'r': 1,
+                                      'salt': '...'},
+                        'mac': '...'},
+             'id': '...',
+             'version': 3}
 
             >>> with open('my-keyfile', 'w') as f: # doctest: +SKIP
             ...    f.write(json.dumps(encrypted))
@@ -220,14 +230,14 @@ class Account(object):
         :return: object with methods for signing and encrypting
         :rtype: LocalAccount
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> acct = Account.from_key(
-              0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364)
+            ... 0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364)
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> acct.key
-            b"\xb2\}\xb3\x1f\xee\xd9\x12''xbf\t9\xdcv\x9a\x96VK-\xe4\xc4rm\x03[6\xec\xf1\xe5\xb3d"
+            HexBytes('0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364')
 
             # These methods are also available: sign_message(), sign_transaction(), encrypt()
             # They correspond to the same-named methods in Account.*
@@ -235,6 +245,93 @@ class Account(object):
         """
         key = self._parsePrivateKey(private_key)
         return LocalAccount(key, self)
+
+    @combomethod
+    def from_mnemonic(self,
+                      mnemonic: str,
+                      passphrase: str = "",
+                      account_path: str = ETHEREUM_DEFAULT_PATH):
+        """
+
+        .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
+
+        :param str mnemonic: space-separated list of BIP39 mnemonic seed words
+        :param str passphrase: Optional passphrase used to encrypt the mnemonic
+        :param str account_path: Specify an alternate HD path for deriving the seed using
+            BIP32 HD wallet key derivation.
+        :return: object with methods for signing and encrypting
+        :rtype: LocalAccount
+
+        .. doctest:: python
+
+            >>> from eth_account import Account
+            >>> Account.enable_unaudited_hdwallet_features()
+            >>> acct = Account.from_mnemonic(
+            ...  "coral allow abandon recipe top tray caught video climb similar prepare bracket "
+            ...  "antenna rubber announce gauge volume hub hood burden skill immense add acid")
+            >>> acct.address
+            '0x9AdA5dAD14d925f4df1378409731a9B71Bc8569d'
+
+            # These methods are also available: sign_message(), sign_transaction(), encrypt()
+            # They correspond to the same-named methods in Account.*
+            # but without the private key argument
+        """
+        if not self._use_unaudited_hdwallet_features:
+            raise AttributeError(
+                "The use of the Mnemonic features of Account is disabled by default until "
+                "its API stabilizes. To use these features, please enable them by running "
+                "`Account.enable_unaudited_hdwallet_features()` and try again."
+            )
+        seed = seed_from_mnemonic(mnemonic, passphrase)
+        private_key = key_from_seed(seed, account_path)
+        key = self._parsePrivateKey(private_key)
+        return LocalAccount(key, self)
+
+    @combomethod
+    def create_with_mnemonic(self,
+                             passphrase: str = "",
+                             num_words: int = 12,
+                             language: str = "english",
+                             account_path: str = ETHEREUM_DEFAULT_PATH):
+        r"""
+
+        .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
+
+        Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
+        alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
+
+        :param str passphrase: Extra passphrase to encrypt the seed phrase
+        :param int num_words: Number of words to use with seed phrase. Default is 12 words.
+                              Must be one of [12, 15, 18, 21, 24].
+        :param str language: Language to use for BIP39 mnemonic seed phrase.
+        :param str account_path: Specify an alternate HD path for deriving the seed using
+            BIP32 HD wallet key derivation.
+        :returns: A tuple consisting of an object with private key and convenience methods,
+                  and the mnemonic seed phrase that can be used to restore the account.
+        :rtype: (LocalAccount, str)
+
+        .. doctest:: python
+
+            >>> from eth_account import Account
+            >>> Account.enable_unaudited_hdwallet_features()
+            >>> acct, mnemonic = Account.create_with_mnemonic()
+            >>> acct.address # doctest: +SKIP
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+            >>> acct == Account.from_mnemonic(mnemonic)
+            True
+
+            # These methods are also available: sign_message(), sign_transaction(), encrypt()
+            # They correspond to the same-named methods in Account.*
+            # but without the private key argument
+        """
+        if not self._use_unaudited_hdwallet_features:
+            raise AttributeError(
+                "The use of the Mnemonic features of Account is disabled by default until "
+                "its API stabilizes. To use these features, please enable them by running "
+                "`Account.enable_unaudited_hdwallet_features()` and try again."
+            )
+        mnemonic = generate_mnemonic(num_words, language)
+        return self.from_mnemonic(mnemonic, passphrase, account_path), mnemonic
 
     @combomethod
     def recover_message(self, signable_message: SignableMessage, vrs=None, signature=None):
@@ -250,45 +347,55 @@ class Account(object):
         :returns: address of signer, hex-encoded & checksummed
         :rtype: str
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> from eth_account.messages import encode_defunct
+            >>> from eth_account import Account
             >>> message = encode_defunct(text="I♥SF")
             >>> vrs = (
-                  28,
-                  '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
-                  '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
+            ...   28,
+            ...   '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
+            ...   '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
             >>> Account.recover_message(message, vrs=vrs)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+
 
             # All of these recover calls are equivalent:
 
             # variations on vrs
             >>> vrs = (
-                  '0x1c',
-                  '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
-                  '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
+            ...   '0x1c',
+            ...   '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
+            ...   '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
             >>> Account.recover_message(message, vrs=vrs)
-            >>> vrs = (
-                  b'\x1c',
-                  b'\\xe6\\xca\\x9b\\xbaX\\xc8\\x86\\x11\\xfa\\xd6jl\\xe8\\xf9\\x96\\x90\\x81\\x95Y8\\x07\\xc4\\xb3\\x8b\\xd5(\\xd2\\xcf\\xf0\\x9dN\\xb3',  # noqa: E501
-                  b'>[\\xfb\\xbfM>9\\xb1\\xa2\\xfd\\x81jv\\x80\\xc1\\x9e\\xbe\\xba\\xf3\\xa1A\\xb29\\x93J\\xd4<\\xb3?\\xce\\xc8\\xce')  # noqa: E501
-            >>> Account.recover_message(message, vrs=vrs)
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+
             >>> # Caution about this approach: likely problems if there are leading 0s
             >>> vrs = (
-                  0x1c,
-                  0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3,
-                  0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce)
+            ...   0x1c,
+            ...   0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3,
+            ...   0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce)
             >>> Account.recover_message(message, vrs=vrs)
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+
+            >>> vrs = (
+            ...   b'\x1c',
+            ...   b'\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3',  # noqa: E501
+            ...   b'>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce')  # noqa: E501
+            >>> Account.recover_message(message, vrs=vrs)
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
 
             # variations on signature
             >>> signature = '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'  # noqa: E501
             >>> Account.recover_message(message, signature=signature)
-            >>> signature = b'\\xe6\\xca\\x9b\\xbaX\\xc8\\x86\\x11\\xfa\\xd6jl\\xe8\\xf9\\x96\\x90\\x81\\x95Y8\\x07\\xc4\\xb3\\x8b\\xd5(\\xd2\\xcf\\xf0\\x9dN\\xb3>[\\xfb\\xbfM>9\\xb1\\xa2\\xfd\\x81jv\\x80\\xc1\\x9e\\xbe\\xba\\xf3\\xa1A\\xb29\\x93J\\xd4<\\xb3?\\xce\\xc8\\xce\\x1c'  # noqa: E501
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+            >>> signature = b'\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce\x1c'  # noqa: E501
             >>> Account.recover_message(message, signature=signature)
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> # Caution about this approach: likely problems if there are leading 0s
             >>> signature = 0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c  # noqa: E501
             >>> Account.recover_message(message, signature=signature)
+            '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
         """
         message_hash = _hash_eip191_message(signable_message)
         return self._recover_hash(message_hash, vrs, signature)
@@ -357,9 +464,9 @@ class Account(object):
         :returns: address of signer, hex-encoded & checksummed
         :rtype: str
 
-        .. code-block:: python
+        .. doctest:: python
 
-            >>> raw_transaction = '0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428',  # noqa: E501
+            >>> raw_transaction = '0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'  # noqa: E501
             >>> Account.recover_transaction(raw_transaction)
             '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
         """
@@ -411,22 +518,27 @@ class Account(object):
         :param private_key: the key to sign the message with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most importantly the fields: v, r, and s
-        :rtype: ~eth_account.datastructures.AttributeDict
+        :rtype: ~eth_account.datastructures.SignedMessage
 
-        .. code-block:: python
+        .. doctest:: python
 
             >>> msg = "I♥SF"
             >>> from eth_account.messages import encode_defunct
             >>> msghash = encode_defunct(text=msg)
-            SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
-            >>> # If you're curious about the internal fields of SignableMessage, take a look at EIP-191, linked above
+            >>> msghash
+            SignableMessage(version=b'E',
+             header=b'thereum Signed Message:\n6',
+             body=b'I\xe2\x99\xa5SF')
+            >>> # If you're curious about the internal fields of SignableMessage, take a look at EIP-191, linked above  # noqa: E501
             >>> key = "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
             >>> Account.sign_message(msghash, key)
-            {'messageHash': HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),  # noqa: E501
-             'r': 104389933075820307925104709181714897380569894203213074526835978196648170704563,
-             's': 28205917190874851400050446352651915501321657673772411533993420917949420456142,
-             'signature': HexBytes('0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'),  # noqa: E501
-             'v': 28}
+            SignedMessage(messageHash=HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),
+             r=104389933075820307925104709181714897380569894203213074526835978196648170704563,
+             s=28205917190874851400050446352651915501321657673772411533993420917949420456142,
+             v=28,
+             signature=HexBytes('0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'))
+
+
 
         .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
         """
@@ -453,7 +565,7 @@ class Account(object):
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most
           importantly the fields: v, r, and s
-        :rtype: ~eth_account.datastructures.AttributeDict
+        :rtype: ~eth_account.datastructures.SignedMessage
         """
         warnings.warn(
             "signHash is deprecated in favor of sign_message",
@@ -470,13 +582,13 @@ class Account(object):
         key = self._parsePrivateKey(private_key)
 
         (v, r, s, eth_signature_bytes) = sign_message_hash(key, msg_hash_bytes)
-        return AttributeDict({
-            'messageHash': msg_hash_bytes,
-            'r': r,
-            's': s,
-            'v': v,
-            'signature': HexBytes(eth_signature_bytes),
-        })
+        return SignedMessage(
+            messageHash=msg_hash_bytes,
+            r=r,
+            s=s,
+            v=v,
+            signature=HexBytes(eth_signature_bytes),
+        )
 
     @combomethod
     def signTransaction(self, transaction_dict, private_key):
@@ -556,13 +668,13 @@ class Account(object):
 
         transaction_hash = keccak(rlp_encoded)
 
-        return AttributeDict({
-            'rawTransaction': HexBytes(rlp_encoded),
-            'hash': HexBytes(transaction_hash),
-            'r': r,
-            's': s,
-            'v': v,
-        })
+        return SignedTransaction(
+            rawTransaction=HexBytes(rlp_encoded),
+            hash=HexBytes(transaction_hash),
+            r=r,
+            s=s,
+            v=v,
+        )
 
     @combomethod
     def _parsePrivateKey(self, key):

@@ -1,11 +1,39 @@
 Release Notes
 =============
 
+.. towncrier release notes start
+
+v0.5.2 (2020-04-30)
+------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Makes sure that the raw txt files needed for Mnemonics get packaged with the release. (`#99 <https://github.com/ethereum/eth-account/issues/99>`__)
+
+
+v0.5.1
+----------------
+
+Released 2020-04-23
+
+- Fix a crash in signing typed messages with arrays
+  `#97 <https://github.com/ethereum/eth-account/pull/97>`_
+- Replace attrdict with NamedTuple to silence a deprecation warning
+  `#76 <https://github.com/ethereum/eth-account/pull/76>`_
+- Run more doctests & improve docs
+  `#94 <https://github.com/ethereum/eth-account/pull/94>`_
+
 v0.5.0
 ----------------
 
-Unreleased
+Released 2020-03-30
 
+- Add Python 3.8 support
+  `#86 <https://github.com/ethereum/eth-account/pull/86>`_
+- Add opt-in support for Mnemonic seed phrases
+  `#87 <https://github.com/ethereum/eth-account/pull/87>`_
+  (NOTE: This API is unaudited and likely to change)
 - Dependency change: support eth-keys v0.3.*
   `#69 <https://github.com/ethereum/eth-account/pull/69>`_
 

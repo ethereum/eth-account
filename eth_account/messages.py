@@ -51,9 +51,9 @@ class SignableMessage(NamedTuple):
 
     .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
     """
-    version: HexBytes  # must be length 1
-    header: HexBytes  # aka "version specific data"
-    body: HexBytes  # aka "data to sign"
+    version: bytes  # must be length 1
+    header: bytes  # aka "version specific data"
+    body: bytes  # aka "data to sign"
 
 
 def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
@@ -64,12 +64,8 @@ def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
             "The EIP-191 signable message standard only supports one-byte versions."
         )
 
-    return keccak(
-        b'\x19' +
-        version +
-        signable_message.header +
-        signable_message.body
-    )
+    joined = b'\x19' + version + signable_message.header + signable_message.body
+    return Hash32(keccak(joined))
 
 
 # watch for updates to signature format
@@ -106,7 +102,7 @@ def encode_intended_validator(
         )
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     return SignableMessage(
-        b'\x00',  # version 0, as defined in EIP-191
+        HexBytes(b'\x00'),  # version 0, as defined in EIP-191
         to_canonical_address(validator_address),
         message_bytes,
     )
@@ -128,7 +124,8 @@ def encode_structured_data(
         - text, as a json-encoded string
         - hexstr, as a hex-encoded (json-encoded) string
 
-    .. WARNING:: Note that this code has not gone through an external audit.
+    .. WARNING:: Note that this code has not gone through an external audit, and
+        the test cases are incomplete.
         Also, watch for updates to the format, as the EIP is still in DRAFT.
 
     :param primitive: the binary message to be signed
@@ -145,7 +142,7 @@ def encode_structured_data(
         message_string = to_text(primitive, hexstr=hexstr, text=text)
     structured_data = load_and_validate_structured_message(message_string)
     return SignableMessage(
-        b'\x01',
+        HexBytes(b'\x01'),
         hash_domain(structured_data),
         hash_eip712_message(structured_data),
     )
@@ -178,22 +175,23 @@ def encode_defunct(
     :param str text: the message as a series of unicode characters (a normal Py3 str)
     :returns: The EIP-191 encoded message, ready for signing
 
-    .. code-block:: python
+    .. doctest:: python
 
         >>> from eth_account.messages import encode_defunct
+        >>> from eth_utils.curried import to_hex, to_bytes
 
         >>> message_text = "I♥SF"
         >>> encode_defunct(text=message_text)
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
-        # these four also produce the same hash:
-        >>> encode_defunct(w3.toBytes(text=message_text)) # doctest: +SKIP
+        These four also produce the same hash:
+        >>> encode_defunct(to_bytes(text=message_text))
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
         >>> encode_defunct(bytes(message_text, encoding='utf-8'))
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
 
-        >>> Web3.toHex(text=message_text) # doctest: +SKIP
+        >>> to_hex(text=message_text)
         '0x49e299a55346'
         >>> encode_defunct(hexstr='0x49e299a55346')
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')

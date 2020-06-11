@@ -46,7 +46,7 @@ class LocalAccount(BaseAccount):
     @property
     def privateKey(self):
         """
-        .. CAUTION:: Deprecated for :var:`~eth_account.signers.local.LocalAccount.key`.
+        .. CAUTION:: Deprecated for :meth:`~eth_account.signers.local.LocalAccount.key`.
             This attribute will be removed in v0.5
         """
         warnings.warn(
