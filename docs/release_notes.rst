@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+v0.5.3 (2020-08-31)
+-------------------
+
+Performance improvements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- RLP encoding/decoding speedup by using rlp v2alpha1, which has a rust implementation. (`#104 <https://github.com/ethereum/eth-account/issues/104>`__)
+
+
 v0.5.2 (2020-04-30)
 ------------------------------
 

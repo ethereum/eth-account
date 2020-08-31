@@ -1,1 +1,0 @@
-RLP encoding/decoding speedup by permitting rlp v2alpha1 with rust implementation.
