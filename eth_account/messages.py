@@ -100,10 +100,13 @@ def encode_intended_validator(
             f"Cannot encode message with 'Validator Address': {validator_address}. "
             "It must be a checksum address, or an address converted to bytes."
         )
+    # The validator_address is a str or Address (which is a subtype of bytes). Both of
+    #   these are AnyStr, which includes str and bytes. Not sure why mypy complains here...
+    canonical_address = to_canonical_address(validator_address)  # type: ignore
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     return SignableMessage(
         HexBytes(b'\x00'),  # version 0, as defined in EIP-191
-        to_canonical_address(validator_address),
+        canonical_address,
         message_bytes,
     )
 
