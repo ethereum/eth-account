@@ -1,4 +1,7 @@
 import itertools
+from typing import (
+    Dict,
+)
 
 from cytoolz import (
     curry,
@@ -137,6 +140,7 @@ def assert_valid_fields(transaction_dict):
         raise TypeError("Transaction must not include unrecognized fields: %r" % superfluous_keys)
 
     # check for valid types in each field
+    valid_fields: Dict[str, bool]
     valid_fields = apply_formatters_to_dict(TRANSACTION_VALID_VALUES, transaction_dict)
     if not all(valid_fields.values()):
         invalid = {key: transaction_dict[key] for key, valid in valid_fields.items() if not valid}
