@@ -7,6 +7,8 @@ from typing import (
     Union,
 )
 
+from dataclassy import as_dict, dataclass, fields
+from eth_abi import is_encodable_type
 from eth_typing import (
     Address,
     Hash32,
@@ -27,6 +29,10 @@ from eth_account._utils.structured_data.hashing import (
     hash_domain,
     hash_message as hash_eip712_message,
     load_and_validate_structured_message,
+    validate_structured_data,
+)
+from eth_account._utils.structured_data.validation import (
+    EIP712_DOMAIN_FIELDS,
 )
 from eth_account._utils.validation import (
     is_valid_address,
@@ -54,6 +60,102 @@ class SignableMessage(NamedTuple):
     version: bytes  # must be length 1
     header: bytes  # aka "version specific data"
     body: bytes  # aka "data to sign"
+
+
+@dataclass(iter=True, slots=True)
+class EIP712Type:
+    @property
+    def type(self) -> str:
+        return self.__class__.__name__
+
+    def field_type(self, field: str) -> str:
+        typ = self.__annotations__[field]
+
+        if isinstance(typ, str):
+            if not is_encodable_type(typ):
+                raise ValidationError(
+                    f"'{field}: {typ}' is not a valid ABI type"
+                )
+
+            return typ
+
+        elif issubclass(typ, EIP712Type):
+            return typ.type
+
+        else:
+            raise ValidationError(
+                f"'{field}' type annotation must either be a subclass of "
+                f"`EIP712Type` or valid ABI Type string, not {typ.__class__.__name__}"
+            )
+
+    def types(self) -> dict:
+        types = {}
+        types[self.type] = []
+
+        for field in fields(self):
+            value = getattr(self, field)
+            if isinstance(value, EIP712Type):
+                types[self.type].append({"name": field, "type": value.type})
+                types.update(value.types())
+            else:
+                types[self.type].append({"name": field, "type": self.field_type(field)})
+
+        return types
+
+    @property
+    def data(self) -> dict:
+        return as_dict(self)  # NOTE: Handles recursion
+
+
+# TODO: Make type of EIP712Message a subtype of SignableMessage somehow
+class EIP712Message(EIP712Type):
+    def __init__(self):
+        # At least one of the header fields must be in the EIP712 message header
+        if len(self.domain) == 0:
+            raise ValidationError(
+                f"EIP712 Message definition '{self.type}' must define "
+                f"at least one of {EIP712_DOMAIN_FIELDS}"
+            )
+
+    @property
+    def domain(self) -> dict:
+        header_fields = [f"_{field}_" for field in EIP712_DOMAIN_FIELDS]
+        return {
+            field.replace("_", ""): getattr(self, field)
+            for field
+            in fields(self, internals=True)
+            if field in header_fields
+        }
+
+    @property
+    def domain_type(self) -> dict:
+        return [
+            {"name": field, "type": self.field_type(f"_{field}_")}
+            for field
+            in self.domain
+        ]
+
+    @property
+    def version(self) -> bytes:
+        return b"\x01"
+
+    @property
+    def header(self) -> bytes:
+        return hash_domain({
+            "types": {
+                "EIP712Domain": self.domain_type,
+            },
+            "domain": self.domain,
+        })
+
+    @property
+    def body(self) -> bytes:
+        msg = {
+            "types": self.types(),
+            "primaryType": self.type,
+            "message": self.data,
+        }
+        return hash_eip712_message(msg)
 
 
 def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
