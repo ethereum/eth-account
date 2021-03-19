@@ -58,6 +58,7 @@ setup(
     package_data={"eth_account": ["hdaccount/wordlist/*.txt"]},
     install_requires=[
         "bitarray>=1.2.1,<1.3.0",
+        "dataclassy>=0.7.2,<0.8.0",
         "eth-abi>=2.0.0b7,<3",
         "eth-keyfile>=0.5.0,<0.6.0",
         "eth-keys>=0.2.1,<0.4.0,!=0.3.2",
