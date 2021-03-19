@@ -5,6 +5,8 @@ from eth_utils import (
 )
 
 from eth_account.messages import (
+    EIP712Message,
+    EIP712Type,
     SignableMessage,
     encode_intended_validator,
 )
@@ -51,3 +53,23 @@ def test_encode_intended_validator(primitive, hexstr, text, validator_address, e
 def test_encode_intended_validator_invalid_address(invalid_address):
     with pytest.raises(ValidationError):
         encode_intended_validator(invalid_address, b'')
+
+
+class SubType(EIP712Type):
+    inner: "uint256"
+
+
+class ValidMsgDef(EIP712Message):
+    _name_: "string" = "Name"
+
+    value: "uint256"
+    default_value: "address" = "0xFFfFfFffFFfffFFfFFfFFFFFffFFFffffFfFFFfF"
+    sub: SubType
+
+
+def test_multilevel_message():
+    msg = ValidMsgDef(value=1, sub=SubType(inner=2))
+
+    assert msg.version.hex() == "01"
+    assert msg.header.hex() == "ae5d5ac778a755034e549ed137af5f5bf0aacf767321bb6127ec8a1e8c68714b"
+    assert msg.body.hex() == "bbc572c6c3273deb6d95ffae1b79c35452b4996b81aa243b17eced03c0b01c54"
