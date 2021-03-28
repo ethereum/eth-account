@@ -63,21 +63,30 @@ def validate_field_declared_only_once_in_struct(field_name, struct_data, struct_
         )
 
 
+EIP712_DOMAIN_FIELDS = [
+    "name",
+    "version",
+    "chainId",
+    "verifyingContract",
+]
+
+
+def used_header_fields(EIP712Domain_data):
+    return [field["name"] for field in EIP712Domain_data if field["name"] in EIP712_DOMAIN_FIELDS]
+
+
 def validate_EIP712Domain_schema(structured_data):
     # Check that the `types` attribute contains `EIP712Domain` schema declaration
     if "EIP712Domain" not in structured_data["types"]:
         raise ValidationError("`EIP712Domain struct` not found in types attribute")
     # Check that the names and types in `EIP712Domain` are what are mentioned in the EIP-712
-    # and they are declared only once
+    # and they are declared only once (if defined at all)
     EIP712Domain_data = structured_data["types"]["EIP712Domain"]
-    validate_field_declared_only_once_in_struct("name", EIP712Domain_data, "EIP712Domain")
-    validate_field_declared_only_once_in_struct("version", EIP712Domain_data, "EIP712Domain")
-    validate_field_declared_only_once_in_struct("chainId", EIP712Domain_data, "EIP712Domain")
-    validate_field_declared_only_once_in_struct(
-        "verifyingContract",
-        EIP712Domain_data,
-        "EIP712Domain",
-    )
+    header_fields = used_header_fields(EIP712Domain_data)
+    if len(header_fields) == 0:
+        raise ValidationError(f"One of {EIP712_DOMAIN_FIELDS} must be defined in {structured_data}")
+    for field in header_fields:
+        validate_field_declared_only_once_in_struct(field, EIP712Domain_data, "EIP712Domain")
 
 
 def validate_primaryType_attribute(structured_data):
