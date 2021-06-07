@@ -39,6 +39,10 @@ from eth_account._utils.signing import (
     to_standard_signature_bytes,
     to_standard_v,
 )
+
+from eth_account._utils.typed_transactions import (
+    TypedTransaction,
+)
 from eth_account._utils.transactions import (
     Transaction,
     vrs_from,
@@ -471,6 +475,13 @@ class Account(object):
             '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
         """
         txn_bytes = HexBytes(serialized_transaction)
+        if len(txn_bytes) > 0 and txn_bytes[0] <= 0x7f:
+            # We are dealing with a typed transaction.
+            typed_transaction = TypedTransaction.from_bytes(txn_bytes)
+            msg_hash = typed_transaction.hash()
+            vrs = typed_transaction.vrs()
+            return self._recover_hash(msg_hash, vrs=vrs)
+            
         txn = Transaction.from_bytes(txn_bytes)
         msg_hash = hash_of_signed_transaction(txn)
         return self._recover_hash(msg_hash, vrs=vrs_from(txn))
@@ -663,13 +674,14 @@ class Account(object):
             v,
             r,
             s,
-            rlp_encoded,
+            encoded_transaction,
         ) = sign_transaction_dict(account._key_obj, sanitized_transaction)
 
-        transaction_hash = keccak(rlp_encoded)
+        transaction_hash = keccak(encoded_transaction)
+        print(transaction_hash.hex())
 
         return SignedTransaction(
-            rawTransaction=HexBytes(rlp_encoded),
+            rawTransaction=HexBytes(encoded_transaction),
             hash=HexBytes(transaction_hash),
             r=r,
             s=s,
