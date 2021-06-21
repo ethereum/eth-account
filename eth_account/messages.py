@@ -102,7 +102,7 @@ def encode_intended_validator(
         )
     # The validator_address is a str or Address (which is a subtype of bytes). Both of
     #   these are AnyStr, which includes str and bytes. Not sure why mypy complains here...
-    canonical_address = to_canonical_address(validator_address)  # type: ignore
+    canonical_address = to_canonical_address(validator_address)
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     return SignableMessage(
         HexBytes(b'\x00'),  # version 0, as defined in EIP-191
