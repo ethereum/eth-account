@@ -14,6 +14,7 @@ from cytoolz import (
 )
 from eth_utils import (
     keccak,
+    is_address,
 )
 from eth_rlp import (
     HashableRLP,
@@ -178,7 +179,7 @@ class AccessListTransaction():
             if len(item) != 2:
                 return False
             address, storage_keys = item
-            if not is_empty_or_checksum_address(address):
+            if not is_address(address):
                 return False
             for storage_key in storage_keys:
                 if not is_int_or_prefixed_hexstr(storage_key):
