@@ -33,7 +33,7 @@ def sign_transaction_dict(eth_key, transaction_dict):
     unsigned_transaction = serializable_unsigned_transaction_from_dict(transaction_dict)
 
     transaction_hash = unsigned_transaction.hash()
- 
+
     # detect chain
     if isinstance(unsigned_transaction, UnsignedTransaction):
         chain_id = None

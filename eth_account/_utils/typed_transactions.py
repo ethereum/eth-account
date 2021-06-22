@@ -35,17 +35,18 @@ import rlp
 from rlp.sedes import (
     Binary,
     big_endian_int,
+    BigEndianInt,
     binary,
     List,
     CountableList,
 )
 
 from .validation import (
-    is_empty_or_checksum_address,
     is_int_or_prefixed_hexstr,
     TRANSACTION_FORMATTERS,
     TRANSACTION_VALID_VALUES,
 )
+
 
 class TypedTransaction():
     """
@@ -57,6 +58,11 @@ class TypedTransaction():
         """This method should not be called directly. Use instead the 'from_dict' method."""
         self.transaction_type = transaction_type
         self.transaction = transaction
+
+    def __eq__(self, other):
+        if not isinstance(other, TypedTransaction):
+            return False
+        return self.transaction_type == other.transaction_type and self.transaction == other.transaction  # noqa: 510
 
     @classmethod
     def from_dict(cls, dictionary):
@@ -80,11 +86,15 @@ class TypedTransaction():
         assert isinstance(encoded_transaction, HexBytes)
         assert len(encoded_transaction) > 0 and encoded_transaction[0] <= 0x7f
         if encoded_transaction[0] == 0x01:
-            return AccessListTransaction.from_bytes(encoded_transaction)
+            transaction_type = AccessListTransaction.transaction_type
+            transaction = AccessListTransaction.from_bytes(encoded_transaction)
         else:
             # The only known transaction types should be explit if/elif branches.
             raise TypeError("typed transaction has unknown type: %s" % encoded_transaction[0])
-
+        return cls(
+            transaction_type=transaction_type,
+            transaction=transaction,
+        )
 
     def hash(self):
         """
@@ -93,13 +103,13 @@ class TypedTransaction():
         Note that the return type will be bytes.
         """
         return self.transaction.hash()
-        
+
     def encode(self):
         """
-        Encodes this TypedTransaction and returns it as bytes.
-        The transaction format follows EIP-2718's typed transaction format (TransactionType || TransactionPayload).
-        Note that we delegate to a transaction type's payload() method as the EIP-2718 does not prescribe a TransactionPayload
-        format, leaving types free to implement their own encoding.
+        Encodes this TypedTransaction and returns it as bytes. The transaction format follows 
+        EIP-2718's typed transaction format (TransactionType || TransactionPayload).
+        Note that we delegate to a transaction type's payload() method as the EIP-2718 does not
+        prescribe a TransactionPayload format, leaving types free to implement their own encoding.
         """
         return bytes([self.transaction_type]) + self.transaction.payload()
 
@@ -111,22 +121,23 @@ class TypedTransaction():
         """Returns (v, r, s) if they exist."""
         return self.transaction.vrs()
 
+
 class AccessListTransaction():
     """
     Represents an access list transaction per EIP-2930.
     """
 
     # This is the first transaction to implement the EIP-2978 typed transaction.
-    transaction_type = 1 # '0x01'
+    transaction_type = 1  # '0x01'
 
-    # [[{20 bytes}, [{32 bytes}...]]...], where ... means “zero or more of the thing to the left”. 
+    # [[{20 bytes}, [{32 bytes}...]]...], where ... means “zero or more of the thing to the left”.
     _access_list_sede_type = CountableList(
         List([
-            Binary.fixed_length(20, allow_empty=False),
-            CountableList(big_endian_int),
-        ]), 
+            Binary.fixed_length(20, allow_empty=True),
+            CountableList(BigEndianInt(32)),
+        ]),
     )
-    
+
     unsigned_transaction_fields = (
         ('chainId', big_endian_int),
         ('nonce', big_endian_int),
@@ -151,13 +162,13 @@ class AccessListTransaction():
         'value': 0,
         'data': b'',
         'accessList': [],
-    }    
+    }
 
     _unsigned_transaction_serializer = type(
         "_unsigned_transaction_serializer", (HashableRLP, ), {
             "fields": unsigned_transaction_fields,
         },
-    ) 
+    )
 
     _signed_transaction_serializer = type(
         "_signed_transaction_serializer", (HashableRLP, ), {
@@ -167,7 +178,12 @@ class AccessListTransaction():
 
     def __init__(self, dictionary):
         self.dictionary = dictionary
-        
+
+    def __eq__(self, other):
+        if not isinstance(other, AccessListTransaction):
+            return False
+        return self.dictionary == other.dictionary
+
     @classmethod
     def is_access_list(cls, val):
         """Returns true if 'val' is a valid access list."""
@@ -199,7 +215,9 @@ class AccessListTransaction():
             # maps to the int(0), which maps to False... This was not an issue in non-typed
             # transaction because v=0, couldn't exist with the chain offset.
             dictionary['v'] = '0x0'
-        valid_fields = apply_formatters_to_dict(transaction_valid_values, dictionary) # type: Dict[str, Any]
+        valid_fields = apply_formatters_to_dict(
+            transaction_valid_values, dictionary,
+        )  # type: Dict[str, Any]
         if not all(valid_fields.values()):
             invalid = {key: dictionary[key] for key, valid in valid_fields.items() if not valid}
             raise TypeError("Transaction had invalid fields: %r" % invalid)        
@@ -207,7 +225,10 @@ class AccessListTransaction():
     
     @classmethod
     def from_dict(cls, dictionary):
-        """Builds an AccessListTransaction from a dictionary. Verifies that the dictionary is well formed."""
+        """
+        Builds an AccessListTransaction from a dictionary.
+        Verifies that the dictionary is well formed.
+        """
         # Validate fields.
         cls.assert_valid_fields(dictionary)
         transaction_formatters = merge(TRANSACTION_FORMATTERS, {
@@ -223,7 +244,7 @@ class AccessListTransaction():
                 ]),
             )
         })
-        
+
         sanitized_dictionary = pipe(
             dictionary,
             dict,
@@ -250,13 +271,15 @@ class AccessListTransaction():
         dictionary = cls._signed_transaction_serializer.from_bytes(transaction_payload).as_dict()
         dictionary['type'] = cls.transaction_type
         return cls.from_dict(dictionary)
-        
+
+
     def as_dict(self):
         """Returns this transaction as a dictionary."""
         dictionary = self.dictionary.copy()
         dictionary['type'] = self.__class__.transaction_type
         return dictionary
-        
+
+
     def hash(self):
         """
         Hashes this AccessListTransaction to prepare it for signing.
@@ -266,22 +289,24 @@ class AccessListTransaction():
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, 'v', 'r', 's')
+        rlp_serializer = self.__class__._unsigned_transaction_serializer
         hash = pipe(
-            self.__class__._unsigned_transaction_serializer.from_dict(transaction_without_signature_fields), # rlp([...])
-            lambda val: bytes([self.__class__.transaction_type]) + rlp.encode(val), # (0x01 || rlp([...]))
-            keccak, # keccak256(0x01 || rlp([...]))
+            rlp_serializer.from_dict(transaction_without_signature_fields),
+            lambda val: bytes([self.__class__.transaction_type]) + rlp.encode(val),  # (0x01 || rlp([...]))
+            keccak,  # keccak256(0x01 || rlp([...]))
         )
         return hash
 
     def payload(self):
         """
-        Returns this transaction's payload as bytes. Here, the TransactionPayload = rlp([chainId, nonce, 
-        gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR, signatureS])
+        Returns this transaction's payload as bytes. Here, the TransactionPayload = rlp([chainId, 
+        nonce, gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR, 
+        signatureS])
         """
-        assert self.dictionary['v'] is not None and self.dictionary['r'] is not None and self.dictionary['s'] is not None
+        assert self.dictionary['v'] is not None and self.dictionary['r'] is not None and self.dictionary['s'] is not None  # noqa: 501
         return rlp.encode(self.__class__._signed_transaction_serializer.from_dict(self.dictionary))
 
     def vrs(self):
         """Returns (v, r, s) if they exist."""
         assert 'v' in self.dictionary and 'r' in self.dictionary and 's' in self.dictionary
-        return  (self.dictionary['v'], self.dictionary['r'], self.dictionary['s'])
+        return (self.dictionary['v'], self.dictionary['r'], self.dictionary['s'])

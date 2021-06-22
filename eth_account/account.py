@@ -481,7 +481,7 @@ class Account(object):
             msg_hash = typed_transaction.hash()
             vrs = typed_transaction.vrs()
             return self._recover_hash(msg_hash, vrs=vrs)
-            
+
         txn = Transaction.from_bytes(txn_bytes)
         msg_hash = hash_of_signed_transaction(txn)
         return self._recover_hash(msg_hash, vrs=vrs_from(txn))

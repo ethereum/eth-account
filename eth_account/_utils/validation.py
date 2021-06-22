@@ -20,8 +20,10 @@ from cytoolz import (
 
 VALID_EMPTY_ADDRESSES = {None, b'', ''}
 
+
 def is_none(val):
     return val is None
+
 
 def is_valid_address(value):
     if is_binary_address(value):
@@ -46,7 +48,7 @@ def is_empty_or_checksum_address(val):
         return True
     else:
         return is_valid_address(val)
-    
+
 
 TRANSACTION_FORMATTERS = {
     'nonce': hexstr_if_str(to_int),
@@ -73,4 +75,3 @@ TRANSACTION_VALID_VALUES = {
     'data': lambda val: isinstance(val, (int, str, bytes, bytearray)),
     'chainId': lambda val: val is None or is_int_or_prefixed_hexstr(val),
 }
-

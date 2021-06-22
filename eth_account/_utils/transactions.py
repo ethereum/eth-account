@@ -6,7 +6,6 @@ from typing import (
 from cytoolz import (
     curry,
     dissoc,
-    identity,
     merge,
     partial,
     pipe,
@@ -16,11 +15,6 @@ from eth_rlp import (
 )
 from eth_utils.curried import (
     apply_formatters_to_dict,
-    apply_one_of_formatters,
-    is_bytes,
-    is_string,
-    to_bytes,
-    to_int,
 )
 import rlp
 from rlp.sedes import (
@@ -30,9 +24,6 @@ from rlp.sedes import (
 )
 
 from .validation import (
-    is_valid_address,
-    is_empty_or_checksum_address,
-    is_int_or_prefixed_hexstr,
     TRANSACTION_FORMATTERS,
     TRANSACTION_VALID_VALUES,
 )
@@ -46,7 +37,7 @@ def serializable_unsigned_transaction_from_dict(transaction_dict):
     if 'type' in transaction_dict:
         # We delegate to TypedTransaction, which will carry out validation & formatting.
         return TypedTransaction.from_dict(transaction_dict)
-    
+
     assert_valid_fields(transaction_dict)
     filled_transaction = pipe(
         transaction_dict,
@@ -74,7 +65,6 @@ def encode_transaction(unsigned_transaction, vrs):
         return signed_typed_transaction.encode()
     signed_transaction = Transaction(v=v, r=r, s=s, **chain_naive_transaction)
     return rlp.encode(signed_transaction)
-
 
 
 TRANSACTION_DEFAULTS = {
