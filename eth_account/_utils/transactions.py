@@ -23,13 +23,12 @@ from rlp.sedes import (
     binary,
 )
 
+from .typed_transactions import (
+    TypedTransaction,
+)
 from .validation import (
     TRANSACTION_FORMATTERS,
     TRANSACTION_VALID_VALUES,
-)
-
-from .typed_transactions import (
-    TypedTransaction
 )
 
 

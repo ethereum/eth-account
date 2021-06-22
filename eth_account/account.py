@@ -39,13 +39,12 @@ from eth_account._utils.signing import (
     to_standard_signature_bytes,
     to_standard_v,
 )
-
-from eth_account._utils.typed_transactions import (
-    TypedTransaction,
-)
 from eth_account._utils.transactions import (
     Transaction,
     vrs_from,
+)
+from eth_account._utils.typed_transactions import (
+    TypedTransaction,
 )
 from eth_account.datastructures import (
     SignedMessage,
@@ -676,9 +675,7 @@ class Account(object):
             s,
             encoded_transaction,
         ) = sign_transaction_dict(account._key_obj, sanitized_transaction)
-
         transaction_hash = keccak(encoded_transaction)
-        print(transaction_hash.hex())
 
         return SignedTransaction(
             rawTransaction=HexBytes(encoded_transaction),

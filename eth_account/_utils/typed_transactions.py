@@ -1,10 +1,8 @@
-from hexbytes import (
-    HexBytes,
-)
 from typing import (
     Any,
     Dict,
 )
+
 from cytoolz import (
     dissoc,
     identity,
@@ -12,17 +10,17 @@ from cytoolz import (
     partial,
     pipe,
 )
-from eth_utils import (
-    keccak,
-    is_address,
-)
 from eth_rlp import (
     HashableRLP,
 )
+from eth_utils import (
+    is_address,
+    keccak,
+)
 from eth_utils.curried import (
-    apply_formatters_to_sequence,
     apply_formatter_to_array,
     apply_formatters_to_dict,
+    apply_formatters_to_sequence,
     apply_one_of_formatters,
     hexstr_if_str,
     is_bytes,
@@ -31,20 +29,23 @@ from eth_utils.curried import (
     to_bytes,
     to_int,
 )
+from hexbytes import (
+    HexBytes,
+)
 import rlp
 from rlp.sedes import (
-    Binary,
-    big_endian_int,
     BigEndianInt,
-    binary,
-    List,
+    Binary,
     CountableList,
+    List,
+    big_endian_int,
+    binary,
 )
 
 from .validation import (
-    is_int_or_prefixed_hexstr,
     TRANSACTION_FORMATTERS,
     TRANSACTION_VALID_VALUES,
+    is_int_or_prefixed_hexstr,
 )
 
 
@@ -55,14 +56,9 @@ class TypedTransaction():
      * EIP-2930's AccessListTransaction
     """
     def __init__(self, transaction_type, transaction):
-        """This method should not be called directly. Use instead the 'from_dict' method."""
+        """Should not be called directly. Use instead the 'from_dict' method."""
         self.transaction_type = transaction_type
         self.transaction = transaction
-
-    def __eq__(self, other):
-        if not isinstance(other, TypedTransaction):
-            return False
-        return self.transaction_type == other.transaction_type and self.transaction == other.transaction  # noqa: 510
 
     @classmethod
     def from_dict(cls, dictionary):
@@ -106,7 +102,7 @@ class TypedTransaction():
 
     def encode(self):
         """
-        Encodes this TypedTransaction and returns it as bytes. The transaction format follows 
+        Encodes this TypedTransaction and returns it as bytes. The transaction format follows
         EIP-2718's typed transaction format (TransactionType || TransactionPayload).
         Note that we delegate to a transaction type's payload() method as the EIP-2718 does not
         prescribe a TransactionPayload format, leaving types free to implement their own encoding.
@@ -179,11 +175,6 @@ class AccessListTransaction():
     def __init__(self, dictionary):
         self.dictionary = dictionary
 
-    def __eq__(self, other):
-        if not isinstance(other, AccessListTransaction):
-            return False
-        return self.dictionary == other.dictionary
-
     @classmethod
     def is_access_list(cls, val):
         """Returns true if 'val' is a valid access list."""
@@ -220,9 +211,8 @@ class AccessListTransaction():
         )  # type: Dict[str, Any]
         if not all(valid_fields.values()):
             invalid = {key: dictionary[key] for key, valid in valid_fields.items() if not valid}
-            raise TypeError("Transaction had invalid fields: %r" % invalid)        
-        
-    
+            raise TypeError("Transaction had invalid fields: %r" % invalid)
+
     @classmethod
     def from_dict(cls, dictionary):
         """
@@ -272,13 +262,11 @@ class AccessListTransaction():
         dictionary['type'] = cls.transaction_type
         return cls.from_dict(dictionary)
 
-
     def as_dict(self):
         """Returns this transaction as a dictionary."""
         dictionary = self.dictionary.copy()
         dictionary['type'] = self.__class__.transaction_type
         return dictionary
-
 
     def hash(self):
         """
@@ -292,15 +280,16 @@ class AccessListTransaction():
         rlp_serializer = self.__class__._unsigned_transaction_serializer
         hash = pipe(
             rlp_serializer.from_dict(transaction_without_signature_fields),
-            lambda val: bytes([self.__class__.transaction_type]) + rlp.encode(val),  # (0x01 || rlp([...]))
+            lambda val: rlp.encode(val),  # rlp([...])
+            lambda val: bytes([self.__class__.transaction_type]) + val,  # (0x01 || rlp([...]))
             keccak,  # keccak256(0x01 || rlp([...]))
         )
         return hash
 
     def payload(self):
         """
-        Returns this transaction's payload as bytes. Here, the TransactionPayload = rlp([chainId, 
-        nonce, gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR, 
+        Returns this transaction's payload as bytes. Here, the TransactionPayload = rlp([chainId,
+        nonce, gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR,
         signatureS])
         """
         assert self.dictionary['v'] is not None and self.dictionary['r'] is not None and self.dictionary['s'] is not None  # noqa: 501

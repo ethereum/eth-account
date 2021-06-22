@@ -510,20 +510,20 @@ def test_eth_long_account_address_sign_data_with_intended_validator(acct, messag
         ),
         (
             {
-                "gas":"0x186a0",
-                "gasPrice":"0x3b9aca00",
-                "data":"0x616263646566",
-                "nonce":"0x22",
-                "to":"0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
-                "value":"0x5af3107a4000",
-                "type":"0x1",
-                "accessList":[
+                "gas": "0x186a0",
+                "gasPrice": "0x3b9aca00",
+                "data": "0x616263646566",
+                "nonce": "0x22",
+                "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
+                "value": "0x5af3107a4000",
+                "type": "0x1",
+                "accessList": [
                     [
                         "0x0000000000000000000000000000000000000001",
                         ["0x0100000000000000000000000000000000000000000000000000000000000000"],
                     ],
                 ],
-                "chainId":"0x76c",
+                "chainId": "0x76c",
             },
             "0xfad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19",
             HexBytes("0x01f8ad82076c22843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000001a08289e85fa00f8f7f78a53cf147a87b2a7f0d27e64d7571f9d06a802e365c3430a017dc77eae36c88937db4a5179f57edc6119701652f3f1c6f194d1210d638a061"),  # noqa: E501

@@ -6,10 +6,6 @@ from eth_utils import (
     to_int,
 )
 
-from eth_account._utils.typed_transactions import (
-    TypedTransaction
-)
-
 from eth_account._utils.transactions import (
     ChainAwareUnsignedTransaction,
     Transaction,
@@ -17,6 +13,9 @@ from eth_account._utils.transactions import (
     encode_transaction,
     serializable_unsigned_transaction_from_dict,
     strip_signature,
+)
+from eth_account._utils.typed_transactions import (
+    TypedTransaction,
 )
 
 CHAIN_ID_OFFSET = 35
