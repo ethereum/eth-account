@@ -48,6 +48,15 @@ from .validation import (
     is_int_or_prefixed_hexstr,
 )
 
+# Define typed transaction common sedes.
+# [[{20 bytes}, [{32 bytes}...]]...], where ... means “zero or more of the thing to the left”.
+access_list_sede_type = CountableList(
+    List([
+        Binary.fixed_length(20, allow_empty=False),
+        CountableList(BigEndianInt(32)),
+    ]),
+)
+
 
 class TypedTransaction():
     """
@@ -128,14 +137,6 @@ class AccessListTransaction():
     # This is the first transaction to implement the EIP-2978 typed transaction.
     transaction_type = 1  # '0x01'
 
-    # [[{20 bytes}, [{32 bytes}...]]...], where ... means “zero or more of the thing to the left”.
-    _access_list_sede_type = CountableList(
-        List([
-            Binary.fixed_length(20, allow_empty=True),
-            CountableList(BigEndianInt(32)),
-        ]),
-    )
-
     unsigned_transaction_fields = (
         ('chainId', big_endian_int),
         ('nonce', big_endian_int),
@@ -144,7 +145,7 @@ class AccessListTransaction():
         ('to', Binary.fixed_length(20, allow_empty=True)),
         ('value', big_endian_int),
         ('data', binary),
-        ('accessList', _access_list_sede_type),
+        ('accessList', access_list_sede_type),
     )
 
     signature_fields = (
