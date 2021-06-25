@@ -63,8 +63,8 @@ class TypedTransaction():
     @classmethod
     def from_dict(cls, dictionary):
         """Builds a TypedTransaction from a dictionary. Verifies the dictionary is well formed."""
-        assert 'type' in dictionary and is_int_or_prefixed_hexstr(dictionary['type'])
-
+        if not ('type' in dictionary and is_int_or_prefixed_hexstr(dictionary['type'])):
+            raise ValueError("missing or incorrect transaction type")
         # Switch on the transaction type to choose the correct constructor.
         transaction_type = pipe(dictionary['type'], hexstr_if_str(to_int))
         if transaction_type == AccessListTransaction.transaction_type:
@@ -79,9 +79,11 @@ class TypedTransaction():
     @classmethod
     def from_bytes(cls, encoded_transaction):
         """Builds a TypedTransaction from a signed encoded transaction."""
-        assert isinstance(encoded_transaction, HexBytes)
-        assert len(encoded_transaction) > 0 and encoded_transaction[0] <= 0x7f
-        if encoded_transaction[0] == 0x01:
+        if not isinstance(encoded_transaction, HexBytes):
+            raise TypeError("expected Hexbytes, got type: %s" % type(encoded_transaction))
+        if not (len(encoded_transaction) > 0 and encoded_transaction[0] <= 0x7f):
+            raise ValueError("unexpected input")
+        if encoded_transaction[0] == AccessListTransaction.transaction_type:
             transaction_type = AccessListTransaction.transaction_type
             transaction = AccessListTransaction.from_bytes(encoded_transaction)
         else:
@@ -245,6 +247,10 @@ class AccessListTransaction():
         # We have verified the type, we can safely remove it from the dictionary,
         # given that it is not to be included within the RLP payload.
         transaction_type = sanitized_dictionary.pop('type')
+        if transaction_type != cls.transaction_type:
+            raise ValueError(
+                "expected transaction type %s, got %s" % (cls.transaction_type, transaction_type),
+            )
         assert transaction_type == cls.transaction_type
         return cls(
             dictionary=sanitized_dictionary,
@@ -253,8 +259,10 @@ class AccessListTransaction():
     @classmethod
     def from_bytes(cls, encoded_transaction):
         """Builds an AccesslistTransaction from a signed encoded transaction."""
-        assert isinstance(encoded_transaction, HexBytes)
-        assert len(encoded_transaction) > 0 and encoded_transaction[0] == 0x01
+        if not isinstance(encoded_transaction, HexBytes):
+            raise TypeError("expected Hexbytes, got type: %s" % type(encoded_transaction))
+        if not (len(encoded_transaction) > 0 and encoded_transaction[0] == cls.transaction_type):
+            raise ValueError("unexpected input")
         # Format is (0x01 || TransactionPayload)
         # We strip the prefix, and RLP unmarshal the payload into our signed transaction serializer.
         transaction_payload = encoded_transaction[1:]
@@ -292,10 +300,12 @@ class AccessListTransaction():
         nonce, gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR,
         signatureS])
         """
-        assert self.dictionary['v'] is not None and self.dictionary['r'] is not None and self.dictionary['s'] is not None  # noqa: 501
+        if not all(k in self.dictionary for k in 'vrs'):
+            raise ValueError("attempting to encode an unsigned transaction")
         return rlp.encode(self.__class__._signed_transaction_serializer.from_dict(self.dictionary))
 
     def vrs(self):
         """Returns (v, r, s) if they exist."""
-        assert 'v' in self.dictionary and 'r' in self.dictionary and 's' in self.dictionary
+        if not all(k in self.dictionary for k in 'vrs'):
+            raise ValueError("attempting to encode an unsigned transaction")
         return (self.dictionary['v'], self.dictionary['r'], self.dictionary['s'])
