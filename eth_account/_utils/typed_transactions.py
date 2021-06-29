@@ -1,6 +1,12 @@
+from abc import (
+    ABC,
+    abstractmethod,
+)
 from typing import (
     Any,
     Dict,
+    Tuple,
+    cast,
 )
 
 from cytoolz import (
@@ -58,19 +64,45 @@ access_list_sede_type = CountableList(
 )
 
 
+class _TypedTransactionImplementation(ABC):
+    """
+    Abstract class that every typed transaction must implement.
+    Should not be imported or used by clients of the library.
+    """
+    @abstractmethod
+    def hash(self) -> bytes:
+        pass
+
+    @abstractmethod
+    def payload(self) -> bytes:
+        pass
+
+    @abstractmethod
+    def as_dict(self) -> Dict[str, Any]:
+        pass
+
+    @abstractmethod
+    def vrs(self) -> Tuple[int, int, int]:
+        pass
+
+
 class TypedTransaction():
     """
     Represents a Typed Transaction as per EIP-2718.
     The currently supported Transaction Types are:
      * EIP-2930's AccessListTransaction
     """
-    def __init__(self, transaction_type, transaction):
+    def __init__(self, transaction_type: int, transaction: _TypedTransactionImplementation):
         """Should not be called directly. Use instead the 'from_dict' method."""
+        if not isinstance(transaction, _TypedTransactionImplementation):
+            raise TypeError("expected _TypedTransactionImplementation, got %s" % type(transaction))
+        if not isinstance(transaction_type, int):
+            raise TypeError("expected int, got %s" % type(transaction_type))
         self.transaction_type = transaction_type
         self.transaction = transaction
 
     @classmethod
-    def from_dict(cls, dictionary):
+    def from_dict(cls, dictionary: Dict[str, Any]):
         """Builds a TypedTransaction from a dictionary. Verifies the dictionary is well formed."""
         if not ('type' in dictionary and is_int_or_prefixed_hexstr(dictionary['type'])):
             raise ValueError("missing or incorrect transaction type")
@@ -86,10 +118,10 @@ class TypedTransaction():
         )
 
     @classmethod
-    def from_bytes(cls, encoded_transaction):
+    def from_bytes(cls, encoded_transaction: HexBytes):
         """Builds a TypedTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
-            raise TypeError("expected Hexbytes, got type: %s" % type(encoded_transaction))
+            raise TypeError("expected Hexbytes, got %s" % type(encoded_transaction))
         if not (len(encoded_transaction) > 0 and encoded_transaction[0] <= 0x7f):
             raise ValueError("unexpected input")
         if encoded_transaction[0] == AccessListTransaction.transaction_type:
@@ -103,7 +135,7 @@ class TypedTransaction():
             transaction=transaction,
         )
 
-    def hash(self):
+    def hash(self) -> bytes:
         """
         Hashes this TypedTransaction to prepare it for signing. As per the EIP-2718 specifications,
         the hashing format is dictated by the transaction type itself, and so we delegate the call.
@@ -111,7 +143,7 @@ class TypedTransaction():
         """
         return self.transaction.hash()
 
-    def encode(self):
+    def encode(self) -> bytes:
         """
         Encodes this TypedTransaction and returns it as bytes. The transaction format follows
         EIP-2718's typed transaction format (TransactionType || TransactionPayload).
@@ -120,16 +152,16 @@ class TypedTransaction():
         """
         return bytes([self.transaction_type]) + self.transaction.payload()
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str, Any]:
         """Returns this transaction as a dictionary."""
         return self.transaction.as_dict()
 
-    def vrs(self):
+    def vrs(self) -> Tuple[int, int, int]:
         """Returns (v, r, s) if they exist."""
         return self.transaction.vrs()
 
 
-class AccessListTransaction():
+class AccessListTransaction(_TypedTransactionImplementation):
     """
     Represents an access list transaction per EIP-2930.
     """
@@ -175,7 +207,7 @@ class AccessListTransaction():
         },
     )
 
-    def __init__(self, dictionary):
+    def __init__(self, dictionary: Dict[str, Any]):
         self.dictionary = dictionary
 
     @classmethod
@@ -197,7 +229,7 @@ class AccessListTransaction():
         return True
 
     @classmethod
-    def assert_valid_fields(cls, dictionary):
+    def assert_valid_fields(cls, dictionary: Dict[str, Any]):
         transaction_valid_values = merge(TRANSACTION_VALID_VALUES, {
             'type': is_int_or_prefixed_hexstr,
             'accessList': cls.is_access_list,
@@ -217,7 +249,7 @@ class AccessListTransaction():
             raise TypeError("Transaction had invalid fields: %r" % invalid)
 
     @classmethod
-    def from_dict(cls, dictionary):
+    def from_dict(cls, dictionary: Dict[str, Any]):
         """
         Builds an AccessListTransaction from a dictionary.
         Verifies that the dictionary is well formed.
@@ -258,7 +290,7 @@ class AccessListTransaction():
         )
 
     @classmethod
-    def from_bytes(cls, encoded_transaction):
+    def from_bytes(cls, encoded_transaction: HexBytes):
         """Builds an AccesslistTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
             raise TypeError("expected Hexbytes, got type: %s" % type(encoded_transaction))
@@ -267,17 +299,18 @@ class AccessListTransaction():
         # Format is (0x01 || TransactionPayload)
         # We strip the prefix, and RLP unmarshal the payload into our signed transaction serializer.
         transaction_payload = encoded_transaction[1:]
-        dictionary = cls._signed_transaction_serializer.from_bytes(transaction_payload).as_dict()
+        rlp_serializer = cls._signed_transaction_serializer
+        dictionary = rlp_serializer.from_bytes(transaction_payload).as_dict()  # type: ignore
         dictionary['type'] = cls.transaction_type
         return cls.from_dict(dictionary)
 
-    def as_dict(self):
+    def as_dict(self) -> Dict[str, Any]:
         """Returns this transaction as a dictionary."""
         dictionary = self.dictionary.copy()
         dictionary['type'] = self.__class__.transaction_type
         return dictionary
 
-    def hash(self):
+    def hash(self) -> bytes:
         """
         Hashes this AccessListTransaction to prepare it for signing.
         As per the EIP-2930 specifications, the signature is a secp256k1 signature over
@@ -288,14 +321,14 @@ class AccessListTransaction():
         transaction_without_signature_fields = dissoc(self.dictionary, 'v', 'r', 's')
         rlp_serializer = self.__class__._unsigned_transaction_serializer
         hash = pipe(
-            rlp_serializer.from_dict(transaction_without_signature_fields),
+            rlp_serializer.from_dict(transaction_without_signature_fields),  # type: ignore
             lambda val: rlp.encode(val),  # rlp([...])
             lambda val: bytes([self.__class__.transaction_type]) + val,  # (0x01 || rlp([...]))
             keccak,  # keccak256(0x01 || rlp([...]))
         )
-        return hash
+        return cast(bytes, hash)
 
-    def payload(self):
+    def payload(self) -> bytes:
         """
         Returns this transaction's payload as bytes. Here, the TransactionPayload = rlp([chainId,
         nonce, gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR,
@@ -303,9 +336,11 @@ class AccessListTransaction():
         """
         if not all(k in self.dictionary for k in 'vrs'):
             raise ValueError("attempting to encode an unsigned transaction")
-        return rlp.encode(self.__class__._signed_transaction_serializer.from_dict(self.dictionary))
+        rlp_serializer = self.__class__._signed_transaction_serializer
+        payload = rlp.encode(rlp_serializer.from_dict(self.dictionary))  # type: ignore
+        return cast(bytes, payload)
 
-    def vrs(self):
+    def vrs(self) -> Tuple[int, int, int]:
         """Returns (v, r, s) if they exist."""
         if not all(k in self.dictionary for k in 'vrs'):
             raise ValueError("attempting to encode an unsigned transaction")
