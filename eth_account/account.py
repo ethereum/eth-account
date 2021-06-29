@@ -650,6 +650,35 @@ class Account(object):
              's': 30785525769477805655994251009256770582792548537338581640010273753578382951464,
              'v': 37}
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
+
+        .. code-block:: python
+
+            >>> access_list_transaction = {
+                    "gas": 100000,
+                    "gasPrice": 1000000000,
+                    "data": "0x616263646566",
+                    "nonce": 34,
+                    "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
+                    "value": "0x5af3107a4000",
+                    "type": 1,
+                    "accessList": (
+                        (
+                            "0x0000000000000000000000000000000000000001",
+                            (
+                                "0x0100000000000000000000000000000000000000000000000000000000000000",  # noqa: E501
+                            )
+                        ),
+                    ),
+                    "chainId": 1900,
+                }
+            >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+            >>> signed = Account.sign_transaction(access_list_transaction, key)
+            {'hash': HexBytes('0x2864ca20a74ca5e044067ad4139a22ff5a0853434f5f1dc00108f24ef5f1f783'),
+             'r': 105940705063391628472351883894091935317142890114440570831409400676736873197702,
+             'rawTransaction': HexBytes('0x01f8ad82076c22843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000080a0ea38506c4afe4bb402e030877fbe1011fa1da47aabcf215db8da8fee5d3af086a051e9af653b8eb98e74e894a766cf88904dbdb10b0bc1fbd12f18f661fa2797a4'),  # noqa: E501
+             's': 37050226636175381535892585331727388340134760347943439553552848647212419749796,
+             'v': 0}
+            >>> w3.eth.sendRawTransaction(signed.rawTransaction)
         """
         if not isinstance(transaction_dict, Mapping):
             raise TypeError("transaction_dict must be dict-like, got %r" % transaction_dict)
