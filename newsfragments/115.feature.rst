@@ -1,0 +1,1 @@
+Added support for EIP-2718 (Typed Transaction) and EIP-2939 (Access List Transaction)

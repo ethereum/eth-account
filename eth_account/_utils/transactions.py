@@ -6,7 +6,6 @@ from typing import (
 from cytoolz import (
     curry,
     dissoc,
-    identity,
     merge,
     partial,
     pipe,
@@ -16,14 +15,6 @@ from eth_rlp import (
 )
 from eth_utils.curried import (
     apply_formatters_to_dict,
-    apply_one_of_formatters,
-    hexstr_if_str,
-    is_0x_prefixed,
-    is_bytes,
-    is_integer,
-    is_string,
-    to_bytes,
-    to_int,
 )
 import rlp
 from rlp.sedes import (
@@ -32,14 +23,20 @@ from rlp.sedes import (
     binary,
 )
 
-from .validation import (
-    is_valid_address,
+from .typed_transactions import (
+    TypedTransaction,
 )
-
-VALID_EMPTY_ADDRESSES = {None, b'', ''}
+from .validation import (
+    TRANSACTION_FORMATTERS,
+    TRANSACTION_VALID_VALUES,
+)
 
 
 def serializable_unsigned_transaction_from_dict(transaction_dict):
+    if 'type' in transaction_dict:
+        # We delegate to TypedTransaction, which will carry out validation & formatting.
+        return TypedTransaction.from_dict(transaction_dict)
+
     assert_valid_fields(transaction_dict)
     filled_transaction = pipe(
         transaction_dict,
@@ -58,28 +55,15 @@ def serializable_unsigned_transaction_from_dict(transaction_dict):
 def encode_transaction(unsigned_transaction, vrs):
     (v, r, s) = vrs
     chain_naive_transaction = dissoc(unsigned_transaction.as_dict(), 'v', 'r', 's')
+    if isinstance(unsigned_transaction, TypedTransaction):
+        # Typed transaction have their own encoding format, so we must delegate the encoding.
+        chain_naive_transaction['v'] = v
+        chain_naive_transaction['r'] = r
+        chain_naive_transaction['s'] = s
+        signed_typed_transaction = TypedTransaction.from_dict(chain_naive_transaction)
+        return signed_typed_transaction.encode()
     signed_transaction = Transaction(v=v, r=r, s=s, **chain_naive_transaction)
     return rlp.encode(signed_transaction)
-
-
-def is_int_or_prefixed_hexstr(val):
-    if is_integer(val):
-        return True
-    elif isinstance(val, str) and is_0x_prefixed(val):
-        return True
-    else:
-        return False
-
-
-def is_empty_or_checksum_address(val):
-    if val in VALID_EMPTY_ADDRESSES:
-        return True
-    else:
-        return is_valid_address(val)
-
-
-def is_none(val):
-    return val is None
 
 
 TRANSACTION_DEFAULTS = {
@@ -87,32 +71,6 @@ TRANSACTION_DEFAULTS = {
     'value': 0,
     'data': b'',
     'chainId': None,
-}
-
-TRANSACTION_FORMATTERS = {
-    'nonce': hexstr_if_str(to_int),
-    'gasPrice': hexstr_if_str(to_int),
-    'gas': hexstr_if_str(to_int),
-    'to': apply_one_of_formatters((
-        (is_string, hexstr_if_str(to_bytes)),
-        (is_bytes, identity),
-        (is_none, lambda val: b''),
-    )),
-    'value': hexstr_if_str(to_int),
-    'data': hexstr_if_str(to_bytes),
-    'v': hexstr_if_str(to_int),
-    'r': hexstr_if_str(to_int),
-    's': hexstr_if_str(to_int),
-}
-
-TRANSACTION_VALID_VALUES = {
-    'nonce': is_int_or_prefixed_hexstr,
-    'gasPrice': is_int_or_prefixed_hexstr,
-    'gas': is_int_or_prefixed_hexstr,
-    'to': is_empty_or_checksum_address,
-    'value': is_int_or_prefixed_hexstr,
-    'data': lambda val: isinstance(val, (int, str, bytes, bytearray)),
-    'chainId': lambda val: val is None or is_int_or_prefixed_hexstr(val),
 }
 
 ALLOWED_TRANSACTION_KEYS = {

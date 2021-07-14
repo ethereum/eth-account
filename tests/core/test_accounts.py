@@ -73,6 +73,39 @@ ETH_TEST_TRANSACTIONS = [
         "unsigned": "eb8085e8d4a510008227109413978aee95f38490e9769c39b2773ed763d9cd5f872386f26fc1000080808080",  # noqa: 501
         "signed": "f86b8085e8d4a510008227109413978aee95f38490e9769c39b2773ed763d9cd5f872386f26fc10000801ba0eab47c1a49bf2fe5d40e01d313900e19ca485867d462fe06e139e3a536c6d4f4a014a569d327dcda4b29f74f93c0e9729d2f49ad726e703f9cd90dbb0fbf6649f1"  # noqa: 501
     },
+    # Typed Transaction (EIP-2930's access list transaction) - empty list.
+    {
+        "key": "fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19",
+        "gas": "0x186a0",
+        "gasPrice": "0x3b9aca00",
+        "data": "0x616263646566",
+        "nonce": "0x27",
+        "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
+        "value": "0x5af3107a4000",
+        "type": "0x1",
+        "accessList": [],
+        "chainId": "0x76c",
+        "signed": "0x01f87482076c27843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566c080a0bad1a40fa2d90dc7539831bb82dfccf9b7094eab238d50c4369b805fb7241c58a046ab7eb7ff8cdfd203847b7e1b2f9e41208bba76a86ae3eeb97fe2727763aa12", # noqa: 501
+    },
+    # Typed Transaction (EIP-2930's access list transaction) - non-empty list.
+    {
+        "key": "fad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19",
+        "gas": "0x186a0",
+        "gasPrice": "0x3b9aca00",
+        "data": "0x616263646566",
+        "nonce": "0x22",
+        "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
+        "value": "0x5af3107a4000",
+        "type": "0x1",
+        "accessList": [
+            [
+                    "0x0000000000000000000000000000000000000001",
+                    ["0x0100000000000000000000000000000000000000000000000000000000000000"],
+                ],
+        ],
+        "chainId": "0x76c",
+        "signed": "0x01f8ad82076c22843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000001a08289e85fa00f8f7f78a53cf147a87b2a7f0d27e64d7571f9d06a802e365c3430a017dc77eae36c88937db4a5179f57edc6119701652f3f1c6f194d1210d638a061",  # noqa: 501
+    },
 ]
 
 
@@ -475,8 +508,32 @@ def test_eth_long_account_address_sign_data_with_intended_validator(acct, messag
             232940010090391255679819602567388136081614408698362277324138554019997613600,
             38,
         ),
+        (
+            {
+                "gas": "0x186a0",
+                "gasPrice": "0x3b9aca00",
+                "data": "0x616263646566",
+                "nonce": "0x22",
+                "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
+                "value": "0x5af3107a4000",
+                "type": "0x1",
+                "accessList": [
+                    [
+                        "0x0000000000000000000000000000000000000001",
+                        ["0x0100000000000000000000000000000000000000000000000000000000000000"],
+                    ],
+                ],
+                "chainId": "0x76c",
+            },
+            "0xfad9c8855b740a0b7ed4c221dbad0f33a83a49cad6b3fe8d5817ac83d38b6a19",
+            HexBytes("0x01f8ad82076c22843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000001a08289e85fa00f8f7f78a53cf147a87b2a7f0d27e64d7571f9d06a802e365c3430a017dc77eae36c88937db4a5179f57edc6119701652f3f1c6f194d1210d638a061"),  # noqa: E501
+            HexBytes("0x2a791d5483705e444fa6d493e6f504836cf54ca78335c60dc81bcf320e95e49c"),
+            59044332146903025833144089863119240337233261477961028574753111682592582415408,
+            10792729512059697976635619515571917958852106732672247829612911298843986403425,
+            1,
+        ),
     ),
-    ids=['web3js_hex_str_example', 'web3js_eth_keys.datatypes.PrivateKey_example', '31byte_r_and_s'],  # noqa: E501
+    ids=['web3js_hex_str_example', 'web3js_eth_keys.datatypes.PrivateKey_example', '31byte_r_and_s', 'access_list_tx'],  # noqa: E501
 )
 def test_eth_account_sign_transaction(acct, txn, private_key, expected_raw_tx, tx_hash, r, s, v):
     signed = acct.sign_transaction(txn, private_key)
@@ -519,8 +576,7 @@ def test_eth_account_sign_transaction_from_eth_test(acct, transaction):
 )
 def test_eth_account_recover_transaction_from_eth_test(acct, transaction):
     raw_txn = transaction['signed']
-    key = transaction['key']
-    expected_sender = acct.from_key(key).address
+    expected_sender = acct.from_key(transaction['key']).address
     assert acct.recover_transaction(raw_txn) == expected_sender
 
 

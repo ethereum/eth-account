@@ -8,10 +8,14 @@ from eth_utils import (
 
 from eth_account._utils.transactions import (
     ChainAwareUnsignedTransaction,
+    Transaction,
     UnsignedTransaction,
     encode_transaction,
     serializable_unsigned_transaction_from_dict,
     strip_signature,
+)
+from eth_account._utils.typed_transactions import (
+    TypedTransaction,
 )
 
 CHAIN_ID_OFFSET = 35
@@ -32,11 +36,18 @@ def sign_transaction_dict(eth_key, transaction_dict):
     # detect chain
     if isinstance(unsigned_transaction, UnsignedTransaction):
         chain_id = None
-    else:
+        (v, r, s) = sign_transaction_hash(eth_key, transaction_hash, chain_id)
+    elif isinstance(unsigned_transaction, Transaction):
         chain_id = unsigned_transaction.v
-
-    # sign with private key
-    (v, r, s) = sign_transaction_hash(eth_key, transaction_hash, chain_id)
+        (v, r, s) = sign_transaction_hash(eth_key, transaction_hash, chain_id)
+    elif isinstance(unsigned_transaction, TypedTransaction):
+        # Each transaction type dictates its payload, and consequently,
+        # all the funky logic around the `v` signature field is both obselete && incorrect.
+        # We want to obtain the raw `v` and delegate to the transaction type itself.
+        (v, r, s) = eth_key.sign_msg_hash(transaction_hash).vrs
+    else:
+        # Cannot happen, but better for code to be defensive + self-documenting.
+        raise TypeError("unknown Transaction object: %s" % type(unsigned_transaction))
 
     # serialize transaction with rlp
     encoded_transaction = encode_transaction(unsigned_transaction, vrs=(v, r, s))
