@@ -14,6 +14,8 @@ from eth_utils.curried import (
     is_string,
     to_bytes,
     to_int,
+    is_list_like,
+    is_address,
 )
 
 VALID_EMPTY_ADDRESSES = {None, b'', ''}
@@ -46,6 +48,24 @@ def is_empty_or_checksum_address(val):
         return True
     else:
         return is_valid_address(val)
+
+
+def is_access_list(val):
+    """Returns true if 'val' is a valid access list."""
+    if not is_list_like(val):
+        return False
+    for item in val:
+        if not is_list_like(item):
+            return False
+        if len(item) != 2:
+            return False
+        address, storage_keys = item
+        if not is_address(address): # TODO(malon): Do we use 'is valid address instead?'
+            return False
+        for storage_key in storage_keys:
+            if not is_int_or_prefixed_hexstr(storage_key):
+                return False
+    return True
 
 
 TRANSACTION_FORMATTERS = {

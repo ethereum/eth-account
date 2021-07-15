@@ -30,7 +30,6 @@ from eth_utils.curried import (
     apply_one_of_formatters,
     hexstr_if_str,
     is_bytes,
-    is_list_like,
     is_string,
     to_bytes,
     to_int,
@@ -52,6 +51,25 @@ from .validation import (
     TRANSACTION_FORMATTERS,
     TRANSACTION_VALID_VALUES,
     is_int_or_prefixed_hexstr,
+    is_access_list,
+)
+
+TYPED_TRANSACTION_FORMATTERS = merge(
+    TRANSACTION_FORMATTERS, {
+        'chainId': hexstr_if_str(to_int),
+        'type': hexstr_if_str(to_int),
+        'accessList': apply_formatter_to_array(
+            apply_formatters_to_sequence([
+                apply_one_of_formatters((
+                    (is_string, hexstr_if_str(to_bytes)),
+                    (is_bytes, identity),
+                )),
+                apply_formatter_to_array(hexstr_if_str(to_int)),
+            ]),
+        ),
+        'maxPriorityFeePerGas': hexstr_if_str(to_int),
+        'maxFeePerGas': hexstr_if_str(to_int),
+    },
 )
 
 # Define typed transaction common sedes.
@@ -165,8 +183,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
     """
     Represents an access list transaction per EIP-2930.
     """
-
-    # This is the first transaction to implement the EIP-2978 typed transaction.
+    # This is the first transaction to implement the EIP-2718 typed transaction.
     transaction_type = 1  # '0x01'
 
     unsigned_transaction_fields = (
@@ -211,28 +228,10 @@ class AccessListTransaction(_TypedTransactionImplementation):
         self.dictionary = dictionary
 
     @classmethod
-    def is_access_list(cls, val):
-        """Returns true if 'val' is a valid access list."""
-        if not is_list_like(val):
-            return False
-        for item in val:
-            if not is_list_like(item):
-                return False
-            if len(item) != 2:
-                return False
-            address, storage_keys = item
-            if not is_address(address):
-                return False
-            for storage_key in storage_keys:
-                if not is_int_or_prefixed_hexstr(storage_key):
-                    return False
-        return True
-
-    @classmethod
     def assert_valid_fields(cls, dictionary: Dict[str, Any]):
         transaction_valid_values = merge(TRANSACTION_VALID_VALUES, {
             'type': is_int_or_prefixed_hexstr,
-            'accessList': cls.is_access_list,
+            'accessList': is_access_list,
         })
 
         if 'v' in dictionary and dictionary['v'] == 0:
@@ -256,25 +255,11 @@ class AccessListTransaction(_TypedTransactionImplementation):
         """
         # Validate fields.
         cls.assert_valid_fields(dictionary)
-        transaction_formatters = merge(TRANSACTION_FORMATTERS, {
-            'chainId': hexstr_if_str(to_int),
-            'type': hexstr_if_str(to_int),
-            'accessList': apply_formatter_to_array(
-                apply_formatters_to_sequence([
-                    apply_one_of_formatters((
-                        (is_string, hexstr_if_str(to_bytes)),
-                        (is_bytes, identity),
-                    )),
-                    apply_formatter_to_array(hexstr_if_str(to_int)),
-                ]),
-            )
-        })
-
         sanitized_dictionary = pipe(
             dictionary,
             dict,
             partial(merge, cls.transaction_field_defaults),
-            apply_formatters_to_dict(transaction_formatters),
+            apply_formatters_to_dict(TYPED_TRANSACTION_FORMATTERS),
         )
 
         # We have verified the type, we can safely remove it from the dictionary,
@@ -284,7 +269,6 @@ class AccessListTransaction(_TypedTransactionImplementation):
             raise ValueError(
                 "expected transaction type %s, got %s" % (cls.transaction_type, transaction_type),
             )
-        assert transaction_type == cls.transaction_type
         return cls(
             dictionary=sanitized_dictionary,
         )
@@ -345,3 +329,158 @@ class AccessListTransaction(_TypedTransactionImplementation):
         if not all(k in self.dictionary for k in 'vrs'):
             raise ValueError("attempting to encode an unsigned transaction")
         return (self.dictionary['v'], self.dictionary['r'], self.dictionary['s'])
+
+class DynamicFeeTransaction(_TypedTransactionImplementation):
+    """
+    Represents a dynamic fee transaction access per EIP-1559.
+    """
+    # This is the second transaction to implement the EIP-2718 typed transaction.
+    transaction_type = 2  # '0x02'
+
+    unsigned_transaction_fields = (
+        ('chainId', big_endian_int),
+        ('nonce', big_endian_int),
+        ('maxPriorityFeePerGas', big_endian_int),
+        ('maxFeePerGas', big_endian_int),
+        ('gas', big_endian_int),
+        ('to', Binary.fixed_length(20, allow_empty=True)),
+        ('value', big_endian_int),
+        ('data', binary),
+        ('accessList', access_list_sede_type),
+    )
+
+    signature_fields = (
+        ('v', big_endian_int),
+        ('r', big_endian_int),
+        ('s', big_endian_int),
+    )
+
+    transaction_field_defaults = {
+        'type': b'0x2',
+        'chainId': 0,
+        'to': b'',
+        'value': 0,
+        'data': b'',
+        'accessList': [],
+    }
+
+    _unsigned_transaction_serializer = type(
+        "_unsigned_transaction_serializer", (HashableRLP, ), {
+            "fields": unsigned_transaction_fields,
+        },
+    )
+
+    _signed_transaction_serializer = type(
+        "_signed_transaction_serializer", (HashableRLP, ), {
+            "fields": unsigned_transaction_fields + signature_fields,
+        },
+    )
+
+    def __init__(self, dictionary: Dict[str, Any]):
+        self.dictionary = dictionary
+
+    @classmethod
+    def assert_valid_fields(cls, dictionary: Dict[str, Any]):
+        transaction_valid_values = merge(TRANSACTION_VALID_VALUES, {
+            'type': is_int_or_prefixed_hexstr,
+            'maxPriorityFeePerGas': is_int_or_prefixed_hexstr,
+            'maxFeePerGas': is_int_or_prefixed_hexstr,
+            'accessList': is_access_list,
+        })
+
+        if 'v' in dictionary and dictionary['v'] == 0:
+            # This is insane logic that is required because the way we evaluate
+            # correct types is in the `if not all()` branch below, and 0 obviously
+            # maps to the int(0), which maps to False... This was not an issue in non-typed
+            # transaction because v=0, couldn't exist with the chain offset.
+            dictionary['v'] = '0x0'
+        valid_fields = apply_formatters_to_dict(
+            transaction_valid_values, dictionary,
+        )  # type: Dict[str, Any]
+        if not all(valid_fields.values()):
+            invalid = {key: dictionary[key] for key, valid in valid_fields.items() if not valid}
+            raise TypeError("Transaction had invalid fields: %r" % invalid)
+
+    @classmethod
+    def from_dict(cls, dictionary: Dict[str, Any]):
+        """
+        Builds a DynamicFeeTransaction from a dictionary.
+        Verifies that the dictionary is well formed.
+        """
+        # Validate fields.
+        cls.assert_valid_fields(dictionary)
+        sanitized_dictionary = pipe(
+            dictionary,
+            dict,
+            partial(merge, cls.transaction_field_defaults),
+            apply_formatters_to_dict(TYPED_TRANSACTION_FORMATTERS),
+        )
+
+        # We have verified the type, we can safely remove it from the dictionary,
+        # given that it is not to be included within the RLP payload.
+        transaction_type = sanitized_dictionary.pop('type')
+        if transaction_type != cls.transaction_type:
+            raise ValueError(
+                "expected transaction type %s, got %s" % (cls.transaction_type, transaction_type),
+            )
+        return cls(
+            dictionary=sanitized_dictionary,
+        )
+
+    @classmethod
+    def from_bytes(cls, encoded_transaction: HexBytes):
+        """Builds a DynamicFeeTransaction from a signed encoded transaction."""
+        if not isinstance(encoded_transaction, HexBytes):
+            raise TypeError("expected Hexbytes, got type: %s" % type(encoded_transaction))
+        if not (len(encoded_transaction) > 0 and encoded_transaction[0] == cls.transaction_type):
+            raise ValueError("unexpected input")
+        # Format is (0x02 || TransactionPayload)
+        # We strip the prefix, and RLP unmarshal the payload into our signed transaction serializer.
+        transaction_payload = encoded_transaction[1:]
+        rlp_serializer = cls._signed_transaction_serializer
+        dictionary = rlp_serializer.from_bytes(transaction_payload).as_dict()  # type: ignore
+        dictionary['type'] = cls.transaction_type
+        return cls.from_dict(dictionary)
+
+    def as_dict(self) -> Dict[str, Any]:
+        """Returns this transaction as a dictionary."""
+        dictionary = self.dictionary.copy()
+        dictionary['type'] = self.__class__.transaction_type
+        return dictionary
+
+    def hash(self) -> bytes:
+        """
+        Hashes this AccessListTransaction to prepare it for signing.
+        As per the EIP-2930 specifications, the signature is a secp256k1 signature over
+        keccak256(0x01 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data, accessList])).
+        Here, we compute the keccak256(...) hash.
+        """
+        # Remove signature fields.
+        transaction_without_signature_fields = dissoc(self.dictionary, 'v', 'r', 's')
+        rlp_serializer = self.__class__._unsigned_transaction_serializer
+        hash = pipe(
+            rlp_serializer.from_dict(transaction_without_signature_fields),  # type: ignore
+            lambda val: rlp.encode(val),  # rlp([...])
+            lambda val: bytes([self.__class__.transaction_type]) + val,  # (0x02 || rlp([...]))
+            keccak,  # keccak256(0x02 || rlp([...]))
+        )
+        return cast(bytes, hash)
+
+    def payload(self) -> bytes:
+        """
+        Returns this transaction's payload as bytes. Here, the TransactionPayload = rlp([chainId,
+        nonce, gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR,
+        signatureS])
+        """
+        if not all(k in self.dictionary for k in 'vrs'):
+            raise ValueError("attempting to encode an unsigned transaction")
+        rlp_serializer = self.__class__._signed_transaction_serializer
+        payload = rlp.encode(rlp_serializer.from_dict(self.dictionary))  # type: ignore
+        return cast(bytes, payload)
+
+    def vrs(self) -> Tuple[int, int, int]:
+        """Returns (v, r, s) if they exist."""
+        if not all(k in self.dictionary for k in 'vrs'):
+            raise ValueError("attempting to encode an unsigned transaction")
+        return (self.dictionary['v'], self.dictionary['r'], self.dictionary['s'])
+    
