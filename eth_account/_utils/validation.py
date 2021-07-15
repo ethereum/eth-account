@@ -9,13 +9,13 @@ from eth_utils.curried import (
     apply_one_of_formatters,
     hexstr_if_str,
     is_0x_prefixed,
+    is_address,
     is_bytes,
     is_integer,
+    is_list_like,
     is_string,
     to_bytes,
     to_int,
-    is_list_like,
-    is_address,
 )
 
 VALID_EMPTY_ADDRESSES = {None, b'', ''}

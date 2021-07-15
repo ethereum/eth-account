@@ -50,8 +50,8 @@ from rlp.sedes import (
 from .validation import (
     TRANSACTION_FORMATTERS,
     TRANSACTION_VALID_VALUES,
-    is_int_or_prefixed_hexstr,
     is_access_list,
+    is_int_or_prefixed_hexstr,
 )
 
 TYPED_TRANSACTION_FORMATTERS = merge(
@@ -483,4 +483,3 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         if not all(k in self.dictionary for k in 'vrs'):
             raise ValueError("attempting to encode an unsigned transaction")
         return (self.dictionary['v'], self.dictionary['r'], self.dictionary['s'])
-    
