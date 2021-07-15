@@ -20,7 +20,6 @@ from eth_rlp import (
     HashableRLP,
 )
 from eth_utils import (
-    is_address,
     keccak,
 )
 from eth_utils.curried import (
@@ -329,6 +328,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
         if not all(k in self.dictionary for k in 'vrs'):
             raise ValueError("attempting to encode an unsigned transaction")
         return (self.dictionary['v'], self.dictionary['r'], self.dictionary['s'])
+
 
 class DynamicFeeTransaction(_TypedTransactionImplementation):
     """

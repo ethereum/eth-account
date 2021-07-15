@@ -60,7 +60,7 @@ def is_access_list(val):
         if len(item) != 2:
             return False
         address, storage_keys = item
-        if not is_address(address): # TODO(malon): Do we use 'is valid address instead?'
+        if not is_address(address):  # TODO(malon): Do we use 'is valid address instead?'
             return False
         for storage_key in storage_keys:
             if not is_int_or_prefixed_hexstr(storage_key):
