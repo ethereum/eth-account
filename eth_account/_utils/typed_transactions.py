@@ -125,7 +125,7 @@ class TypedTransaction():
             raise ValueError("missing or incorrect transaction type")
         # Switch on the transaction type to choose the correct constructor.
         transaction_type = pipe(dictionary['type'], hexstr_if_str(to_int))
-        transaction: _TypedTransactionImplementation
+        transaction: Any
         if transaction_type == AccessListTransaction.transaction_type:
             transaction = AccessListTransaction
         elif transaction_type == DynamicFeeTransaction.transaction_type:
