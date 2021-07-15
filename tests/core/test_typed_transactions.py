@@ -5,7 +5,9 @@ from hexbytes import (
 )
 
 from eth_account._utils.typed_transactions import (
-    TypedTransaction, AccessListTransaction, DynamicFeeTransaction,
+    AccessListTransaction,
+    DynamicFeeTransaction,
+    TypedTransaction,
 )
 
 TEST_CASES = [
@@ -103,7 +105,6 @@ TEST_CASES = [
         },
     },
 
-    
     {
         "expected_type": DynamicFeeTransaction,
         "expected_hash": "0x17ab86143b83c3d7cbf6ffa5284b2e53e02acabb720041e04c6fa1a7033efad0",
@@ -150,7 +151,7 @@ TEST_CASES = [
             "r": "0xc3000cd391f991169ebfd5d3b9e93c89d31a61c998a21b07a11dc6b9d66f8a8e",
             "s": "0x22cfe8424b2fbd78b16c9911da1be2349027b0a3c40adf4b6459222323773f74",
         },
-    },    
+    },
 ]
 
 
