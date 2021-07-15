@@ -127,6 +127,8 @@ class TypedTransaction():
         transaction_type = pipe(dictionary['type'], hexstr_if_str(to_int))
         if transaction_type == AccessListTransaction.transaction_type:
             transaction = AccessListTransaction
+        elif transaction_type == DynamicFeeTransaction.transaction_type:
+            transaction = DynamicFeeTransaction
         else:
             raise TypeError("Unknown Transaction type: %s" % transaction_type)
         return cls(
@@ -144,6 +146,9 @@ class TypedTransaction():
         if encoded_transaction[0] == AccessListTransaction.transaction_type:
             transaction_type = AccessListTransaction.transaction_type
             transaction = AccessListTransaction.from_bytes(encoded_transaction)
+        elif encoded_transaction[0] == DynamicFeeTransaction.transaction_type:
+            transaction_type = DynamicFeeTransaction.transaction_type
+            transaction = DynamicFeeTransaction.from_bytes(encoded_transaction)
         else:
             # The only known transaction types should be explit if/elif branches.
             raise TypeError("typed transaction has unknown type: %s" % encoded_transaction[0])
