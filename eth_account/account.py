@@ -39,7 +39,7 @@ from eth_account._utils.signing import (
     to_standard_signature_bytes,
     to_standard_v,
 )
-from eth_account._utils.transactions import (
+from eth_account._utils.legacy_transactions import (
     Transaction,
     vrs_from,
 )

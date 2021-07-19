@@ -152,13 +152,61 @@ TEST_CASES = [
             "s": "0x22cfe8424b2fbd78b16c9911da1be2349027b0a3c40adf4b6459222323773f74",
         },
     },
+ 
+    {
+        "expected_type": DynamicFeeTransaction,
+        "expected_hash": "0x17ab86143b83c3d7cbf6ffa5284b2e53e02acabb720041e04c6fa1a7033efad0",
+        "expected_raw_transaction": "0x02f9022d8205390284773594008477359400830186a09496216849c49358b10257cb55b28ea603c874b05e865af3107a4000825544f901b6f8dd94290a6a7460b308ee3f19023d2d00de604bcf5b42f8c6a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000001a00000000000000000000000000000000000000000000000000000000000000004a0b4c32d61ed12936769c68071a161309a6848a0d43ffce43d5f529f86b73529c3a0b4c32d61ed12936769c68071a161309a6848a0d43ffce43d5f529f86b73529c4a0b4c32d61ed12936769c68071a161309a6848a0d43ffce43d5f529f86b73529c5f87a947d1afa7b718fb893db30a3abc0cfc608aacfebb0f863a014d5312942240e565c56aec11806ce58e3c0e38c96269d759c5d35a2a2e4a449a037b0b82ee5d8a88672df3895a46af48bbcd30d6efcc908136e29456fa30604bba0bc3269c3ddeb063124d8c8f40c383f40b2d3212d819cd058041d83e583892d9af85994c02aaa39b223fe8d0a0e5c4f27ead9083c756cc2f842a02c47f2c83db5d085fba21d1d91bba6245435c688f64423ba360424c27e4558f2a08275c17064fd92fe5b41f3fc855dd1c473a6b1800a19406cb089c51a5c17536101a0c3000cd391f991169ebfd5d3b9e93c89d31a61c998a21b07a11dc6b9d66f8a8ea022cfe8424b2fbd78b16c9911da1be2349027b0a3c40adf4b6459222323773f74",  # noqa: 501
+        "transaction": {
+            "gas": 100000, # Test integer values here.
+            "maxFeePerGas": 2000000000,
+            "maxPriorityFeePerGas": 2000000000,
+            "data": "0x5544",
+            "nonce": "0x2",
+            "to": "0x96216849c49358B10257cb55b28eA603c874b05E",
+            "value": "0x5af3107a4000",
+            "type": "0x2",
+            "accessList": (
+                (
+                    "0x290a6a7460b308ee3f19023d2d00de604bcf5b42",
+                    (
+                        "0x0000000000000000000000000000000000000000000000000000000000000000",
+                        "0x0000000000000000000000000000000000000000000000000000000000000001",
+                        "0x0000000000000000000000000000000000000000000000000000000000000004",
+                        "0xb4c32d61ed12936769c68071a161309a6848a0d43ffce43d5f529f86b73529c3",
+                        "0xb4c32d61ed12936769c68071a161309a6848a0d43ffce43d5f529f86b73529c4",
+                        "0xb4c32d61ed12936769c68071a161309a6848a0d43ffce43d5f529f86b73529c5",
+                    ),
+                ),
+                (
+                    "0x7d1afa7b718fb893db30a3abc0cfc608aacfebb0",
+                    (
+                        "0x14d5312942240e565c56aec11806ce58e3c0e38c96269d759c5d35a2a2e4a449",
+                        "0x37b0b82ee5d8a88672df3895a46af48bbcd30d6efcc908136e29456fa30604bb",
+                        "0xbc3269c3ddeb063124d8c8f40c383f40b2d3212d819cd058041d83e583892d9a",
+                    ),
+                ),
+                (
+                    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",
+                    (
+                        "0x2c47f2c83db5d085fba21d1d91bba6245435c688f64423ba360424c27e4558f2",
+                        "0x8275c17064fd92fe5b41f3fc855dd1c473a6b1800a19406cb089c51a5c175361",
+                    ),
+                ),
+            ),
+            "chainId": "0x539",
+            "v": "0x1",
+            "r": "0xc3000cd391f991169ebfd5d3b9e93c89d31a61c998a21b07a11dc6b9d66f8a8e",
+            "s": "0x22cfe8424b2fbd78b16c9911da1be2349027b0a3c40adf4b6459222323773f74",
+        },
+    },
 ]
 
 
 @pytest.mark.parametrize(
     'test_case',
     TEST_CASES,
-    ids=['non-empty-list', 'empty-list', 'many-acls', 'dynamic-fee-transaction'],
+    ids=['non-empty-list', 'empty-list', 'many-acls', 'dynamic-fee-tx', 'dynamic-fee-tx-2'],
 )
 def test_hash(test_case):
     expected = test_case["expected_hash"]
@@ -171,7 +219,7 @@ def test_hash(test_case):
 @pytest.mark.parametrize(
     'test_case',
     TEST_CASES,
-    ids=['non-empty-list', 'empty-list', 'many-acls', 'dynamic-fee-transaction'],
+    ids=['non-empty-list', 'empty-list', 'many-acls', 'dynamic-fee-tx', 'dynamic-fee-tx-2'],
 )
 def test_encode(test_case):
     expected = test_case["expected_raw_transaction"]
@@ -184,7 +232,7 @@ def test_encode(test_case):
 @pytest.mark.parametrize(
     'test_case',
     TEST_CASES,
-    ids=['non-empty-list', 'empty-list', 'many-acls', 'dynamic-fee-transaction'],
+    ids=['non-empty-list', 'empty-list', 'many-acls', 'dynamic-fee-tx', 'dynamic-fee-tx-2'],
 )
 def test_decode_encode(test_case):
     raw_transaction = test_case["expected_raw_transaction"]

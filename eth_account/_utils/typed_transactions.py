@@ -47,14 +47,14 @@ from rlp.sedes import (
 )
 
 from .validation import (
-    TRANSACTION_FORMATTERS,
-    TRANSACTION_VALID_VALUES,
+    LEGACY_TRANSACTION_FORMATTERS,
+    LEGACY_TRANSACTION_VALID_VALUES,
     is_access_list,
     is_int_or_prefixed_hexstr,
 )
 
 TYPED_TRANSACTION_FORMATTERS = merge(
-    TRANSACTION_FORMATTERS, {
+    LEGACY_TRANSACTION_FORMATTERS, {
         'chainId': hexstr_if_str(to_int),
         'type': hexstr_if_str(to_int),
         'accessList': apply_formatter_to_array(
@@ -234,7 +234,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
 
     @classmethod
     def assert_valid_fields(cls, dictionary: Dict[str, Any]):
-        transaction_valid_values = merge(TRANSACTION_VALID_VALUES, {
+        transaction_valid_values = merge(LEGACY_TRANSACTION_VALID_VALUES, {
             'type': is_int_or_prefixed_hexstr,
             'accessList': is_access_list,
         })
@@ -387,7 +387,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
 
     @classmethod
     def assert_valid_fields(cls, dictionary: Dict[str, Any]):
-        transaction_valid_values = merge(TRANSACTION_VALID_VALUES, {
+        transaction_valid_values = merge(LEGACY_TRANSACTION_VALID_VALUES, {
             'type': is_int_or_prefixed_hexstr,
             'maxPriorityFeePerGas': is_int_or_prefixed_hexstr,
             'maxFeePerGas': is_int_or_prefixed_hexstr,

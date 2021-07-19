@@ -68,7 +68,7 @@ def is_access_list(val):
     return True
 
 
-TRANSACTION_FORMATTERS = {
+LEGACY_TRANSACTION_FORMATTERS = {
     'nonce': hexstr_if_str(to_int),
     'gasPrice': hexstr_if_str(to_int),
     'gas': hexstr_if_str(to_int),
@@ -84,7 +84,7 @@ TRANSACTION_FORMATTERS = {
     's': hexstr_if_str(to_int),
 }
 
-TRANSACTION_VALID_VALUES = {
+LEGACY_TRANSACTION_VALID_VALUES = {
     'nonce': is_int_or_prefixed_hexstr,
     'gasPrice': is_int_or_prefixed_hexstr,
     'gas': is_int_or_prefixed_hexstr,
