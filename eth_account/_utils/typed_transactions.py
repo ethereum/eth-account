@@ -152,7 +152,7 @@ class TypedTransaction():
             transaction_type = DynamicFeeTransaction.transaction_type
             transaction = DynamicFeeTransaction.from_bytes(encoded_transaction)
         else:
-            # The only known transaction types should be explit if/elif branches.
+            # The only known transaction types should be explicit if/elif branches.
             raise TypeError("typed transaction has unknown type: %s" % encoded_transaction[0])
         return cls(
             transaction_type=transaction_type,
@@ -458,7 +458,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
     def hash(self) -> bytes:
         """
         Hashes this DynamicFeeTransaction to prepare it for signing.
-        As per the EIP-1558 specifications, the signature is a secp256k1 signature over
+        As per the EIP-1559 specifications, the signature is a secp256k1 signature over
         keccak256(0x02 || rlp([chainId, nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to,
         value, data, accessList])). Here, we compute the keccak256(...) hash.
         """

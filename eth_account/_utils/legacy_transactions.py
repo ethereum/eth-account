@@ -83,12 +83,12 @@ ALLOWED_TRANSACTION_KEYS = {
     'chainId',  # set chainId to None if you want a transaction that can be replayed across networks
 }
 
-REQUIRED_TRANSACITON_KEYS = ALLOWED_TRANSACTION_KEYS.difference(TRANSACTION_DEFAULTS.keys())
+REQUIRED_TRANSACTION_KEYS = ALLOWED_TRANSACTION_KEYS.difference(TRANSACTION_DEFAULTS.keys())
 
 
 def assert_valid_fields(transaction_dict):
     # check if any keys are missing
-    missing_keys = REQUIRED_TRANSACITON_KEYS.difference(transaction_dict.keys())
+    missing_keys = REQUIRED_TRANSACTION_KEYS.difference(transaction_dict.keys())
     if missing_keys:
         raise TypeError("Transaction must include these fields: %r" % missing_keys)
 
