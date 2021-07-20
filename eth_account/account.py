@@ -32,16 +32,16 @@ from hexbytes import (
     HexBytes,
 )
 
+from eth_account._utils.legacy_transactions import (
+    Transaction,
+    vrs_from,
+)
 from eth_account._utils.signing import (
     hash_of_signed_transaction,
     sign_message_hash,
     sign_transaction_dict,
     to_standard_signature_bytes,
     to_standard_v,
-)
-from eth_account._utils.legacy_transactions import (
-    Transaction,
-    vrs_from,
 )
 from eth_account._utils.typed_transactions import (
     TypedTransaction,
