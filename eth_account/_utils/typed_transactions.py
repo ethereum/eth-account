@@ -476,7 +476,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
     def payload(self) -> bytes:
         """
         Returns this transaction's payload as bytes. Here, the TransactionPayload = rlp([chainId,
-        nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data, accessList, 
+        nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data, accessList,
         signatureYParity, signatureR, signatureS])
         """
         if not all(k in self.dictionary for k in 'vrs'):
