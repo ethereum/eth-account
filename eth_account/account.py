@@ -679,6 +679,36 @@ class Account(object):
              's': 37050226636175381535892585331727388340134760347943439553552848647212419749796,
              'v': 0}
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
+
+        .. code-block:: python
+
+            >>> dynamic_fee_transaction = {
+                    "gas": 100000,
+                    "maxFeePerGas": 2000000000,
+                    "maxPriorityFeePerGas": 2000000000,
+                    "data": "0x616263646566",
+                    "nonce": 34,
+                    "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
+                    "value": "0x5af3107a4000",
+                    "type": 2,
+                    "accessList": (
+                        (
+                            "0x0000000000000000000000000000000000000001",
+                            (
+                                "0x0100000000000000000000000000000000000000000000000000000000000000",  # noqa: E501
+                            )
+                        ),
+                    ),
+                    "chainId": 1900,
+                }
+            >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+            >>> signed = Account.sign_transaction(dynamic_fee_transaction, key)
+            {'hash': HexBytes('0x126431f2a7fda003aada7c2ce52b0ce3cbdbb1896230d3333b9eea24f42d15b0'),
+             'r': 110093478023675319011132687961420618950720745285952062287904334878381994888509,
+             'rawTransaction': HexBytes('0x02f8b282076c2284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000080a0f366b34a5c206859b9778b4c909207e53443cca9e0b82e0b94bc4b47e6434d3da04a731eda413a944d4ea2d2236671e586e57388d0e9d40db53044ae4089f2aec8'),  # noqa: E501
+             's': 33674551144139401179914073499472892825822542092106065756005379322302694600392,
+             'v': 0}
+            >>> w3.eth.sendRawTransaction(signed.rawTransaction)
         """
         if not isinstance(transaction_dict, Mapping):
             raise TypeError("transaction_dict must be dict-like, got %r" % transaction_dict)

@@ -108,6 +108,7 @@ class TypedTransaction():
     Represents a Typed Transaction as per EIP-2718.
     The currently supported Transaction Types are:
      * EIP-2930's AccessListTransaction
+     * EIP-1559's DynamicFeeTransaction
     """
     def __init__(self, transaction_type: int, transaction: _TypedTransactionImplementation):
         """Should not be called directly. Use instead the 'from_dict' method."""
@@ -456,10 +457,10 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
 
     def hash(self) -> bytes:
         """
-        Hashes this AccessListTransaction to prepare it for signing.
-        As per the EIP-2930 specifications, the signature is a secp256k1 signature over
-        keccak256(0x01 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data, accessList])).
-        Here, we compute the keccak256(...) hash.
+        Hashes this DynamicFeeTransaction to prepare it for signing.
+        As per the EIP-1558 specifications, the signature is a secp256k1 signature over
+        keccak256(0x02 || rlp([chainId, nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to,
+        value, data, accessList])). Here, we compute the keccak256(...) hash.
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, 'v', 'r', 's')
@@ -475,8 +476,8 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
     def payload(self) -> bytes:
         """
         Returns this transaction's payload as bytes. Here, the TransactionPayload = rlp([chainId,
-        nonce, gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR,
-        signatureS])
+        nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data, accessList, 
+        signatureYParity, signatureR, signatureS])
         """
         if not all(k in self.dictionary for k in 'vrs'):
             raise ValueError("attempting to encode an unsigned transaction")
