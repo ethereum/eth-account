@@ -1,1 +1,0 @@
-Upgrade project template, of note: a new mypy & pydocstyle, and types being exported correctly.

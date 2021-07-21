@@ -3,6 +3,34 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.5.5 (2021-07-21)
+-------------------------------
+
+Features
+~~~~~~~~
+
+- Added support for EIP-2718 (Typed Transaction) and EIP-2939 (Access List Transaction) (`#115 <https://github.com/ethereum/eth-account/issues/115>`__)
+- Added support for EIP-1559 (Dynamic Fee Transaction) (`#117 <https://github.com/ethereum/eth-account/issues/117>`__)
+
+
+Bugfixes
+~~~~~~~~
+
+- Structured messages (EIP-712) new permit leaving some (but not all) domain fields undefined. (`#72 <https://github.com/ethereum/eth-account/issues/72>`__)
+
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Upgrade project template, of note: a new mypy & pydocstyle, and types being exported correctly. (`#121 <https://github.com/ethereum/eth-account/issues/121>`__)
+
+
+Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#116 <https://github.com/ethereum/eth-account/issues/116>`__
+
+
 v0.5.3 (2020-08-31)
 -------------------
 
