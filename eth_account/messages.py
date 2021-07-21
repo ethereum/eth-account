@@ -97,7 +97,7 @@ def encode_intended_validator(
     """
     if not is_valid_address(validator_address):
         raise ValidationError(
-            f"Cannot encode message with 'Validator Address': {validator_address}. "
+            f"Cannot encode message with 'Validator Address': {validator_address!r}. "
             "It must be a checksum address, or an address converted to bytes."
         )
     # The validator_address is a str or Address (which is a subtype of bytes). Both of
