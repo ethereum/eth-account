@@ -9,7 +9,7 @@
 
 Sign Ethereum transactions and messages with local private keys
 
-Read more in the [documentation on ReadTheDocs](https://<RTD_NAME>.readthedocs.io/). [View the change log](https://<RTD_NAME>.readthedocs.io/en/latest/release_notes.html).
+Read more in the [documentation on ReadTheDocs](https://eth-account.readthedocs.io/). [View the change log](https://eth-account.readthedocs.io/en/latest/release_notes.html).
 
 ## Quickstart
 
