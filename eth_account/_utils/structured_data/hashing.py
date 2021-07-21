@@ -28,7 +28,7 @@ from .validation import (
 
 def get_dependencies(primary_type, types):
     """
-    Perform DFS to get all the dependencies of the primary_type
+    Perform DFS to get all the dependencies of the primary_type.
     """
     deps = set()
     struct_names_yet_to_be_expanded = [primary_type]
@@ -57,6 +57,8 @@ def get_dependencies(primary_type, types):
 
 def field_identifier(field):
     """
+    Convert a field dict into a typed-name string.
+
     Given a ``field`` of the format {'name': NAME, 'type': TYPE},
     this function converts it to ``TYPE NAME``
     """
@@ -72,6 +74,8 @@ def encode_struct(struct_name, struct_field_types):
 
 def encode_type(primary_type, types):
     """
+    Serialize types into an encoded string.
+
     The type of a struct is encoded as name ‖ "(" ‖ member₁ ‖ "," ‖ member₂ ‖ "," ‖ … ‖ memberₙ ")"
     where each member is written as type ‖ " " ‖ name.
     """
@@ -101,7 +105,7 @@ def is_array_type(type):
 @to_tuple
 def get_depths_and_dimensions(data, depth):
     """
-    Yields 2-length tuples of depth and dimension of each element at that depth
+    Yields 2-length tuples of depth and dimension of each element at that depth.
     """
     if not isinstance(data, (list, tuple)):
         # Not checking for Iterable instance, because even Dictionaries and strings
@@ -117,8 +121,8 @@ def get_depths_and_dimensions(data, depth):
 
 def get_array_dimensions(data):
     """
-    Given an array type data item, check that it is an array and
-    return the dimensions as a tuple.
+    Given an array type data item, check that it is an array and return the dimensions as a tuple.
+
     Ex: get_array_dimensions([[1, 2, 3], [4, 5, 6]]) returns (2, 3)
     """
     depths_and_dimensions = get_depths_and_dimensions(data, 0)

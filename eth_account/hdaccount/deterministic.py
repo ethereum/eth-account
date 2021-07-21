@@ -1,5 +1,5 @@
 """
-Heirarchical Deterministic Wallet generator (HDWallet)
+Generate Heirarchical Deterministic Wallets (HDWallet).
 
 Partially implements the BIP-0032, BIP-0043, and BIP-0044 specifications:
 BIP-0032: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
@@ -62,7 +62,7 @@ HARD_NODE_SUFFIXES = {"'", "H"}
 
 class Node(int):
     """
-    Base node class
+    A base node class.
     """
 
     TAG = ""  # No tag
@@ -115,7 +115,7 @@ class Node(int):
 
 class SoftNode(Node):
     """
-    Soft node (unhardened), where value = index
+    Soft node (unhardened), where value = index .
     """
     TAG = ""  # No tag
     OFFSET = 0x0  # No offset
@@ -123,7 +123,7 @@ class SoftNode(Node):
 
 class HardNode(Node):
     """
-    Hard node, where value = index + BIP32_HARDENED_CONSTANT
+    Hard node, where value = index + BIP32_HARDENED_CONSTANT .
     """
     TAG = "H"  # "H" (or "'") means hard node (but use "H" for clarity)
     OFFSET = 0x80000000  # 2**31, BIP32 "Hardening constant"
@@ -135,6 +135,8 @@ def derive_child_key(
     node: Node,
 ) -> Tuple[bytes, bytes]:
     """
+    Compute a derivitive key from the parent key.
+
     From BIP32:
 
     The function CKDpriv((k_par, c_par), i) → (k_i, c_i) computes a child extended
@@ -185,7 +187,9 @@ def derive_child_key(
 class HDPath:
     def __init__(self, path: str):
         """
-        Constructor for this class. Initializes an hd account generator using the
+        Create a new Hierarchical Deterministic path by decoding the given path.
+
+        Initializes an hd account generator using the
         given path string (from BIP-0032). The path is decoded into nodes of the
         derivation key tree, which define a pathway from a given master seed to
         the child key that is used for a given purpose. Please also reference BIP-
@@ -222,14 +226,14 @@ class HDPath:
 
     def encode(self) -> str:
         """
-        Encodes this class to a string (reversing the decoding in the constructor)
+        Encodes this class to a string (reversing the decoding in the constructor).
         """
         encoded_path = ('m',) + tuple(node.encode() for node in self._path)
         return '/'.join(encoded_path)
 
     def derive(self, seed: bytes) -> bytes:
         """
-        Perform the BIP32 Heirarchical Derivation recursive loop with the given Path
+        Perform the BIP32 Heirarchical Derivation recursive loop with the given Path.
 
         Note that the key and chain_code are initialized with the master seed, and that
         the key that is returned is the child key at the end of derivation process (and

@@ -114,8 +114,9 @@ class Account(object):
     @staticmethod
     def decrypt(keyfile_json, password):
         """
-        Decrypts a private key that was encrypted using an Ethereum client or
-        :meth:`~Account.encrypt`.
+        Decrypts a private key.
+
+        The key may have been encrypted using an Ethereum client or :meth:`~Account.encrypt`.
 
         :param keyfile_json: The encrypted key
         :type keyfile_json: dict or str
@@ -255,6 +256,7 @@ class Account(object):
                       passphrase: str = "",
                       account_path: str = ETHEREUM_DEFAULT_PATH):
         """
+        Generate an account from a mnemonic.
 
         .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
 
@@ -297,6 +299,7 @@ class Account(object):
                              language: str = "english",
                              account_path: str = ETHEREUM_DEFAULT_PATH):
         r"""
+        Create a new private key and related mnemonic.
 
         .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
 
@@ -558,16 +561,16 @@ class Account(object):
     @combomethod
     def signHash(self, message_hash, private_key):
         """
+        Sign the provided hash.
+
         .. WARNING:: *Never* sign a hash that you didn't generate,
             it can be an arbitrary transaction. For example, it might
             send all of your account's ether to an attacker.
             Instead, prefer :meth:`~eth_account.account.Account.sign_message`,
             which cannot accidentally sign a transaction.
 
-        Sign the provided hash.
-
         .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.sign_message`.
-            This method will be removed in v0.5
+            This method will be removed in v0.6
 
         :param message_hash: the 32-byte message hash to be signed
         :type message_hash: hex str, bytes or int
@@ -615,11 +618,12 @@ class Account(object):
     @combomethod
     def sign_transaction(self, transaction_dict, private_key):
         """
-        Sign a transaction using a local private key. Produces signature details
-        and the hex-encoded transaction suitable for broadcast using
+        Sign a transaction using a local private key.
+
+        It produces signature details and the hex-encoded transaction suitable for broadcast using
         :meth:`w3.eth.sendRawTransaction() <web3.eth.Eth.sendRawTransaction>`.
 
-        Create the transaction dict for a contract method with
+        To create the transaction dict that calls a contract, use contract object:
         `my_contract.functions.my_function().buildTransaction()
         <http://web3py.readthedocs.io/en/latest/contracts.html#methods>`_
 
@@ -749,8 +753,9 @@ class Account(object):
     @combomethod
     def _parsePrivateKey(self, key):
         """
-        Generate a :class:`eth_keys.datatypes.PrivateKey` from the provided key. If the
-        key is already of type :class:`eth_keys.datatypes.PrivateKey`, return the key.
+        Generate a :class:`eth_keys.datatypes.PrivateKey` from the provided key.
+
+        If the key is already of type :class:`eth_keys.datatypes.PrivateKey`, return the key.
 
         :param key: the private key from which a :class:`eth_keys.datatypes.PrivateKey`
                     will be generated

@@ -27,6 +27,8 @@ class LocalAccount(BaseAccount):
     """
     def __init__(self, key, account):
         """
+        Initialize a new account with the the given private key.
+
         :param eth_keys.PrivateKey key: to prefill in private key execution
         :param ~eth_account.account.Account account: the key-unaware management API
         """
@@ -64,7 +66,9 @@ class LocalAccount(BaseAccount):
 
     def encrypt(self, password, kdf=None, iterations=None):
         """
-        Generate a string with the encrypted key, as in
+        Generate a string with the encrypted key.
+
+        This uses the same structure as in
         :meth:`~eth_account.account.Account.encrypt`, but without a private key argument.
         """
         return self._publicapi.encrypt(self.key, password, kdf=kdf, iterations=iterations)
@@ -77,7 +81,9 @@ class LocalAccount(BaseAccount):
 
     def sign_message(self, signable_message):
         """
-        Generate a string with the encrypted key, as in
+        Generate a string with the encrypted key.
+
+        This uses the same structure as in
         :meth:`~eth_account.account.Account.sign_message`, but without a private key argument.
         """
         return self._publicapi.sign_message(signable_message, private_key=self.key)
