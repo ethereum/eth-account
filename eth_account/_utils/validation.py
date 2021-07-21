@@ -9,8 +9,10 @@ from eth_utils.curried import (
     apply_one_of_formatters,
     hexstr_if_str,
     is_0x_prefixed,
+    is_address,
     is_bytes,
     is_integer,
+    is_list_like,
     is_string,
     to_bytes,
     to_int,
@@ -48,7 +50,25 @@ def is_empty_or_checksum_address(val):
         return is_valid_address(val)
 
 
-TRANSACTION_FORMATTERS = {
+def is_access_list(val):
+    """Returns true if 'val' is a valid access list."""
+    if not is_list_like(val):
+        return False
+    for item in val:
+        if not is_list_like(item):
+            return False
+        if len(item) != 2:
+            return False
+        address, storage_keys = item
+        if not is_address(address):
+            return False
+        for storage_key in storage_keys:
+            if not is_int_or_prefixed_hexstr(storage_key):
+                return False
+    return True
+
+
+LEGACY_TRANSACTION_FORMATTERS = {
     'nonce': hexstr_if_str(to_int),
     'gasPrice': hexstr_if_str(to_int),
     'gas': hexstr_if_str(to_int),
@@ -64,7 +84,7 @@ TRANSACTION_FORMATTERS = {
     's': hexstr_if_str(to_int),
 }
 
-TRANSACTION_VALID_VALUES = {
+LEGACY_TRANSACTION_VALID_VALUES = {
     'nonce': is_int_or_prefixed_hexstr,
     'gasPrice': is_int_or_prefixed_hexstr,
     'gas': is_int_or_prefixed_hexstr,

@@ -32,16 +32,16 @@ from hexbytes import (
     HexBytes,
 )
 
+from eth_account._utils.legacy_transactions import (
+    Transaction,
+    vrs_from,
+)
 from eth_account._utils.signing import (
     hash_of_signed_transaction,
     sign_message_hash,
     sign_transaction_dict,
     to_standard_signature_bytes,
     to_standard_v,
-)
-from eth_account._utils.transactions import (
-    Transaction,
-    vrs_from,
 )
 from eth_account._utils.typed_transactions import (
     TypedTransaction,
@@ -633,7 +633,39 @@ class Account(object):
 
         .. code-block:: python
 
-            >>> transaction = {
+            >>> # EIP-1559 dynamic fee transaction (more efficient and preferred over legacy txn)
+            >>> dynamic_fee_transaction = {
+                    "type": 2,  # Note that the explicit type is necessary for now
+                    "gas": 100000,
+                    "maxFeePerGas": 2000000000,
+                    "maxPriorityFeePerGas": 2000000000,
+                    "data": "0x616263646566",
+                    "nonce": 34,
+                    "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
+                    "value": "0x5af3107a4000",
+                    "accessList": (
+                        (
+                            "0x0000000000000000000000000000000000000001",
+                            (
+                                "0x0100000000000000000000000000000000000000000000000000000000000000",  # noqa: E501
+                            )
+                        ),
+                    ),
+                    "chainId": 1900,
+                }
+            >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+            >>> signed = Account.sign_transaction(dynamic_fee_transaction, key)
+            {'hash': HexBytes('0x126431f2a7fda003aada7c2ce52b0ce3cbdbb1896230d3333b9eea24f42d15b0'),
+             'r': 110093478023675319011132687961420618950720745285952062287904334878381994888509,
+             'rawTransaction': HexBytes('0x02f8b282076c2284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000080a0f366b34a5c206859b9778b4c909207e53443cca9e0b82e0b94bc4b47e6434d3da04a731eda413a944d4ea2d2236671e586e57388d0e9d40db53044ae4089f2aec8'),  # noqa: E501
+             's': 33674551144139401179914073499472892825822542092106065756005379322302694600392,
+             'v': 0}
+            >>> w3.eth.sendRawTransaction(signed.rawTransaction)
+
+        .. code-block:: python
+
+            >>> # legacy transaction (less efficient than EIP-1559 dynamic fee txn)
+            >>> legacy_transaction = {
                     # Note that the address must be in checksum format or native bytes:
                     'to': '0xF0109fC8DF283027b6285cc889F5aA624EaC1F55',
                     'value': 1000000000,
@@ -643,7 +675,7 @@ class Account(object):
                     'chainId': 1
                 }
             >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
-            >>> signed = Account.sign_transaction(transaction, key)
+            >>> signed = Account.sign_transaction(legacy_transaction, key)
             {'hash': HexBytes('0x6893a6ee8df79b0f5d64a180cd1ef35d030f3e296a5361cf04d02ce720d32ec5'),
              'r': 4487286261793418179817841024889747115779324305375823110249149479905075174044,
              'rawTransaction': HexBytes('0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'),  # noqa: E501

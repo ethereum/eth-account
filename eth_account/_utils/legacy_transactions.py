@@ -27,8 +27,8 @@ from .typed_transactions import (
     TypedTransaction,
 )
 from .validation import (
-    TRANSACTION_FORMATTERS,
-    TRANSACTION_VALID_VALUES,
+    LEGACY_TRANSACTION_FORMATTERS,
+    LEGACY_TRANSACTION_VALID_VALUES,
 )
 
 
@@ -43,7 +43,7 @@ def serializable_unsigned_transaction_from_dict(transaction_dict):
         dict,
         partial(merge, TRANSACTION_DEFAULTS),
         chain_id_to_v,
-        apply_formatters_to_dict(TRANSACTION_FORMATTERS),
+        apply_formatters_to_dict(LEGACY_TRANSACTION_FORMATTERS),
     )
     if 'v' in filled_transaction:
         serializer = Transaction
@@ -83,12 +83,12 @@ ALLOWED_TRANSACTION_KEYS = {
     'chainId',  # set chainId to None if you want a transaction that can be replayed across networks
 }
 
-REQUIRED_TRANSACITON_KEYS = ALLOWED_TRANSACTION_KEYS.difference(TRANSACTION_DEFAULTS.keys())
+REQUIRED_TRANSACTION_KEYS = ALLOWED_TRANSACTION_KEYS.difference(TRANSACTION_DEFAULTS.keys())
 
 
 def assert_valid_fields(transaction_dict):
     # check if any keys are missing
-    missing_keys = REQUIRED_TRANSACITON_KEYS.difference(transaction_dict.keys())
+    missing_keys = REQUIRED_TRANSACTION_KEYS.difference(transaction_dict.keys())
     if missing_keys:
         raise TypeError("Transaction must include these fields: %r" % missing_keys)
 
@@ -99,7 +99,7 @@ def assert_valid_fields(transaction_dict):
 
     # check for valid types in each field
     valid_fields: Dict[str, bool]
-    valid_fields = apply_formatters_to_dict(TRANSACTION_VALID_VALUES, transaction_dict)
+    valid_fields = apply_formatters_to_dict(LEGACY_TRANSACTION_VALID_VALUES, transaction_dict)
     if not all(valid_fields.values()):
         invalid = {key: transaction_dict[key] for key, valid in valid_fields.items() if not valid}
         raise TypeError("Transaction had invalid fields: %r" % invalid)

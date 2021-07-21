@@ -6,7 +6,7 @@ from eth_utils import (
     to_int,
 )
 
-from eth_account._utils.transactions import (
+from eth_account._utils.legacy_transactions import (
     ChainAwareUnsignedTransaction,
     Transaction,
     UnsignedTransaction,
@@ -42,7 +42,7 @@ def sign_transaction_dict(eth_key, transaction_dict):
         (v, r, s) = sign_transaction_hash(eth_key, transaction_hash, chain_id)
     elif isinstance(unsigned_transaction, TypedTransaction):
         # Each transaction type dictates its payload, and consequently,
-        # all the funky logic around the `v` signature field is both obselete && incorrect.
+        # all the funky logic around the `v` signature field is both obsolete && incorrect.
         # We want to obtain the raw `v` and delegate to the transaction type itself.
         (v, r, s) = eth_key.sign_msg_hash(transaction_hash).vrs
     else:
