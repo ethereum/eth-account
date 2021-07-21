@@ -36,7 +36,7 @@ def sha256(data: bytes) -> bytes:
 
 def hmac_sha512(chain_code: bytes, data: bytes) -> bytes:
     """
-    As specified by RFC4231 - https://tools.ietf.org/html/rfc4231
+    As specified by RFC4231 - https://tools.ietf.org/html/rfc4231 .
     """
     return hmac.new(chain_code, data, hashlib.sha512).digest()
 
@@ -52,7 +52,7 @@ def pbkdf2_hmac_sha512(passcode: str, salt: str) -> bytes:
 
 def ec_point(pkey: bytes) -> bytes:
     """
-    Compute `point(p)`, where `point` is ecdsa point multiplication
+    Compute `point(p)`, where `point` is ecdsa point multiplication.
 
     Note: Result is ecdsa public key serialized to compressed form
     """

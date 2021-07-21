@@ -81,7 +81,8 @@ def hash_of_signed_transaction(txn_obj):
 
 def extract_chain_id(raw_v):
     """
-    Extracts chain ID, according to EIP-155
+    Extracts chain ID, according to EIP-155.
+
     @return (chain_id, v)
     """
     above_id_offset = raw_v - CHAIN_ID_OFFSET

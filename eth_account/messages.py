@@ -38,9 +38,12 @@ text_to_bytes = text_if_str(to_bytes)
 # watch for updates to signature format
 class SignableMessage(NamedTuple):
     """
-    These are the components of an EIP-191_ signable message. Other message formats
+    A message compatible with EIP-191_ that is ready to be signed.
+
+    The properties are components of an EIP-191_ signable message. Other message formats
     can be encoded into this format for easy signing. This data structure doesn't need to
-    know about the original message format.
+    know about the original message format. For example, you can think of
+    EIP-712 as compiling down to an EIP-191 message.
 
     In typical usage, you should never need to create these by hand. Instead, use
     one of the available encode_* methods in this module, like:
@@ -76,8 +79,7 @@ def encode_intended_validator(
         hexstr: str = None,
         text: str = None) -> SignableMessage:
     """
-    Encode a message using the "intended validator" approach (ie~ version 0)
-    defined in EIP-191_.
+    Encode a message using the "intended validator" approach (ie~ version 0) defined in EIP-191_.
 
     Supply the message as exactly one of these three arguments:
     bytes as a primitive, a hex string, or a unicode string.
@@ -97,7 +99,7 @@ def encode_intended_validator(
     """
     if not is_valid_address(validator_address):
         raise ValidationError(
-            f"Cannot encode message with 'Validator Address': {validator_address}. "
+            f"Cannot encode message with 'Validator Address': {validator_address!r}. "
             "It must be a checksum address, or an address converted to bytes."
         )
     # The validator_address is a str or Address (which is a subtype of bytes). Both of
@@ -117,8 +119,9 @@ def encode_structured_data(
         hexstr: str = None,
         text: str = None) -> SignableMessage:
     """
-    Encode a message using the "structured data" approach (ie~ version 1)
-    defined in EIP-712_.
+    Encode an EIP-712_ message.
+
+    EIP-712 is the "structured data" approach (ie~ version 1 of an EIP-191 message).
 
     Supply the message as exactly one of the three arguments:
 

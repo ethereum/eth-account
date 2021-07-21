@@ -8,19 +8,19 @@ from setuptools import (
 extras_require = {
     'test': [
         "hypothesis>=4.18.0,<5",
-        "pytest>=4.4.0,<5",
+        "pytest==5.4.1",
         "pytest-xdist",
-        "tox>=2.9.1,<3",
+        "tox==3.14.6",
     ],
     'lint': [
         "flake8==3.7.9",
         "isort>=4.2.15,<5",
-        "mypy==0.701",
-        "pydocstyle>=3.0.0,<4",
+        "mypy==0.770",
+        "pydocstyle>=5.0.0,<6",
     ],
     'doc': [
         "Sphinx>=1.6.5,<2",
-        "sphinx_rtd_theme>=0.1.9",
+        "sphinx_rtd_theme>=0.1.9,<1",
         "towncrier>=19.2.0, <20",
     ],
     'dev': [
@@ -55,7 +55,10 @@ setup(
     author_email='snakecharmers@ethereum.org',
     url='https://github.com/ethereum/eth-account',
     include_package_data=True,
-    package_data={"eth_account": ["hdaccount/wordlist/*.txt"]},
+    package_data={"eth_account": [
+        "py.typed",
+        "hdaccount/wordlist/*.txt",
+    ]},
     install_requires=[
         "bitarray>=1.2.1,<1.3.0",
         "eth-abi>=2.0.0b7,<3",
@@ -78,6 +81,8 @@ setup(
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
+        'Operating System :: MacOS',
+        'Operating System :: POSIX',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',

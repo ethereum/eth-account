@@ -161,7 +161,9 @@ class TypedTransaction():
 
     def hash(self) -> bytes:
         """
-        Hashes this TypedTransaction to prepare it for signing. As per the EIP-2718 specifications,
+        Hashes this TypedTransaction to prepare it for signing.
+
+        As per the EIP-2718 specifications,
         the hashing format is dictated by the transaction type itself, and so we delegate the call.
         Note that the return type will be bytes.
         """
@@ -169,7 +171,9 @@ class TypedTransaction():
 
     def encode(self) -> bytes:
         """
-        Encodes this TypedTransaction and returns it as bytes. The transaction format follows
+        Encodes this TypedTransaction and returns it as bytes.
+
+        The transaction format follows
         EIP-2718's typed transaction format (TransactionType || TransactionPayload).
         Note that we delegate to a transaction type's payload() method as the EIP-2718 does not
         prescribe a TransactionPayload format, leaving types free to implement their own encoding.
@@ -320,7 +324,9 @@ class AccessListTransaction(_TypedTransactionImplementation):
 
     def payload(self) -> bytes:
         """
-        Returns this transaction's payload as bytes. Here, the TransactionPayload = rlp([chainId,
+        Returns this transaction's payload as bytes.
+
+        Here, the TransactionPayload = rlp([chainId,
         nonce, gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR,
         signatureS])
         """
@@ -475,7 +481,9 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
 
     def payload(self) -> bytes:
         """
-        Returns this transaction's payload as bytes. Here, the TransactionPayload = rlp([chainId,
+        Returns this transaction's payload as bytes.
+
+        Here, the TransactionPayload = rlp([chainId,
         nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data, accessList,
         signatureYParity, signatureR, signatureS])
         """
