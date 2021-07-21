@@ -8,19 +8,19 @@ from setuptools import (
 extras_require = {
     'test': [
         "hypothesis>=4.18.0,<5",
-        "pytest>=4.4.0,<5",
+        "pytest==5.4.1",
         "pytest-xdist",
-        "tox>=2.9.1,<3",
+        "tox==3.14.6",
     ],
     'lint': [
         "flake8==3.7.9",
         "isort>=4.2.15,<5",
-        "mypy==0.701",
-        "pydocstyle>=3.0.0,<4",
+        "mypy==0.770",
+        "pydocstyle>=5.0.0,<6",
     ],
     'doc': [
         "Sphinx>=1.6.5,<2",
-        "sphinx_rtd_theme>=0.1.9",
+        "sphinx_rtd_theme>=0.1.9,<1",
         "towncrier>=19.2.0, <20",
     ],
     'dev': [
@@ -73,11 +73,14 @@ setup(
     zip_safe=False,
     keywords='ethereum',
     packages=find_packages(exclude=["tests", "tests.*"]),
+    package_data={'<MODULE_NAME>': ['py.typed']},
     classifiers=[
         'Development Status :: 3 - Alpha',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
         'Natural Language :: English',
+        'Operating System :: MacOS',
+        'Operating System :: POSIX',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
