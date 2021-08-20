@@ -1,3 +1,5 @@
-from eth_account.account import (  # noqa: F401
+from eth_account.account import (
     Account,
 )
+
+__all__ = ["Account"]
