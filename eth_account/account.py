@@ -639,7 +639,7 @@ class Account(object):
 
             >>> # EIP-1559 dynamic fee transaction (more efficient and preferred over legacy txn)
             >>> dynamic_fee_transaction = {
-                    "type": 2,  # Note that the explicit type is necessary for now
+                    "type": 2,
                     "gas": 100000,
                     "maxFeePerGas": 2000000000,
                     "maxPriorityFeePerGas": 2000000000,
@@ -648,12 +648,12 @@ class Account(object):
                     "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
                     "value": "0x5af3107a4000",
                     "accessList": (
-                        (
-                            "0x0000000000000000000000000000000000000001",
-                            (
+                        {
+                            "address": "0x0000000000000000000000000000000000000001",
+                            "storageKeys": (
                                 "0x0100000000000000000000000000000000000000000000000000000000000000",  # noqa: E501
                             )
-                        ),
+                        },
                     ),
                     "chainId": 1900,
                 }
@@ -690,20 +690,20 @@ class Account(object):
         .. code-block:: python
 
             >>> access_list_transaction = {
+                    "type": 1,
                     "gas": 100000,
                     "gasPrice": 1000000000,
                     "data": "0x616263646566",
                     "nonce": 34,
                     "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
                     "value": "0x5af3107a4000",
-                    "type": 1,
                     "accessList": (
-                        (
-                            "0x0000000000000000000000000000000000000001",
-                            (
+                        {
+                            "address": "0x0000000000000000000000000000000000000001",
+                            "storageKeys": (
                                 "0x0100000000000000000000000000000000000000000000000000000000000000",  # noqa: E501
                             )
-                        ),
+                        },
                     ),
                     "chainId": 1900,
                 }

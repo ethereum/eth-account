@@ -23,6 +23,9 @@ from rlp.sedes import (
     binary,
 )
 
+from .transaction_utils import (
+    possibly_set_transaction_type,
+)
 from .typed_transactions import (
     TypedTransaction,
 )
@@ -33,6 +36,7 @@ from .validation import (
 
 
 def serializable_unsigned_transaction_from_dict(transaction_dict):
+    transaction_dict = possibly_set_transaction_type(transaction_dict)
     if 'type' in transaction_dict:
         # We delegate to TypedTransaction, which will carry out validation & formatting.
         return TypedTransaction.from_dict(transaction_dict)
