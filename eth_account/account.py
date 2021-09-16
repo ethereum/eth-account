@@ -627,8 +627,14 @@ class Account(object):
         `my_contract.functions.my_function().buildTransaction()
         <http://web3py.readthedocs.io/en/latest/contracts.html#methods>`_
 
-        :param dict transaction_dict: the transaction with keys:
-          nonce, chainId, to, data, value, gas, and gasPrice.
+        Note: For non-legacy (typed) transactions, if the transaction type is not explicitly
+        provided, it may be determined from the transaction parameters of a well-formed
+        transaction. See below for examples on how to sign with different transaction types.
+
+        :param dict transaction_dict: the transaction with available keys, depending on the type of
+        transaction:
+          nonce, chainId, to, data, value, gas, gasPrice, type, accessList, maxFeePerGas,
+          and maxPriorityFeePerGas
         :param private_key: the private key to sign the data with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most
@@ -639,7 +645,7 @@ class Account(object):
 
             >>> # EIP-1559 dynamic fee transaction (more efficient and preferred over legacy txn)
             >>> dynamic_fee_transaction = {
-                    "type": 2,
+                    "type": 2,  # optional - can be implicitly determined based on max fee params  # noqa: E501
                     "gas": 100000,
                     "maxFeePerGas": 2000000000,
                     "maxPriorityFeePerGas": 2000000000,
@@ -647,7 +653,7 @@ class Account(object):
                     "nonce": 34,
                     "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
                     "value": "0x5af3107a4000",
-                    "accessList": (
+                    "accessList": (  # optional
                         {
                             "address": "0x0000000000000000000000000000000000000001",
                             "storageKeys": (
@@ -690,7 +696,7 @@ class Account(object):
         .. code-block:: python
 
             >>> access_list_transaction = {
-                    "type": 1,
+                    "type": 1,  # optional - can be implicitly determined based on 'accessList' and 'gasPrice' params  # noqa: E501
                     "gas": 100000,
                     "gasPrice": 1000000000,
                     "data": "0x616263646566",
