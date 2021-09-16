@@ -25,7 +25,6 @@ from eth_utils import (
 from eth_utils.curried import (
     apply_formatter_to_array,
     apply_formatters_to_dict,
-    apply_formatters_to_sequence,
     apply_one_of_formatters,
     hexstr_if_str,
     is_bytes,
@@ -46,11 +45,16 @@ from rlp.sedes import (
     binary,
 )
 
+from .transaction_utils import (
+    set_transaction_type_if_needed,
+    transaction_rlp_to_rpc_structure,
+    transaction_rpc_to_rlp_structure,
+)
 from .validation import (
     LEGACY_TRANSACTION_FORMATTERS,
     LEGACY_TRANSACTION_VALID_VALUES,
-    is_access_list,
     is_int_or_prefixed_hexstr,
+    is_rpc_structured_access_list,
 )
 
 TYPED_TRANSACTION_FORMATTERS = merge(
@@ -58,13 +62,15 @@ TYPED_TRANSACTION_FORMATTERS = merge(
         'chainId': hexstr_if_str(to_int),
         'type': hexstr_if_str(to_int),
         'accessList': apply_formatter_to_array(
-            apply_formatters_to_sequence([
-                apply_one_of_formatters((
-                    (is_string, hexstr_if_str(to_bytes)),
-                    (is_bytes, identity),
-                )),
-                apply_formatter_to_array(hexstr_if_str(to_int)),
-            ]),
+            apply_formatters_to_dict(
+                {
+                    "address": apply_one_of_formatters((
+                        (is_string, hexstr_if_str(to_bytes)),
+                        (is_bytes, identity),
+                    )),
+                    "storageKeys": apply_formatter_to_array(hexstr_if_str(to_int))
+                }
+            ),
         ),
         'maxPriorityFeePerGas': hexstr_if_str(to_int),
         'maxFeePerGas': hexstr_if_str(to_int),
@@ -103,7 +109,7 @@ class _TypedTransactionImplementation(ABC):
         pass
 
 
-class TypedTransaction():
+class TypedTransaction:
     """
     Represents a Typed Transaction as per EIP-2718.
     The currently supported Transaction Types are:
@@ -122,6 +128,7 @@ class TypedTransaction():
     @classmethod
     def from_dict(cls, dictionary: Dict[str, Any]):
         """Builds a TypedTransaction from a dictionary. Verifies the dictionary is well formed."""
+        dictionary = set_transaction_type_if_needed(dictionary)
         if not ('type' in dictionary and is_int_or_prefixed_hexstr(dictionary['type'])):
             raise ValueError("missing or incorrect transaction type")
         # Switch on the transaction type to choose the correct constructor.
@@ -241,7 +248,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
     def assert_valid_fields(cls, dictionary: Dict[str, Any]):
         transaction_valid_values = merge(LEGACY_TRANSACTION_VALID_VALUES, {
             'type': is_int_or_prefixed_hexstr,
-            'accessList': is_access_list,
+            'accessList': is_rpc_structured_access_list,
         })
 
         if 'v' in dictionary and dictionary['v'] == 0:
@@ -295,8 +302,9 @@ class AccessListTransaction(_TypedTransactionImplementation):
         transaction_payload = encoded_transaction[1:]
         rlp_serializer = cls._signed_transaction_serializer
         dictionary = rlp_serializer.from_bytes(transaction_payload).as_dict()  # type: ignore
-        dictionary['type'] = cls.transaction_type
-        return cls.from_dict(dictionary)
+        rpc_structured_dict = transaction_rlp_to_rpc_structure(dictionary)
+        rpc_structured_dict['type'] = cls.transaction_type
+        return cls.from_dict(rpc_structured_dict)
 
     def as_dict(self) -> Dict[str, Any]:
         """Returns this transaction as a dictionary."""
@@ -313,9 +321,13 @@ class AccessListTransaction(_TypedTransactionImplementation):
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, 'v', 'r', 's')
+        # RPC-structured transaction to rlp-structured transaction
+        rlp_structured_txn_without_sig_fields = transaction_rpc_to_rlp_structure(
+            transaction_without_signature_fields
+        )
         rlp_serializer = self.__class__._unsigned_transaction_serializer
         hash = pipe(
-            rlp_serializer.from_dict(transaction_without_signature_fields),  # type: ignore
+            rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore
             lambda val: rlp.encode(val),  # rlp([...])
             lambda val: bytes([self.__class__.transaction_type]) + val,  # (0x01 || rlp([...]))
             keccak,  # keccak256(0x01 || rlp([...]))
@@ -333,7 +345,8 @@ class AccessListTransaction(_TypedTransactionImplementation):
         if not all(k in self.dictionary for k in 'vrs'):
             raise ValueError("attempting to encode an unsigned transaction")
         rlp_serializer = self.__class__._signed_transaction_serializer
-        payload = rlp.encode(rlp_serializer.from_dict(self.dictionary))  # type: ignore
+        rlp_structured_dict = transaction_rpc_to_rlp_structure(self.dictionary)
+        payload = rlp.encode(rlp_serializer.from_dict(rlp_structured_dict))  # type: ignore
         return cast(bytes, payload)
 
     def vrs(self) -> Tuple[int, int, int]:
@@ -398,7 +411,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
             'type': is_int_or_prefixed_hexstr,
             'maxPriorityFeePerGas': is_int_or_prefixed_hexstr,
             'maxFeePerGas': is_int_or_prefixed_hexstr,
-            'accessList': is_access_list,
+            'accessList': is_rpc_structured_access_list,
         })
 
         if 'v' in dictionary and dictionary['v'] == 0:
@@ -452,8 +465,9 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         transaction_payload = encoded_transaction[1:]
         rlp_serializer = cls._signed_transaction_serializer
         dictionary = rlp_serializer.from_bytes(transaction_payload).as_dict()  # type: ignore
-        dictionary['type'] = cls.transaction_type
-        return cls.from_dict(dictionary)
+        rpc_structured_dict = transaction_rlp_to_rpc_structure(dictionary)
+        rpc_structured_dict['type'] = cls.transaction_type
+        return cls.from_dict(rpc_structured_dict)
 
     def as_dict(self) -> Dict[str, Any]:
         """Returns this transaction as a dictionary."""
@@ -470,9 +484,13 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, 'v', 'r', 's')
+        # RPC-structured transaction to rlp-structured transaction
+        rlp_structured_txn_without_sig_fields = transaction_rpc_to_rlp_structure(
+            transaction_without_signature_fields
+        )
         rlp_serializer = self.__class__._unsigned_transaction_serializer
         hash = pipe(
-            rlp_serializer.from_dict(transaction_without_signature_fields),  # type: ignore
+            rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore
             lambda val: rlp.encode(val),  # rlp([...])
             lambda val: bytes([self.__class__.transaction_type]) + val,  # (0x02 || rlp([...]))
             keccak,  # keccak256(0x02 || rlp([...]))
@@ -490,7 +508,8 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         if not all(k in self.dictionary for k in 'vrs'):
             raise ValueError("attempting to encode an unsigned transaction")
         rlp_serializer = self.__class__._signed_transaction_serializer
-        payload = rlp.encode(rlp_serializer.from_dict(self.dictionary))  # type: ignore
+        rlp_structured_dict = transaction_rpc_to_rlp_structure(self.dictionary)
+        payload = rlp.encode(rlp_serializer.from_dict(rlp_structured_dict))  # type: ignore
         return cast(bytes, payload)
 
     def vrs(self) -> Tuple[int, int, int]:

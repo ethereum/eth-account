@@ -4,6 +4,7 @@ from cytoolz import (
 from eth_utils import (
     is_binary_address,
     is_checksum_address,
+    is_dict,
 )
 from eth_utils.curried import (
     apply_one_of_formatters,
@@ -50,8 +51,31 @@ def is_empty_or_checksum_address(val):
         return is_valid_address(val)
 
 
-def is_access_list(val):
-    """Returns true if 'val' is a valid access list."""
+def is_rpc_structured_access_list(val):
+    """Returns true if 'val' is a valid JSON-RPC structured access list."""
+    if not is_list_like(val):
+        return False
+    for d in val:
+        if not is_dict(d):
+            return False
+        if len(d) != 2:
+            return False
+        address = d.get('address')
+        storage_keys = d.get('storageKeys')
+        if any(_ is None for _ in (address, storage_keys)):
+            return False
+        if not is_address(address):
+            return False
+        if not is_list_like(storage_keys):
+            return False
+        for storage_key in storage_keys:
+            if not is_int_or_prefixed_hexstr(storage_key):
+                return False
+    return True
+
+
+def is_rlp_structured_access_list(val):
+    """Returns true if 'val' is a valid rlp-structured access list."""
     if not is_list_like(val):
         return False
     for item in val:

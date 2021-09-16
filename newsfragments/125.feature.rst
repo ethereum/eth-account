@@ -1,0 +1,1 @@
+An explicit transaction type is no longer required for signing a transaction if we can implicitly determine the transaction type from the transaction parameters
