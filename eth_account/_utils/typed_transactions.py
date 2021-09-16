@@ -46,7 +46,7 @@ from rlp.sedes import (
 )
 
 from .transaction_utils import (
-    possibly_set_transaction_type,
+    set_transaction_type_if_needed,
     transaction_rlp_to_rpc_structure,
     transaction_rpc_to_rlp_structure,
 )
@@ -128,7 +128,7 @@ class TypedTransaction:
     @classmethod
     def from_dict(cls, dictionary: Dict[str, Any]):
         """Builds a TypedTransaction from a dictionary. Verifies the dictionary is well formed."""
-        dictionary = possibly_set_transaction_type(dictionary)
+        dictionary = set_transaction_type_if_needed(dictionary)
         if not ('type' in dictionary and is_int_or_prefixed_hexstr(dictionary['type'])):
             raise ValueError("missing or incorrect transaction type")
         # Switch on the transaction type to choose the correct constructor.

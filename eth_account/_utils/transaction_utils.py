@@ -15,7 +15,7 @@ from eth_account._utils.validation import (
 )
 
 
-def possibly_set_transaction_type(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
+def set_transaction_type_if_needed(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
     if 'type' not in transaction_dict:
         if 'gasPrice' in transaction_dict and 'accessList' in transaction_dict:
             # access list txn - type 1
@@ -32,7 +32,7 @@ def transaction_rpc_to_rlp_structure(dictionary: Dict[str, Any]) -> Dict[str, An
     Convert a JSON-RPC-structured transaction to an rlp-structured transaction.
     """
     access_list = dictionary.get('accessList')
-    if access_list is not None and len(access_list) > 0:
+    if access_list:
         dictionary = dissoc(dictionary, 'accessList')
         rlp_structured_access_list = _access_list_rpc_to_rlp_structure(access_list)
         dictionary = assoc(dictionary, 'accessList', rlp_structured_access_list)
@@ -60,7 +60,7 @@ def transaction_rlp_to_rpc_structure(dictionary: Dict[str, Any]) -> Dict[str, An
     Convert an rlp-structured transaction to a JSON-RPC-structured transaction.
     """
     access_list = dictionary.get('accessList')
-    if access_list is not None and len(access_list) > 0:
+    if access_list:
         dictionary = dissoc(dictionary, 'accessList')
         rpc_structured_access_list = _access_list_rlp_to_rpc_structure(access_list)
         dictionary = assoc(dictionary, 'accessList', rpc_structured_access_list)
