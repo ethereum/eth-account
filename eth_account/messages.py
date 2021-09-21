@@ -63,7 +63,7 @@ def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
     version = signable_message.version
     if len(version) != 1:
         raise ValidationError(
-            "The supplied message version is {version!r}. "
+            f"The supplied message version is {version!r}. "
             "The EIP-191 signable message standard only supports one-byte versions."
         )
 
