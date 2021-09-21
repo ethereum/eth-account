@@ -1,0 +1,1 @@
+Fix string interpolation in ``ValidationError`` message of _hash_eip_191_message
