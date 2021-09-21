@@ -50,7 +50,7 @@ class SignableMessage(NamedTuple):
 
         - :meth:`encode_structured_data`
         - :meth:`encode_intended_validator`
-        - :meth:`encode_structured_data`
+        - :meth:`encode_defunct`
 
     .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
     """
