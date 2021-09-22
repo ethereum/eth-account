@@ -632,9 +632,8 @@ class Account(object):
         transaction. See below for examples on how to sign with different transaction types.
 
         :param dict transaction_dict: the transaction with available keys, depending on the type of
-        transaction:
-          nonce, chainId, to, data, value, gas, gasPrice, type, accessList, maxFeePerGas,
-          and maxPriorityFeePerGas
+          transaction: nonce, chainId, to, data, value, gas, gasPrice, type, accessList,
+          maxFeePerGas, and maxPriorityFeePerGas
         :param private_key: the private key to sign the data with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most
