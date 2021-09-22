@@ -3,6 +3,29 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.5.6 (2021-09-22)
+-------------------------------
+
+Features
+~~~~~~~~
+
+- An explicit transaction type is no longer required for signing a transaction if we can implicitly determine the transaction type from the transaction parameters (`#125 <https://github.com/ethereum/eth-account/issues/125>`__)
+
+
+Bugfixes
+~~~~~~~~
+
+- When signing a transaction, the regular JSON-RPC structure is now expected as input and is converted to the appropriate rlp transaction structure when signing (`#125 <https://github.com/ethereum/eth-account/issues/125>`__)
+- Fix string interpolation in ``ValidationError`` message of _hash_eip_191_message (`#128 <https://github.com/ethereum/eth-account/issues/128>`__)
+
+
+Improved Documentation
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Updated docs for sign_transaction to show that transaction type can be implicitly determined based on transaction parameters if one is not provided (`#126 <https://github.com/ethereum/eth-account/issues/126>`__)
+- Add ``encode_defunct`` to list of example message encoders (`#127 <https://github.com/ethereum/eth-account/issues/127>`__)
+
+
 eth-account v0.5.5 (2021-07-21)
 -------------------------------
 

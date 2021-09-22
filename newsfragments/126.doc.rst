@@ -1,1 +1,0 @@
-Updated docs for sign_transaction to show that transaction type can be implicitly determined based on transaction parameters if one is not provided
