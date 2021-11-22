@@ -19,7 +19,10 @@ develop-eggs
 lib
 lib64
 pip-wheel-metadata
+
+# Virtual Environments
 venv*
+.python-version
 
 # Installer logs
 pip-log.txt
