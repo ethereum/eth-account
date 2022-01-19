@@ -2,9 +2,6 @@ import json
 import pytest
 import re
 
-from eth_abi.exceptions import (
-    ABITypeError,
-)
 from eth_utils import (
     ValidationError,
     keccak,
@@ -223,12 +220,12 @@ def test_invalid_structured_data_value_type_mismatch_in_primary_type():
         "tests/fixtures/invalid_message_value_type_mismatch_primary_type.json"
     ).read()
     invalid_structured_data = json.loads(invalid_structured_data_string)
-    with pytest.raises(TypeError) as e:
+
+    with pytest.raises(
+        TypeError,
+        match="in the struct `Mail` is of the type `<class 'int'>`, but expected string value"
+    ):
         hash_message(invalid_structured_data)
-    assert (
-        str(e.value) == "Value of `contents` (12345) in the struct `Mail` is of the "
-        "type `<class 'int'>`, but expected string value"
-    )
 
 
 def test_invalid_structured_data_invalid_abi_type():
@@ -237,9 +234,8 @@ def test_invalid_structured_data_invalid_abi_type():
         "tests/fixtures/invalid_message_invalid_abi_type.json"
     ).read()
     invalid_structured_data = json.loads(invalid_structured_data_string)
-    with pytest.raises(ABITypeError) as e:
+    with pytest.raises(TypeError, match="Received Invalid type `uint25689` in the struct `Person`"):
         hash_message(invalid_structured_data)
-    assert "'uint25689': integer size out of bounds" in str(e.value)
 
 
 def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function():
