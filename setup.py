@@ -8,7 +8,7 @@ from setuptools import (
 extras_require = {
     'test': [
         "hypothesis>=4.18.0,<5",
-        "pytest==5.4.1",
+        "pytest>=6.2.5,<7",
         "pytest-xdist",
         "tox==3.14.6",
     ],
@@ -87,5 +87,6 @@ setup(
         'Programming Language :: Python :: 3.7',
         'Programming Language :: Python :: 3.8',
         'Programming Language :: Python :: 3.9',
+        'Programming Language :: Python :: 3.10',
     ],
 )
