@@ -106,6 +106,12 @@ jobs:
       - image: circleci/python:3.8
         environment:
           TOXENV: py38-core
+  py39-core:
+    <<: *common
+    docker:
+      - image: circleci/python:3.9
+        environment:
+          TOXENV: py39-core
   py36-integration:
     <<: *integration
     docker:
@@ -124,6 +130,12 @@ jobs:
       - image: circleci/python:3.8
         environment:
           TOXENV: py38-integration
+  py39-integration:
+    <<: *integration
+    docker:
+      - image: circleci/python:3.9
+        environment:
+          TOXENV: py39-integration
   py36-wheel-cli:
     <<: *common
     docker:
@@ -142,6 +154,12 @@ jobs:
       - image: circleci/python:3.8
         environment:
           TOXENV: py38-wheel-cli
+  py39-wheel-cli:
+    <<: *common
+    docker:
+      - image: circleci/python:3.9
+        environment:
+          TOXENV: py39-wheel-cli
 workflows:
   version: 2
   test:
@@ -151,9 +169,12 @@ workflows:
       - py36-core
       - py37-core
       - py38-core
+      - py39-core
       - py36-integration
       - py37-integration
       - py38-integration
+      - py39-integration
       - py36-wheel-cli
       - py37-wheel-cli
       - py38-wheel-cli
+      - py39-wheel-cli
