@@ -3,6 +3,30 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.6.0 (2022-01-20)
+-------------------------------
+Eth_Account 0.6.0 (2022-01-20)
+------------------------------
+
+Features
+~~~~~~~~
+
+- Update dependencies:
+  - eth-abi
+  - eth-keyfile
+  - eth-keys
+  - eth-rlp
+  - pyrlp
+  - eth-utils (`#138 <https://github.com/ethereum/eth-account/issues/138>`__)
+- Add support for Python 3.9 and 3.10 (`#139 <https://github.com/ethereum/eth-account/issues/139>`__)
+
+
+Deprecations and Removals
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Drop support for Python 3.6 (`#139 <https://github.com/ethereum/eth-account/issues/139>`__)
+
+
 eth-account v0.5.6 (2021-09-22)
 -------------------------------
 

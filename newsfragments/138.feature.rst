@@ -1,7 +1,0 @@
-Update dependencies:
-- eth-abi
-- eth-keyfile
-- eth-keys
-- eth-rlp
-- pyrlp
-- eth-utils
