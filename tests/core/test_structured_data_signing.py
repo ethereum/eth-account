@@ -150,13 +150,29 @@ def test_hashed_structured_data(message_encodings):
     assert hashed_structured_msg.hex() == expected_hash_value_hex
 
 
-def test_hashed_structured_data_with_bytes32(structured_valid_data_json_string):
+def test_hashed_structured_data_with_bytes(structured_valid_data_json_string):
     structured_data = json.loads(structured_valid_data_json_string)
-    structured_data['types']['Mail'][2]['type'] = "bytes32"
+
+    # change 'contents' field to type ``bytes`` and set bytes value
+    structured_data['types']['Mail'][3]['type'] = "bytes"
     structured_data['message']['contents'] = keccak(b'')
+
     structured_msg = encode_structured_data(structured_data)
     hashed_structured_msg = _hash_eip191_message(structured_msg)
-    expected_hash_value_hex = "f7f87cf61cfd0094dbca5cbdc97154501f174f5b7ca53be23e1f3ea8005be468"
+    expected_hash_value_hex = "a06e87f57db20fed78428850bfe02a67d4c6c0f9bcb582b860299b21f591b1c6"
+    assert hashed_structured_msg.hex() == expected_hash_value_hex
+
+
+def test_hashed_structured_data_with_bytes32(structured_valid_data_json_string):
+    structured_data = json.loads(structured_valid_data_json_string)
+
+    # change 'contents' field to type ``bytes32`` and set bytes value
+    structured_data['types']['Mail'][3]['type'] = "bytes32"
+    structured_data['message']['contents'] = keccak(b'')
+
+    structured_msg = encode_structured_data(structured_data)
+    hashed_structured_msg = _hash_eip191_message(structured_msg)
+    expected_hash_value_hex = "ff79c92bdd076a8ec12b146f82a278b30f4da5d402382e215abda4c3c186257e"
     assert hashed_structured_msg.hex() == expected_hash_value_hex
 
 
