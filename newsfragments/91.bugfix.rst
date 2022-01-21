@@ -1,0 +1,1 @@
+Allow encoding of structured data containing ``bytes``
