@@ -16,6 +16,9 @@ from eth_keyfile.keyfile import (
 from eth_keys import (
     keys,
 )
+from eth_keys.exceptions import (
+    BadSignature,
+)
 from eth_utils import (
     is_checksum_address,
     to_bytes,
@@ -283,6 +286,15 @@ def test_eth_account_recover_message(acct):
     message = encode_defunct(text=message_text)
     from_account = acct.recover_message(message, vrs=(v, r, s))
     assert from_account == '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+
+
+def test_eth_account_recover_message_invalid_signature():
+    private_key = '0x' + '00' * 32
+    message_text = "I♥SF"
+    message = encode_defunct(text=message_text)
+    signed_msg = Account.sign_message(message, private_key)
+    with pytest.raises(BadSignature):
+        Account.recover_message(message, vrs=(signed_msg.v, signed_msg.r, signed_msg.s))
 
 
 @pytest.mark.parametrize(
