@@ -352,6 +352,7 @@ class Account(object):
         :type signature: hex str or bytes or int
         :returns: address of signer, hex-encoded & checksummed
         :rtype: str
+        :raises: ``eth_keys.exceptions.BadSignature`` if signature is invalid
 
         .. doctest:: python
 
