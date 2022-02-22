@@ -180,7 +180,7 @@ def acct(request):
         raise Exception(f"account invocation {request.param} is not supported")
 
 
-@pytest.fixture
+@pytest.fixture(scope="module")
 def keyed_acct():
     return Account.from_key(PRIVATE_KEY_AS_BYTES)
 
