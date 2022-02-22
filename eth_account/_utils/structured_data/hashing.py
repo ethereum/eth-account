@@ -246,20 +246,15 @@ def _encode_data(primary_type, types, data):
                     )
                 )
 
-            # Next see if the data fits the specified encoding type
+            # Next, see if the value is encodable as the specified type
             if is_encodable(field["type"], value):
-                # field["type"] is a valid type and this value corresponds to that type.
+                # field["type"] is a valid type and the provided value is encodable as that type
                 yield field["type"], value
             else:
                 raise TypeError(
-                    "Value of `{0}` ({2}) in the struct `{1}` is of the type `{3}`, but expected "
-                    "{4} value".format(
-                        field["name"],
-                        primary_type,
-                        value,
-                        type(value),
-                        field["type"],
-                    )
+                    f"Value of `{field['name']}` ({value}) in the struct `{primary_type}` is not "
+                    f"encodable as the specified type `{field['type']}`. If the base type is "
+                    "correct, make sure the value does not exceed the specified size for the type."
                 )
 
 
