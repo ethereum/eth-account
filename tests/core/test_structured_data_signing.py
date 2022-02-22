@@ -265,7 +265,7 @@ def test_invalid_structured_data_invalid_abi_type():
 
 
 def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function():
-    # Given valid abi type, but the value is not of the specified type
+    # Given valid abi type, but the value is not encodable as the specified type
     # (Error is found by the ``is_encodable`` ABI function)
     invalid_structured_data_string = open(
         "tests/fixtures/invalid_message_valid_abi_type_invalid_value.json"
@@ -274,8 +274,9 @@ def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function()
     with pytest.raises(TypeError) as e:
         hash_message(invalid_structured_data)
     assert (
-        str(e.value) == "Value of `balance` (how do you do?) in the struct `Person` is of the "
-        "type `<class 'str'>`, but expected uint256 value"
+        str(e.value) == "Value of `balance` (how do you do?) in the struct `Person` is not "
+                        "encodable as the specified type `uint256`. If the base type is correct, "
+                        "make sure the value does not exceed the specified size for the type."
     )
 
 
