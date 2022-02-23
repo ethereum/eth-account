@@ -1,0 +1,80 @@
+{
+	"types": {
+		"EIP712Domain": [
+			{"name": "name", "type": "string"},
+			{"name": "version", "type": "string"},
+			{"name": "chainId", "type": "uint256"},
+			{"name": "verifyingContract", "type": "address"}
+		],
+		"Owners": [
+			{
+				"name": "owners", "type": "Person[]"
+			}
+		],
+		"Person": [
+			{"name": "name", "type": "string"},
+			{"name": "contract", "type": "Contract"}
+		],
+		"Contract": [
+			{"name": "address", "type": "address"},
+			{"name": "childContracts", "type": "Contract[]"}
+		]
+	},
+	"primaryType": "Owners",
+	"domain": {
+		"name": "Contract Owners",
+		"version": "2",
+		"chainId": 1337,
+		"verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+	},
+	"message": {
+		"owners": [
+			{
+				"name": "Alice",
+				"contract": {
+					"address": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+					"childContracts": [
+						{
+							"address": "0xbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+							"childContracts": [
+								{
+									"address": "0xcccccccccccccccccccccccccccccccccccccccc",
+									"childContracts": [
+										{
+											"address": "0xabababababababababababababababababababab",
+											"childContracts": []
+										},
+										{
+											"address": "0xacacacacacacacacacacacacacacacacacacacac",
+											"childContracts": []
+										},
+										{
+											"address": "0xadadadadadadadadadadadadadadadadadadadad",
+											"childContracts": [
+												{
+													"address": "0xbabababababababababababababababababababa",
+													"childContracts": []
+												}
+											]
+										},
+										{
+											"address": "0xaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeaeae",
+											"childContracts": []
+										}
+									]
+								}
+							]
+						}
+					]
+				}
+			},
+			{
+				"name": "Bob",
+				"contract": {
+					"address": "0xfefefefefefefefefefefefefefefefefefefefe",
+					"childContracts": []
+				}
+			}
+		]
+	}
+}
