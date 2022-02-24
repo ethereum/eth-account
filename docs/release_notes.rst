@@ -3,6 +3,23 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.6.1 (2022-02-24)
+-------------------------------
+Eth_Account 0.6.1 (2022-02-24)
+------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Allow encoding of structured data containing ``bytes`` (`#91 <https://github.com/ethereum/eth-account/issues/91>`__)
+
+
+Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#68 <https://github.com/ethereum/eth-account/issues/68>`__, `#144 <https://github.com/ethereum/eth-account/issues/144>`__
+
+
 eth-account v0.6.0 (2022-01-20)
 -------------------------------
 Eth_Account 0.6.0 (2022-01-20)

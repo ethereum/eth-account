@@ -1,1 +1,0 @@
-Improve messaging in ``TypeError`` when a provided ``value`` cannot be encoded as the specified abi ``type`` for structured data.
