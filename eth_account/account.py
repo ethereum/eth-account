@@ -281,6 +281,31 @@ class Account(object):
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
+        """
+        Generate multiple accounts from a mnemonic.
+
+        .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
+
+        :param str mnemonic: space-separated list of BIP39 mnemonic seed words
+        :param str passphrase: Optional passphrase used to encrypt the mnemonic
+        :param str account_path: Specify an alternate HD path for deriving the seed using
+            BIP32 HD wallet key derivation.
+        :return: object with methods for signing and encrypting
+        :rtype: LocalAccount
+
+        .. doctest:: python
+
+        >>> from eth_account import Account
+        >>> Account.enable_unaudited_hdwallet_features()
+        >>> iterator = 0
+        >>> for i in range(10):
+        >>> acct = Account.from_mnemonic("health embark april buyer eternal leopard want before nominee head thing tackle", account_path=f"m/44'/60'/0'/0/{iterator}")
+        >>> iterator = iterator + 1
+        >>> acct.address
+
+        .. CAUTION:: For the love of Bob please do not use this mnemonic, it is for testing purposes only.
+
+        """
         if not self._use_unaudited_hdwallet_features:
             raise AttributeError(
                 "The use of the Mnemonic features of Account is disabled by default until "
