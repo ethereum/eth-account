@@ -284,15 +284,6 @@ class Account(object):
         """
         Generate multiple accounts from a mnemonic.
 
-        .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
-
-        :param str mnemonic: space-separated list of BIP39 mnemonic seed words
-        :param str passphrase: Optional passphrase used to encrypt the mnemonic
-        :param str account_path: Specify an alternate HD path for deriving the seed using
-            BIP32 HD wallet key derivation.
-        :return: object with methods for signing and encrypting
-        :rtype: LocalAccount
-
         .. doctest:: python
 
         >>> from eth_account import Account
