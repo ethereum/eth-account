@@ -19,9 +19,10 @@ extras_require = {
         "pydocstyle>=5.0.0,<6",
     ],
     'doc': [
-        "Sphinx>=1.6.5,<2",
+        "Sphinx>=1.6.5,<5",
+        "jinja2>=3.0.0,<3.1.0",  # jinja2<3.0 or >=3.1.0 cause doc build failures.
         "sphinx_rtd_theme>=0.1.9,<1",
-        "towncrier>=19.2.0, <20",
+        "towncrier==18.5.0",  # towncrier doesn't follow semver
     ],
     'dev': [
         "bumpversion>=0.5.3,<1",
