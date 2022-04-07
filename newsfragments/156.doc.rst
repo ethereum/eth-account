@@ -1,0 +1,1 @@
+Pin Jinja2 at >=3.0.0,<3.1.0; pin towncrier==19.2.0; open up Sphinx requirement to allow >=1.6.5,<5.
