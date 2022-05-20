@@ -1,0 +1,1 @@
+Change bitarray dependency requirement to be >=2.4,<3 since 2.4 has wheels for all platform types.
