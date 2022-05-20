@@ -60,7 +60,7 @@ setup(
         "hdaccount/wordlist/*.txt",
     ]},
     install_requires=[
-        "bitarray>=1.2.1,<1.3.0",
+        "bitarray>=1.2.1,<3",
         "eth-abi>=2.0.0b7,<3",
         "eth-keyfile>=0.5.0,<0.6.0",
         "eth-keys>=0.3.4,<0.4.0",
