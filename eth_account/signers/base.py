@@ -3,6 +3,9 @@ from abc import (
     abstractmethod,
 )
 
+from eth_account.datastructures import (
+    SignedMessage,
+)
 from eth_account.messages import (
     SignableMessage,
 )
@@ -28,7 +31,7 @@ class BaseAccount(ABC):
         pass
 
     @abstractmethod
-    def sign_message(self, signable_message: SignableMessage):
+    def sign_message(self, signable_message: SignableMessage) -> SignedMessage:
         """
         Sign the EIP-191_ message.
 

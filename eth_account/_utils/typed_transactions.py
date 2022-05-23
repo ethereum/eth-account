@@ -6,6 +6,7 @@ from typing import (
     Any,
     Dict,
     Tuple,
+    Union,
     cast,
 )
 
@@ -126,7 +127,7 @@ class TypedTransaction:
         self.transaction = transaction
 
     @classmethod
-    def from_dict(cls, dictionary: Dict[str, Any]):
+    def from_dict(cls, dictionary: Dict[str, Any]) -> "TypedTransaction":
         """Builds a TypedTransaction from a dictionary. Verifies the dictionary is well formed."""
         dictionary = set_transaction_type_if_needed(dictionary)
         if not ('type' in dictionary and is_int_or_prefixed_hexstr(dictionary['type'])):
@@ -146,12 +147,13 @@ class TypedTransaction:
         )
 
     @classmethod
-    def from_bytes(cls, encoded_transaction: HexBytes):
+    def from_bytes(cls, encoded_transaction: HexBytes) -> "TypedTransaction":
         """Builds a TypedTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
             raise TypeError("expected Hexbytes, got %s" % type(encoded_transaction))
         if not (len(encoded_transaction) > 0 and encoded_transaction[0] <= 0x7f):
             raise ValueError("unexpected input")
+        transaction: Union["DynamicFeeTransaction", "AccessListTransaction"]
         if encoded_transaction[0] == AccessListTransaction.transaction_type:
             transaction_type = AccessListTransaction.transaction_type
             transaction = AccessListTransaction.from_bytes(encoded_transaction)
@@ -245,7 +247,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
         self.dictionary = dictionary
 
     @classmethod
-    def assert_valid_fields(cls, dictionary: Dict[str, Any]):
+    def assert_valid_fields(cls, dictionary: Dict[str, Any]) -> None:
         transaction_valid_values = merge(LEGACY_TRANSACTION_VALID_VALUES, {
             'type': is_int_or_prefixed_hexstr,
             'accessList': is_rpc_structured_access_list,
@@ -265,7 +267,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
             raise TypeError("Transaction had invalid fields: %r" % invalid)
 
     @classmethod
-    def from_dict(cls, dictionary: Dict[str, Any]):
+    def from_dict(cls, dictionary: Dict[str, Any]) -> "AccessListTransaction":
         """
         Builds an AccessListTransaction from a dictionary.
         Verifies that the dictionary is well formed.
@@ -291,7 +293,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
         )
 
     @classmethod
-    def from_bytes(cls, encoded_transaction: HexBytes):
+    def from_bytes(cls, encoded_transaction: HexBytes) -> "AccessListTransaction":
         """Builds an AccesslistTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
             raise TypeError("expected Hexbytes, got type: %s" % type(encoded_transaction))
@@ -406,7 +408,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         self.dictionary = dictionary
 
     @classmethod
-    def assert_valid_fields(cls, dictionary: Dict[str, Any]):
+    def assert_valid_fields(cls, dictionary: Dict[str, Any]) -> None:
         transaction_valid_values = merge(LEGACY_TRANSACTION_VALID_VALUES, {
             'type': is_int_or_prefixed_hexstr,
             'maxPriorityFeePerGas': is_int_or_prefixed_hexstr,
@@ -428,7 +430,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
             raise TypeError("Transaction had invalid fields: %r" % invalid)
 
     @classmethod
-    def from_dict(cls, dictionary: Dict[str, Any]):
+    def from_dict(cls, dictionary: Dict[str, Any]) -> "DynamicFeeTransaction":
         """
         Builds a DynamicFeeTransaction from a dictionary.
         Verifies that the dictionary is well formed.
@@ -454,7 +456,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         )
 
     @classmethod
-    def from_bytes(cls, encoded_transaction: HexBytes):
+    def from_bytes(cls, encoded_transaction: HexBytes) -> "DynamicFeeTransaction":
         """Builds a DynamicFeeTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
             raise TypeError("expected Hexbytes, got type: %s" % type(encoded_transaction))

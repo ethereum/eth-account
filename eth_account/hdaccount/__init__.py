@@ -26,5 +26,5 @@ def seed_from_mnemonic(words: str, passphrase: str) -> bytes:
     return Mnemonic.to_seed(expanded_words, passphrase)
 
 
-def key_from_seed(seed: bytes, account_path: str):
+def key_from_seed(seed: bytes, account_path: str) -> bytes:
     return HDPath(account_path).derive(seed)

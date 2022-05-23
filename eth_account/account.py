@@ -3,6 +3,13 @@ from collections.abc import (
 )
 import json
 import os
+from typing import (
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+)
 import warnings
 
 from cytoolz import (
@@ -18,6 +25,11 @@ from eth_keys import (
 )
 from eth_keys.exceptions import (
     ValidationError,
+)
+from eth_typing import (
+    ChecksumAddress,
+    Hash32,
+    HexStr,
 )
 from eth_utils.curried import (
     combomethod,
@@ -63,6 +75,8 @@ from eth_account.messages import (
 from eth_account.signers.local import (
     LocalAccount,
 )
+
+VRS = TypeVar('VRS', bytes, HexStr, int)
 
 
 class Account(object):
@@ -254,7 +268,7 @@ class Account(object):
     def from_mnemonic(self,
                       mnemonic: str,
                       passphrase: str = "",
-                      account_path: str = ETHEREUM_DEFAULT_PATH):
+                      account_path: str = ETHEREUM_DEFAULT_PATH) -> LocalAccount:
         """
         Generate an account from a mnemonic.
 
@@ -324,7 +338,7 @@ class Account(object):
                              passphrase: str = "",
                              num_words: int = 12,
                              language: str = "english",
-                             account_path: str = ETHEREUM_DEFAULT_PATH):
+                             account_path: str = ETHEREUM_DEFAULT_PATH) -> Tuple[LocalAccount, str]:
         r"""
         Create a new private key and related mnemonic.
 
@@ -367,7 +381,10 @@ class Account(object):
         return self.from_mnemonic(mnemonic, passphrase, account_path), mnemonic
 
     @combomethod
-    def recover_message(self, signable_message: SignableMessage, vrs=None, signature=None):
+    def recover_message(self,
+                        signable_message: SignableMessage,
+                        vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
+                        signature: bytes = None) -> ChecksumAddress:
         r"""
         Get the address of the account that signed the given message.
         You must specify exactly one of: vrs or signature
@@ -431,7 +448,7 @@ class Account(object):
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
         """
         message_hash = _hash_eip191_message(signable_message)
-        return self._recover_hash(message_hash, vrs, signature)
+        return cast(ChecksumAddress, self._recover_hash(message_hash, vrs, signature))
 
     @combomethod
     def recoverHash(self, message_hash, vrs=None, signature=None):
@@ -458,7 +475,10 @@ class Account(object):
         return self._recover_hash(message_hash, vrs, signature)
 
     @combomethod
-    def _recover_hash(self, message_hash, vrs=None, signature=None):
+    def _recover_hash(self,
+                      message_hash: Hash32,
+                      vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
+                      signature: bytes = None) -> ChecksumAddress:
         hash_bytes = HexBytes(message_hash)
         if len(hash_bytes) != 32:
             raise ValueError("The message hash must be exactly 32-bytes")
@@ -473,7 +493,7 @@ class Account(object):
         else:
             raise TypeError("You must supply the vrs tuple or the signature bytes")
         pubkey = signature_obj.recover_public_key_from_msg_hash(hash_bytes)
-        return pubkey.to_checksum_address()
+        return cast(ChecksumAddress, pubkey.to_checksum_address())
 
     @combomethod
     def recoverTransaction(self, serialized_transaction):
@@ -539,7 +559,9 @@ class Account(object):
         self._keys = KeyAPI(backend)
 
     @combomethod
-    def sign_message(self, signable_message: SignableMessage, private_key):
+    def sign_message(self,
+                     signable_message: SignableMessage,
+                     private_key: Union[bytes, HexStr, int, keys.PrivateKey]) -> SignedMessage:
         r"""
         Sign the provided message.
 
@@ -583,7 +605,7 @@ class Account(object):
         .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
         """
         message_hash = _hash_eip191_message(signable_message)
-        return self._sign_hash(message_hash, private_key)
+        return cast(SignedMessage, self._sign_hash(message_hash, private_key))
 
     @combomethod
     def signHash(self, message_hash, private_key):
@@ -614,7 +636,9 @@ class Account(object):
         return self._sign_hash(message_hash, private_key)
 
     @combomethod
-    def _sign_hash(self, message_hash, private_key):
+    def _sign_hash(self,
+                   message_hash: Hash32,
+                   private_key: Union[bytes, HexStr, int, keys.PrivateKey]) -> SignedMessage:
         msg_hash_bytes = HexBytes(message_hash)
         if len(msg_hash_bytes) != 32:
             raise ValueError("The message hash must be exactly 32-bytes")

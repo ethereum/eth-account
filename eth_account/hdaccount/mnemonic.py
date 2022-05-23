@@ -113,7 +113,7 @@ class Mnemonic:
         (language,) = matching_languages
         return language
 
-    def generate(self, num_words=12) -> str:
+    def generate(self, num_words: int = 12) -> str:
         if num_words not in VALID_WORD_COUNTS:
             raise ValidationError(
                 f"Invalid choice for number of words: {num_words}, should be one of "
@@ -121,7 +121,7 @@ class Mnemonic:
             )
         return self.to_mnemonic(os.urandom(4 * num_words // 3))  # 4/3 bytes per word
 
-    def to_mnemonic(self, entropy) -> str:
+    def to_mnemonic(self, entropy: bytes) -> str:
         entropy_size = len(entropy)
         if entropy_size not in VALID_ENTROPY_SIZES:
             raise ValidationError(

@@ -82,7 +82,7 @@ class Node(int):
     def __repr__(self):
         return f"{self.__class__.__name__}({self.index})"
 
-    def __add__(self, other: int):
+    def __add__(self, other: int) -> "Node":
         return self.__class__(self.index + other)
 
     def serialize(self) -> bytes:
