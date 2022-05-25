@@ -1,1 +1,0 @@
-Remove venv files from being packaged in the sdist distribution

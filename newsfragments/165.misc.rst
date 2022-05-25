@@ -1,0 +1,1 @@
+Prune virutal environment files in MANIFEST so they don't get included in the dist
