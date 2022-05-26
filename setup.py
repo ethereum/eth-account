@@ -10,7 +10,7 @@ extras_require = {
         "hypothesis>=4.18.0,<5",
         "pytest>=6.2.5,<7",
         "pytest-xdist",
-        "tox==3.14.6",
+        "tox==3.25.0",
     ],
     'lint': [
         "flake8==3.7.9",

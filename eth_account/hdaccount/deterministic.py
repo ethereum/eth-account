@@ -75,8 +75,7 @@ class Node(int):
                 f"{cls} cannot be initialized with value {index}"
             )
 
-        # mypy/typeshed bug requires type ignore: https://github.com/python/typeshed/issues/2686
-        obj = int.__new__(cls, index + cls.OFFSET)  # type: ignore
+        obj = int.__new__(cls, index + cls.OFFSET)
         obj.index = index
         return obj
 
