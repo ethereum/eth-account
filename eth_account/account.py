@@ -280,6 +280,33 @@ class Account(object):
             # These methods are also available: sign_message(), sign_transaction(), encrypt()
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
+
+        Or, generate multiple accounts from a mnemonic.
+
+             >>> from eth_account import Account
+             >>> Account.enable_unaudited_hdwallet_features()
+             >>> iterator = 0
+             >>> for i in range(10):
+             ...     acct = Account.from_mnemonic(
+             ...         "health embark april buyer eternal leopard "
+             ...         "want before nominee head thing tackle",
+             ...         account_path=f"m/44'/60'/0'/0/{iterator}")
+             ...     iterator = iterator + 1
+             ...     acct.address
+             '0x61Cc15522D06983Ac7aADe23f9d5433d38e78195'
+             '0x1240460F6E370f28079E5F9B52f9DcB759F051b7'
+             '0xd30dC9f996539826C646Eb48bb45F6ee1D1474af'
+             '0x47e64beb58c9A469c5eD086aD231940676b44e7C'
+             '0x6D39032ffEF9987988a069F52EFe4d95D0770555'
+             '0x3836A6530D1889853b047799Ecd8827255072e77'
+             '0xed5490dEfF8d8FfAe45cb4066C3daC7C6BFF6a22'
+             '0xf04F9Ff322799253bcC6B12762AD127570a092c5'
+             '0x900F7fa9fbe85BB25b6cdB94Da24D807f7feb213'
+             '0xa248e118b0D19010387b1B768686cd9B473FA137'
+
+        .. CAUTION:: For the love of Bob please do not use this mnemonic,
+                     it is for testing purposes only.
+
         """
         if not self._use_unaudited_hdwallet_features:
             raise AttributeError(
