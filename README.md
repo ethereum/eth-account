@@ -14,7 +14,7 @@ Read more in the [documentation on ReadTheDocs](https://eth-account.readthedocs.
 ## Quickstart
 
 ```sh
-pip install eth-account
+sudo pip install eth-account
 ```
 
 ## Developer Setup
