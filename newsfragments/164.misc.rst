@@ -1,0 +1,1 @@
+Switch on mypy disallow_incomplete_defs
