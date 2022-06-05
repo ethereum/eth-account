@@ -1,9 +1,16 @@
 from typing import (
     Any,
     Dict,
+    Mapping,
     Sequence,
+    Tuple,
+    Union,
+    cast,
 )
 
+from eth_typing import (
+    ChecksumAddress,
+)
 from toolz import (
     assoc,
     dissoc,
@@ -13,6 +20,9 @@ from eth_account._utils.validation import (
     is_rlp_structured_access_list,
     is_rpc_structured_access_list,
 )
+
+RLPStructure = Tuple[Union[bytes, bytearray, ChecksumAddress], Tuple[Union[int, str]]]
+RPCStructure = Tuple[Dict[str, Union[bytes, bytearray, ChecksumAddress, int, str]]]
 
 
 def set_transaction_type_if_needed(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -39,7 +49,7 @@ def transaction_rpc_to_rlp_structure(dictionary: Dict[str, Any]) -> Dict[str, An
     return dictionary
 
 
-def _access_list_rpc_to_rlp_structure(access_list: Sequence) -> Sequence:
+def _access_list_rpc_to_rlp_structure(access_list: Sequence[Mapping[str, Any]]) -> RLPStructure:
     if not is_rpc_structured_access_list(access_list):
         raise ValueError("provided object not formatted as JSON-RPC-structured access list")
     rlp_structured_access_list = []
@@ -51,7 +61,7 @@ def _access_list_rpc_to_rlp_structure(access_list: Sequence) -> Sequence:
                 tuple(_ for _ in d['storageKeys'])  # tuple of storage key values
             )
         )
-    return tuple(rlp_structured_access_list)
+    return cast(RLPStructure, tuple(rlp_structured_access_list))
 
 
 # rlp to JSON-RPC transaction structure
@@ -67,7 +77,7 @@ def transaction_rlp_to_rpc_structure(dictionary: Dict[str, Any]) -> Dict[str, An
     return dictionary
 
 
-def _access_list_rlp_to_rpc_structure(access_list: Sequence) -> Sequence:
+def _access_list_rlp_to_rpc_structure(access_list: Sequence[Sequence[Any]]) -> RPCStructure:
     if not is_rlp_structured_access_list(access_list):
         raise ValueError("provided object not formatted as rlp-structured access list")
     rpc_structured_access_list = []
@@ -79,4 +89,4 @@ def _access_list_rlp_to_rpc_structure(access_list: Sequence) -> Sequence:
                 'storageKeys': t[1]
             }
         )
-    return tuple(rpc_structured_access_list)
+    return cast(RPCStructure, tuple(rpc_structured_access_list))
