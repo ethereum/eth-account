@@ -1,1 +1,0 @@
-Unpin Towncrier version to allow >=21.9.0, and exclude venv files from being distributed via MANIFEST.in

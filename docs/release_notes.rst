@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.5.8 (2022-06-06)
+-------------------------------
+
+Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#163 <https://github.com/ethereum/eth-account/issues/163>`__, `#168 <https://github.com/ethereum/eth-account/issues/168>`__
+
+
 eth-account v0.5.7 (2022-01-27)
 -------------------------------
 
