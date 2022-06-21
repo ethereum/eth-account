@@ -341,7 +341,6 @@ def test_hashed_structured_data_with_bytes32(eip712_example_with_array_json_stri
     assert hashed_structured_msg.hex() == expected_hash_value_hex
 
 
-@pytest.mark.skip(reason="Requires get_dependencies() fix for array types")
 def test_hashed_structured_data_with_nested_structs():
     nested_structs_valid_data_json_string = open(
         "tests/fixtures/valid_message_nested_structs.json", "r"

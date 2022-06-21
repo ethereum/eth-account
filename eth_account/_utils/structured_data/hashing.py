@@ -39,15 +39,20 @@ def get_dependencies(primary_type, types):
         deps.add(struct_name)
         fields = types[struct_name]
         for field in fields:
-            if field["type"] not in types:
+            # Handle array types
+            field_type = field["type"]
+            if field_type.endswith("[]"):
+                field_type = field_type[:-2]
+
+            if field_type not in types:
                 # We don't need to expand types that are not user defined (customized)
                 continue
-            elif field["type"] in deps:
+            elif field_type in deps:
                 # skip types that we have already encountered
                 continue
             else:
                 # Custom Struct Type
-                struct_names_yet_to_be_expanded.append(field["type"])
+                struct_names_yet_to_be_expanded.append(field_type)
 
     # Don't need to make a struct as dependency of itself
     deps.remove(primary_type)
