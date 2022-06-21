@@ -230,7 +230,7 @@ def _encode_data(primary_type, types, data):
 
             array_items = flatten_multidimensional_array(value)
             array_items_encoding = [
-                encode_data(parsed_type.base, types, array_item)
+                keccak(encode_data(parsed_type.base, types, array_item))
                 for array_item in array_items
             ]
             concatenated_array_encodings = b''.join(array_items_encoding)
