@@ -1,15 +1,12 @@
 from typing import (
     Any,
     Dict,
-    Mapping,
-    Sequence,
     Tuple,
-    Union,
-    cast,
+    TypedDict,
 )
 
 from eth_typing import (
-    ChecksumAddress,
+    Hash32,
 )
 from toolz import (
     assoc,
@@ -21,8 +18,9 @@ from eth_account._utils.validation import (
     is_rpc_structured_access_list,
 )
 
-RLPStructure = Tuple[Union[bytes, bytearray, ChecksumAddress], Tuple[Union[int, str]]]
-RPCStructure = Tuple[Dict[str, Union[bytes, bytearray, ChecksumAddress, int, str]]]
+RLPStructure = Tuple[Tuple[str, Tuple[Hash32, ...]], ...]
+RPCDict = TypedDict('RPCDict', {'address': str, 'storageKeys': Tuple[Hash32, ...]})
+RPCStructure = Tuple[RPCDict, ...]
 
 
 def set_transaction_type_if_needed(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -49,7 +47,7 @@ def transaction_rpc_to_rlp_structure(dictionary: Dict[str, Any]) -> Dict[str, An
     return dictionary
 
 
-def _access_list_rpc_to_rlp_structure(access_list: Sequence[Mapping[str, Any]]) -> RLPStructure:
+def _access_list_rpc_to_rlp_structure(access_list: RPCStructure) -> RLPStructure:
     if not is_rpc_structured_access_list(access_list):
         raise ValueError("provided object not formatted as JSON-RPC-structured access list")
     rlp_structured_access_list = []
@@ -61,7 +59,7 @@ def _access_list_rpc_to_rlp_structure(access_list: Sequence[Mapping[str, Any]]) 
                 tuple(_ for _ in d['storageKeys'])  # tuple of storage key values
             )
         )
-    return cast(RLPStructure, tuple(rlp_structured_access_list))
+    return tuple(rlp_structured_access_list)
 
 
 # rlp to JSON-RPC transaction structure
@@ -77,16 +75,15 @@ def transaction_rlp_to_rpc_structure(dictionary: Dict[str, Any]) -> Dict[str, An
     return dictionary
 
 
-def _access_list_rlp_to_rpc_structure(access_list: Sequence[Sequence[Any]]) -> RPCStructure:
+def _access_list_rlp_to_rpc_structure(access_list: RLPStructure) -> RPCStructure:
     if not is_rlp_structured_access_list(access_list):
         raise ValueError("provided object not formatted as rlp-structured access list")
     rpc_structured_access_list = []
     for t in access_list:
         # build a dictionary with appropriate keys for each tuple
-        rpc_structured_access_list.append(
-            {
-                'address': t[0],
-                'storageKeys': t[1]
-            }
-        )
-    return cast(RPCStructure, tuple(rpc_structured_access_list))
+        d: RPCDict = {
+            'address': t[0],
+            'storageKeys': t[1]
+        }
+        rpc_structured_access_list.append(d)
+    return tuple(rpc_structured_access_list)
