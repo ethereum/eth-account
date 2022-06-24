@@ -213,11 +213,11 @@ def _encode_data(primary_type, types, data):
             array_dimensions = get_array_dimensions(value)
             # Get the dimensions from what was declared in the schema
             parsed_type = parse(field["type"])
-            for i in range(len(array_dimensions)):
+            for i, array_dimension in enumerate(array_dimensions):
                 if len(parsed_type.arrlist[i]) == 0:
                     # Skip empty or dynamically declared dimensions
                     continue
-                if array_dimensions[i] != parsed_type.arrlist[i][0]:
+                if array_dimension != parsed_type.arrlist[i][0]:
                     # Dimensions should match with declared schema
                     raise TypeError(
                         "Array data `{0}` has dimensions `{1}` whereas the "
