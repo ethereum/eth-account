@@ -1,6 +1,7 @@
 import json
 import pytest
 import re
+import time
 
 from eth_utils import (
     ValidationError,
@@ -375,6 +376,29 @@ def test_type_regex(type, valid):
         assert re.match(TYPE_REGEX, type) is not None
     else:
         assert re.match(TYPE_REGEX, type) is None
+
+
+def test_type_regex_for_redos():
+    start = time.time()
+    # len 30 string is long enough to cause > 1 second delay if the regex is bad
+    long = '1' * 30
+    invalid_structured_data_string = f"""{{
+        "types": {{
+            "EIP712Domain": [
+                {{"name": "aaaa", "type": "$[{long}0"}},
+                {{"name": "version", "type": "string"}},
+                {{"name": "chainId", "type": "uint256"}},
+                {{"name": "verifyingContract", "type": "address"}}
+            ]
+        }}
+    }}"""
+
+    with pytest.raises(re.error, match="unterminated character set at position 15"):
+        with pytest.raises(ValidationError, match=f"Invalid Type `$[{long}0` in `EIP712Domain`"):
+            load_and_validate_structured_message(invalid_structured_data_string)
+
+    done = time.time() - start
+    assert done < 1
 
 
 def test_structured_data_invalid_identifier_filtered_by_regex():
