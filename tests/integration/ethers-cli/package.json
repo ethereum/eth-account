@@ -13,6 +13,6 @@
   "license": "ISC",
   "dependencies": {
     "ethers": "^5.0.0-beta.173 ",
-    "yargs": "^15.1.0"
+    "yargs": "^15.4.1"
   }
 }
