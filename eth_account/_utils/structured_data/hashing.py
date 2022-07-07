@@ -41,8 +41,8 @@ def get_dependencies(primary_type, types):
         for field in fields:
             # Handle array types
             field_type = field["type"]
-            if field_type.endswith("[]"):
-                field_type = field_type[:-2]
+            if field_type.endswith("]"):
+                field_type = field_type[:field_type.index('[')]
 
             if field_type not in types:
                 # We don't need to expand types that are not user defined (customized)
