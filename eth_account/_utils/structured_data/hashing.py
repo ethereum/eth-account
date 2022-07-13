@@ -15,7 +15,6 @@ from eth_abi.grammar import (
     parse,
 )
 from eth_utils import (
-    ValidationError,
     keccak,
     to_tuple,
     toolz,
@@ -137,23 +136,6 @@ def get_array_dimensions(data):
         for depth, group in groupby(depths_and_dimensions, itemgetter(0))
     }
 
-    # validate that there is only one dimension for any given depth.
-    invalid_depths_dimensions = tuple(
-        (depth, dimensions)
-        for depth, dimensions in grouped_by_depth.items()
-        if len(set(dimensions)) != 1
-    )
-    if invalid_depths_dimensions:
-        raise ValidationError(
-            '\n'.join(
-                [
-                    "Depth {0} of array data has more than one dimensions: {1}".
-                    format(depth, dimensions)
-                    for depth, dimensions in invalid_depths_dimensions
-                ]
-            )
-        )
-
     dimensions = tuple(
         toolz.first(set(dimensions))
         for depth, dimensions in sorted(grouped_by_depth.items())
@@ -162,140 +144,78 @@ def get_array_dimensions(data):
     return dimensions
 
 
-@to_tuple
-def flatten_multidimensional_array(array):
-    for item in array:
-        if isinstance(item, (list, tuple)):
-            # Not checking for Iterable instance, because even Dictionaries and strings
-            # are considered as iterables, but that's not what we want the condition to be.
-            yield from flatten_multidimensional_array(item)
-        else:
-            yield item
-
-
-@to_tuple
-def _encode_data(primary_type, types, data):
-    # Add typehash
-    yield "bytes32", hash_struct_type(primary_type, types)
-
-    # Add field contents
-    for field in types[primary_type]:
-        value = data[field["name"]]
-        if field["type"] == "string":
-            if not isinstance(value, str):
-                raise TypeError(
-                    "Value of `{0}` ({2}) in the struct `{1}` is of the type `{3}`, but expected "
-                    "string value".format(
-                        field["name"],
-                        primary_type,
-                        value,
-                        type(value),
-                    )
-                )
-            # Special case where the values need to be keccak hashed before they are encoded
-            hashed_value = keccak(text=value)
-            yield "bytes32", hashed_value
-        elif field["type"] == "bytes":
-            if not isinstance(value, bytes):
-                raise TypeError(
-                    "Value of `{0}` ({2}) in the struct `{1}` is of the type `{3}`, but expected "
-                    "bytes value".format(
-                        field["name"],
-                        primary_type,
-                        value,
-                        type(value),
-                    )
-                )
-            # Special case where the values need to be keccak hashed before they are encoded
-            hashed_value = keccak(primitive=value)
-            yield "bytes32", hashed_value
-        elif field["type"] in types:
-            # This means that this type is a user defined type
-            hashed_value = keccak(primitive=encode_data(field["type"], types, value))
-            yield "bytes32", hashed_value
-        elif is_array_type(field["type"]):
-            # Get the dimensions from the value
-            array_dimensions = get_array_dimensions(value)
-            # Get the dimensions from what was declared in the schema
-            parsed_type = parse(field["type"])
-            for i, array_dimension in enumerate(array_dimensions):
-                if len(parsed_type.arrlist[i]) == 0:
-                    # Skip empty or dynamically declared dimensions
-                    continue
-                if array_dimension != parsed_type.arrlist[i][0]:
-                    # Dimensions should match with declared schema
-                    raise TypeError(
-                        "Array data `{0}` has dimensions `{1}` whereas the "
-                        "schema has dimensions `{2}`".format(
-                            value,
-                            array_dimensions,
-                            tuple(map(lambda x: x[0], parsed_type.arrlist)),
-                        )
-                    )
-
-            array_items = flatten_multidimensional_array(value)
-            array_items_encoding = [
-                old_encode_data(parsed_type.base, types, array_item)
-                for array_item in array_items
-            ]
-            concatenated_array_encodings = b''.join(array_items_encoding)
-            hashed_value = keccak(concatenated_array_encodings)
-            yield "bytes32", hashed_value
-        else:
-            # First checking to see if type is valid as per abi
-            if not is_encodable_type(field["type"]):
-                raise TypeError(
-                    "Received Invalid type `{0}` in the struct `{1}`".format(
-                        field["type"],
-                        primary_type,
-                    )
-                )
-
-            # Next, see if the value is encodable as the specified type
-            if is_encodable(field["type"], value):
-                # field["type"] is a valid type and the provided value is encodable as that type
-                yield field["type"], value
-            else:
-                raise TypeError(
-                    f"Value of `{field['name']}` ({value}) in the struct `{primary_type}` is not "
-                    f"encodable as the specified type `{field['type']}`. If the base type is "
-                    "correct, make sure the value does not exceed the specified size for the type."
-                )
-
-
-def old_encode_data(primaryType, types, data):
-    data_types_and_hashes = _encode_data(primaryType, types, data)
-    data_types, data_hashes = zip(*data_types_and_hashes)
-    return encode_abi(data_types, data_hashes)
-
-
-def encode_field(types, name, type, value):
-    if type in types:
+def encode_field(types, name, field_type, value):
+    if field_type in types:
         # TODO handle if value is None
-        return ('bytes32', keccak(encode_data(type, types, value)))
+        return ('bytes32', keccak(encode_data(field_type, types, value)))
 
     if value is None:
-        raise ValueError(f"Missing value for field {name} of type {type}")
+        raise ValueError(f"Missing value for field {name} of type {field_type}")
 
-    if type == "bytes":
+    if field_type == "bytes":
+        if not isinstance(value, bytes):
+            raise TypeError(
+                f"Value of field `{name}` ({value}) is of the type `{type(value)}`, "
+                f"but expected bytes value"
+            )
+
         return ('bytes32', keccak(value))
 
-    if type == "string":
+    if field_type == "string":
+        if not isinstance(value, str):
+            raise TypeError(
+                f"Value of field `{name}` ({value}) is of the type `{type(value)}`, "
+                f"but expected string value"
+            )
+
         return ('bytes32', keccak(text=value))
 
-    if type[-1] == "]":
-        parsed_type = type[:type.rindex("[")]
+    if field_type[-1] == "]":
+        # Get the dimensions from the value
+        array_dimensions = get_array_dimensions(value)
+        # Get the dimensions from what was declared in the schema
+        parsed_field_type = parse(field_type)
 
-        # TODO verify that it is an array and of the correct shape
+        for i in range(len(array_dimensions)):
+            if len(parsed_field_type.arrlist[i]) == 0:
+                # Skip empty or dynamically declared dimensions
+                continue
+            if array_dimensions[i] != parsed_field_type.arrlist[i][0]:
+                # Dimensions should match with declared schema
+                raise TypeError(
+                    f"Array data `{value}` has dimensions `{array_dimensions}`"
+                    f" whereas the schema has dimensions "
+                    f"`{tuple(map(lambda x: x[0], parsed_field_type.arrlist))}`"
+                )
 
-        type_value_pairs = []
-        for item in value:
-            type_value_pairs.append(encode_field(types, name, parsed_type, item))
+        field_type_of_inside_array = field_type[:field_type.rindex("[")]
+        field_type_value_pairs = [
+            encode_field(types, name, field_type_of_inside_array, item)
+            for item in value]
 
-        data_types, data_hashes = zip(*type_value_pairs)
-        return ('bytes32', keccak(encode_abi(data_types, data_hashes)))
+        # handle empty array
+        if value:
+            data_types, data_hashes = zip(*field_type_value_pairs)
+        else:
+            data_types, data_hashes = [], []
 
-    return [type, value]
+        return('bytes32', keccak(encode_abi(data_types, data_hashes)))
+
+    # First checking to see if field_type is valid as per abi
+    if not is_encodable_type(field_type):
+        raise TypeError(f"Received Invalid type `{field_type}` in field `{name}`")
+
+    # Next, see if the value is encodable as the specified field_type
+    if is_encodable(field_type, value):
+        # field_type is a valid type and the provided value is encodable as that type
+        return (field_type, value)
+    else:
+        raise TypeError(
+            f"Value of `{name}` ({value}) is not encodable as type `{field_type}`. "
+            f"If the base type is correct, verify that the value does not "
+            f"exceed the specified size for the type."
+        )
+    # return [field_type, value]
 
 
 def encode_data(primary_type, types, data):
@@ -303,7 +223,11 @@ def encode_data(primary_type, types, data):
     encoded_values = [hash_struct_type(primary_type, types)]
 
     for field in types[primary_type]:
-        type, value = encode_field(types, field["name"], field["type"], data[field["name"]])
+        type, value = encode_field(
+            types,
+            field["name"],
+            field["type"],
+            data[field["name"]])
         encoded_types.append(type)
         encoded_values.append(value)
 

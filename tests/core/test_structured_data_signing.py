@@ -158,6 +158,27 @@ def eip712_with_array_message_encodings(request, eip712_example_with_array_json_
             '2f2e85e98b44bf260ad17d4b58771bdd0cafce41fadd2150e7acedd197eeadfa'
             'fc526062a57543dca9895d9ecc1bfd7f8f31f97038f134742c974dd6b8300b56'
         ),
+        (
+
+            "String",
+            {
+                "String":
+                    [
+                        {"name": "string", "type": "string"},
+                        {"name": "string_a", "type": "string[]"},
+                        {"name": "string_aa", "type": "string[][]"},
+                    ]
+            },
+            {
+                "string": 'spam',
+                "string_a": ['spam', 'eggs'],
+                "string_aa": [['spam', 'spam'], [], ['spam', 'spam', 'eggs']]
+            },
+            '03fd7cfcd22e0b5b41cde662a2752e1f9367e99be1572dc67870d0973717dbf3'
+            '000e3bc84207015e1ae7e42b8679963a82088323f7ef1b456c44eda274f579f6'
+            '3b78c672c715dfcb45484f0c5a488c1a20679e7e4ec1d980f43165671b70a3e4'
+            'd560ffa31e85d993d6511d0069dd8ad4bd554c9fff142c1b6d6cea1658ee1fa8'
+        ),
     )
 )
 def test_encode_data_basic(primary_type, types, eip712_data, expected_hex):
@@ -469,18 +490,18 @@ def test_structured_data_invalid_type_filtered_by_regex():
     assert str(e.value) == "Invalid Type `Hello Person` in `Mail`"
 
 
-def test_invalid_structured_data_value_type_mismatch_in_primary_type():
+def test_invalid_structured_data_value_type_mismatch_in_type():
     # Given type is valid (string), but the value (int) is not of the mentioned type
     invalid_structured_data_string = open(
-        "tests/fixtures/invalid_message_value_type_mismatch_primary_type.json"
+        "tests/fixtures/invalid_message_value_type_mismatch_type.json"
     ).read()
     invalid_structured_data = json.loads(invalid_structured_data_string)
-
-    with pytest.raises(
-        TypeError,
-        match="in the struct `Mail` is of the type `<class 'int'>`, but expected string value"
-    ):
+    with pytest.raises(TypeError) as e:
         hash_message(invalid_structured_data)
+    assert (
+        str(e.value) == "Value of field `contents` (12345) is of the type "
+                        "`<class 'int'>`, but expected string value"
+    )
 
 
 def test_invalid_structured_data_invalid_abi_type():
@@ -489,7 +510,7 @@ def test_invalid_structured_data_invalid_abi_type():
         "tests/fixtures/invalid_message_invalid_abi_type.json"
     ).read()
     invalid_structured_data = json.loads(invalid_structured_data_string)
-    with pytest.raises(TypeError, match="Received Invalid type `uint25689` in the struct `Person`"):
+    with pytest.raises(TypeError, match="Received Invalid type `uint25689` in field `balance`"):
         hash_message(invalid_structured_data)
 
 
@@ -503,9 +524,9 @@ def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function()
     with pytest.raises(TypeError) as e:
         hash_message(invalid_structured_data)
     assert (
-        str(e.value) == "Value of `balance` (how do you do?) in the struct `Person` is not "
-                        "encodable as the specified type `uint256`. If the base type is correct, "
-                        "make sure the value does not exceed the specified size for the type."
+        str(e.value) == "Value of `balance` (how do you do?) is not encodable as type "
+                        "`uint256`. If the base type is correct, verify that the "
+                        "value does not exceed the specified size for the type."
     )
 
 
