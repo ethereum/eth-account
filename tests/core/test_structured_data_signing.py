@@ -115,6 +115,56 @@ def eip712_with_array_message_encodings(request, eip712_example_with_array_json_
 
 
 @pytest.mark.parametrize(
+    'primary_type, types, eip712_data, expected_hex',
+    (
+        (
+            "Bool",
+            {
+                "Bool":
+                    [
+                        {"name": "bool", "type": "bool"},
+                        {"name": "bool_a", "type": "bool[]"},
+                        {"name": "bool_aa", "type": "bool[][]"},
+                    ]
+            },
+            {
+                "bool": True,
+                "bool_a": [False, True],
+                "bool_aa": [[False, True], [True, False]]
+            },
+            'ca33d0cc7e8f16daef297fe26defef54fad22ace9fba5692a468e0f378211cad'
+            '0000000000000000000000000000000000000000000000000000000000000001'
+            'a6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb49'
+            '9fb67cd258c130e62868679cbae7c4d85bd44ada2153d10345c2df4973ddbf0d'
+        ),
+        (
+
+            "Int",
+            {
+                "Int":
+                    [
+                        {"name": "int", "type": "uint256"},
+                        {"name": "int_a", "type": "uint256[]"},
+                        {"name": "int_aa", "type": "uint256[][]"},
+                    ]
+            },
+            {
+                "int": 42,
+                "int_a": [80, 7],
+                "int_aa": [[211], [307], [401, 503]]
+            },
+            '61cdf7e5fe23ed0b0fef9924f9f9289f8d13193ad9060f42dc9c7bdeb586cfd6'
+            '000000000000000000000000000000000000000000000000000000000000002a'
+            '2f2e85e98b44bf260ad17d4b58771bdd0cafce41fadd2150e7acedd197eeadfa'
+            'fc526062a57543dca9895d9ecc1bfd7f8f31f97038f134742c974dd6b8300b56'
+        ),
+    )
+)
+def test_encode_data_basic(primary_type, types, eip712_data, expected_hex):
+    assert encode_data(primary_type, types, eip712_data).hex() == expected_hex  # noqa: E501
+
+
+@pytest.mark.parametrize(
     'primary_type, expected',
     (
         ('Mail', ('Person',)),

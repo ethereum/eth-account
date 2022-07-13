@@ -235,7 +235,7 @@ def _encode_data(primary_type, types, data):
 
             array_items = flatten_multidimensional_array(value)
             array_items_encoding = [
-                keccak(encode_data(parsed_type.base, types, array_item))
+                old_encode_data(parsed_type.base, types, array_item)
                 for array_item in array_items
             ]
             concatenated_array_encodings = b''.join(array_items_encoding)
@@ -263,10 +263,51 @@ def _encode_data(primary_type, types, data):
                 )
 
 
-def encode_data(primaryType, types, data):
+def old_encode_data(primaryType, types, data):
     data_types_and_hashes = _encode_data(primaryType, types, data)
     data_types, data_hashes = zip(*data_types_and_hashes)
     return encode_abi(data_types, data_hashes)
+
+
+def encode_field(types, name, type, value):
+    if type in types:
+        # TODO handle if value is None
+        return ('bytes32', keccak(encode_data(type, types, value)))
+
+    if value is None:
+        raise ValueError(f"Missing value for field {name} of type {type}")
+
+    if type == "bytes":
+        return ('bytes32', keccak(value))
+
+    if type == "string":
+        return ('bytes32', keccak(text=value))
+
+    if type[-1] == "]":
+        parsed_type = type[:type.rindex("[")]
+
+        # TODO verify that it is an array and of the correct shape
+
+        type_value_pairs = []
+        for item in value:
+            type_value_pairs.append(encode_field(types, name, parsed_type, item))
+
+        data_types, data_hashes = zip(*type_value_pairs)
+        return ('bytes32', keccak(encode_abi(data_types, data_hashes)))
+
+    return [type, value]
+
+
+def encode_data(primary_type, types, data):
+    encoded_types = ['bytes32']
+    encoded_values = [hash_struct_type(primary_type, types)]
+
+    for field in types[primary_type]:
+        type, value = encode_field(types, field["name"], field["type"], data[field["name"]])
+        encoded_types.append(type)
+        encoded_values.append(value)
+
+    return encode_abi(encoded_types, encoded_values)
 
 
 def load_and_validate_structured_message(structured_json_string_data):
