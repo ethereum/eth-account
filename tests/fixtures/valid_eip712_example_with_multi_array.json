@@ -76,11 +76,19 @@
 		"bcc": [[
 			{
 				"name": "Earnest",
+				"company": {
+					"name": "eatery",
+					"id": 5
+				},
 				"aliases": [],
 				"wallet": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
 			},
 			{
 				"name": "Felicia",
+				"company": {
+					"name": "fine dining",
+					"id": 6
+				},
 				"aliases": ["Fiona"],
 				"wallet": "0xffffffffffffffffffffffffffffffffffffffff"
 			}
@@ -88,16 +96,16 @@
 		"contents": "Hello, Bob!",
 		"tags": [
 			[
-				[["ab"], ["cd"]],
-				[["ef"], ["gh"]],
-				[["ij"], ["kl"]],
-				[["mn"], ["op"]]
+				["ab", "cd"],
+				["ef", "gh"],
+				["ij", "kl"],
+				["mn", "op"]
 			],
 			[
-				[["ch"], ["de"]],
-				[["gb"], ["cn"]],
-				[["mx"], ["cz"]],
-				[["jp"], ["co"]]
+				["ch", "de"],
+				["gb", "cn"],
+				["mx", "cz"],
+				["jp", "co"]
 			]
 		]
 	}

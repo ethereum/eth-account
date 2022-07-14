@@ -150,7 +150,7 @@ def encode_field(types, name, field_type, value):
         return ('bytes32', keccak(encode_data(field_type, types, value)))
 
     if value is None:
-        raise ValueError(f"Missing value for field {name} of type {field_type}")
+        raise ValueError(f"Missing value for field {name} of type {type}")
 
     if field_type == "bytes":
         if not isinstance(value, bytes):
@@ -188,7 +188,9 @@ def encode_field(types, name, field_type, value):
                     f"`{tuple(map(lambda x: x[0], parsed_field_type.arrlist))}`"
                 )
 
-        field_type_of_inside_array = field_type[:field_type.rindex("[")]
+        field_type_of_inside_array = (
+            field_type[:field_type.index("[")] + field_type[field_type.index("]") + 1:]
+        )
         field_type_value_pairs = [
             encode_field(types, name, field_type_of_inside_array, item)
             for item in value]
@@ -215,7 +217,6 @@ def encode_field(types, name, field_type, value):
             f"If the base type is correct, verify that the value does not "
             f"exceed the specified size for the type."
         )
-    # return [field_type, value]
 
 
 def encode_data(primary_type, types, data):

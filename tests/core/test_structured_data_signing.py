@@ -114,6 +114,47 @@ def eip712_with_array_message_encodings(request, eip712_example_with_array_json_
         raise Exception("Unreachable")
 
 
+# --- EIP 712 example with added multiple array fields --- #
+
+@pytest.fixture
+def eip712_example_with_multi_array_json_string():
+    return open("tests/fixtures/valid_eip712_example_with_multi_array.json", "r").read()
+
+
+@pytest.fixture
+def eip712_example_with_multi_array_types(eip712_example_with_multi_array_json_string):
+    return json.loads(eip712_example_with_multi_array_json_string)["types"]
+
+
+@pytest.fixture
+def eip712_example_with_multi_array_domain_type(eip712_example_with_multi_array_json_string):
+    return json.loads(eip712_example_with_multi_array_json_string)["types"]["EIP712Domain"]
+
+
+@pytest.fixture
+def eip712_example_with_multi_array_message(eip712_example_with_multi_array_json_string):
+    return json.loads(eip712_example_with_multi_array_json_string)["message"]
+
+
+@pytest.fixture
+def eip712_example_with_multi_array_domain(eip712_example_with_multi_array_json_string):
+    return json.loads(eip712_example_with_multi_array_json_string)["domain"]
+
+
+@pytest.fixture(params=("text", "dict", "primitive", "hexstr"))
+def eip712_with_multi_array_message_encodings(request, eip712_example_with_multi_array_json_string):
+    if request.param == "text":
+        return {"text": eip712_example_with_multi_array_json_string}
+    elif request.param == "primitive":
+        return {"primitive": eip712_example_with_multi_array_json_string.encode()}
+    elif request.param == "dict":
+        return {"primitive": json.loads(eip712_example_with_multi_array_json_string)}
+    elif request.param == "hexstr":
+        return {"hexstr": eip712_example_with_multi_array_json_string.encode().hex()}
+    else:
+        raise Exception("Unreachable")
+
+
 @pytest.mark.parametrize(
     'primary_type, types, eip712_data, expected_hex',
     (
@@ -210,6 +251,21 @@ def test_get_dependencies_eip712_with_array(
 
 
 @pytest.mark.parametrize(
+    'primary_type, expected',
+    (
+        ('Mail', ('Person', 'Company')),
+        ('Person', ('Company',)),
+        ('Company', ()),
+    )
+)
+def test_get_dependencies_eip712_with_mulit_array(
+    primary_type, expected, eip712_example_with_multi_array_types
+):
+    assert set(get_dependencies(
+        primary_type, eip712_example_with_multi_array_types)) == set(expected)
+
+
+@pytest.mark.parametrize(
     'struct_name, expected',
     (
         ("Mail", "Mail(Person from,Person to,string contents)"),
@@ -234,6 +290,26 @@ def test_encode_struct_eip712_with_array(struct_name, expected, eip712_example_w
 
 
 @pytest.mark.parametrize(
+    'struct_name, expected',
+    (
+        ("Mail", "Mail(uint256[] ids,Person from,Person to,Person[] cc,Person[][] bcc,string contents,string[2][4][2] tags)"),  # noqa: E501
+        ("Person", "Person(string name,Company company,string[] aliases,address wallet)"),
+        ("Company", "Company(string name,uint256 id)"),
+        ("EIP712Domain", "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),  # noqa: E501
+    )
+)
+def test_encode_struct_eip712_with_multi_array(
+    struct_name,
+    expected,
+    eip712_example_with_multi_array_types
+):
+    assert encode_struct(
+        struct_name,
+        eip712_example_with_multi_array_types[struct_name]
+    ) == expected
+
+
+@pytest.mark.parametrize(
     'primary_type, expected',
     (
         ('Mail', 'Mail(Person from,Person to,string contents)Person(string name,address wallet)'),  # noqa: E501
@@ -253,6 +329,23 @@ def test_encode_type_eip712(primary_type, expected, eip712_example_types):
 )
 def test_encode_type_eip712_with_array(primary_type, expected, eip712_example_with_array_types):
     assert encode_type(primary_type, eip712_example_with_array_types) == expected
+
+
+@pytest.mark.parametrize(
+    'primary_type, expected',
+    (
+        ('Mail', 'Mail(uint256[] ids,Person from,Person to,Person[] cc,Person[][] bcc,string contents,string[2][4][2] tags)Company(string name,uint256 id)Person(string name,Company company,string[] aliases,address wallet)'),  # noqa: E501
+        ('Person', 'Person(string name,Company company,string[] aliases,address wallet)Company(string name,uint256 id)'),  # noqa: E501
+
+        ('Company', 'Company(string name,uint256 id)'),
+    )
+)
+def test_encode_type_eip712_with_multi_array(
+    primary_type,
+    expected,
+    eip712_example_with_multi_array_types
+):
+    assert encode_type(primary_type, eip712_example_with_multi_array_types) == expected
 
 
 @pytest.mark.parametrize(
@@ -279,6 +372,20 @@ def test_hash_struct_type_eip712_with_array(
     assert hash_struct_type(primary_type, eip712_example_with_array_types).hex() == expected_hex
 
 
+@pytest.mark.parametrize(
+    'primary_type, expected_hex',
+    (
+        ('Company', '6ca77e7c32d0c89b799964b908f09a67d27441f2c23a6fb1fe12744a6ad629f7'),
+        ('Person', 'c7b964db9fb195cb39c83204fdf1f0f406b6a2f3e463db9cad34aa0c040380a9'),
+        ('Mail', '187945fecf027fa97949e307f5479a019c80ea5f0f65854831b6f07815bebed0'),
+    )
+)
+def test_hash_struct_type_eip712_with_multi_array(
+    primary_type, expected_hex, eip712_example_with_multi_array_types
+):
+    assert hash_struct_type(primary_type, eip712_example_with_multi_array_types).hex() == expected_hex  # noqa: E501
+
+
 def test_encode_data_eip712(eip712_example_types, eip712_example_message):
     primary_type = "Mail"
     expected_hex = (
@@ -303,6 +410,23 @@ def test_encode_data_eip712_with_array(
     assert encode_data(primary_type, eip712_example_with_array_types, eip712_example_with_array_message).hex() == expected_hex  # noqa: E501
 
 
+def test_encode_data_eip712_with_multi_array(
+    eip712_example_with_multi_array_types, eip712_example_with_multi_array_message
+):
+    primary_type = "Mail"
+    expected_hex = (
+        "187945fecf027fa97949e307f5479a019c80ea5f0f65854831b6f07815bebed0"
+        "82ebb1c2e604ce0ff44d8591ae5cf16cbafd622284d40b37011b12dca2e2d9e4"
+        "a30aec196a390f2dc9de7320f5874214e5a7929e08a7a81d9ef96666fdcbab35"
+        "e1f45419ba2d57832f702e17b344e470f556cda74e91e703303656404b77fec1"
+        "c6c072aa6915cd93401ec3be997eedadb9bb3f6300ab5c9e61808efabf7da546"
+        "87a9c71c4a727b1ca222ac101d1fc58980c48ad66baac15c14a68bbaaced314f"
+        "b5aadf3154a261abdd9086fc627b61efca26ae5702701d05cd2305f7c52a2fc8"
+        "568ea52c97fbb2cff65869d22fbe0ed1d91bbedd3a0cc4ac3f3236b099c2d600"
+    )
+    assert encode_data(primary_type, eip712_example_with_multi_array_types, eip712_example_with_multi_array_message).hex() == expected_hex  # noqa: E501
+
+
 def test_hash_struct_main_message_eip712(eip712_example_json_string):
     structured_data = json.loads(eip712_example_json_string)
     expected_hex = "c52c0ee5d84264471806290a3f2c4cecfc5490626bf912d01f240d7a274b371e"
@@ -315,6 +439,12 @@ def test_hash_struct_main_message_eip712_with_array(eip712_example_with_array_js
     assert hash_message(structured_data).hex() == expected_hex
 
 
+def test_hash_struct_main_message_eip712_with_multi_array(eip712_example_with_multi_array_json_string):  # noqa: E501
+    structured_data = json.loads(eip712_example_with_multi_array_json_string)
+    expected_hex = "911909325b1876067a83af6b5cbffa5bb00dffb8cbf669a79b82489e5e7f0459"
+    assert hash_message(structured_data).hex() == expected_hex
+
+
 def test_hash_struct_domain_eip712(eip712_example_json_string):
     structured_data = json.loads(eip712_example_json_string)
     expected_hex = 'f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f'
@@ -323,6 +453,12 @@ def test_hash_struct_domain_eip712(eip712_example_json_string):
 
 def test_hash_struct_domain_eip712_with_array(eip712_example_with_array_json_string):
     structured_data = json.loads(eip712_example_with_array_json_string)
+    expected_hex = 'f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f'
+    assert hash_domain(structured_data).hex() == expected_hex
+
+
+def test_hash_struct_domain_eip712_with_multi_array(eip712_example_with_multi_array_json_string):
+    structured_data = json.loads(eip712_example_with_multi_array_json_string)
     expected_hex = 'f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f'
     assert hash_domain(structured_data).hex() == expected_hex
 
@@ -341,6 +477,13 @@ def test_hashed_structured_data_eip127_with_array(eip712_with_array_message_enco
     assert hashed_structured_msg.hex() == expected_hex
 
 
+def test_hashed_structured_data_eip127_with_multi_array(eip712_with_multi_array_message_encodings):
+    structured_msg = encode_structured_data(**eip712_with_multi_array_message_encodings)
+    hashed_structured_msg = _hash_eip191_message(structured_msg)
+    expected_hex = "762e0e874350a38729be1166ab030e8713ddf4363123842b98dd2eb974d953b7"
+    assert hashed_structured_msg.hex() == expected_hex
+
+
 def test_signature_verification_eip712(eip712_message_encodings):
     account = Account.create()
     structured_msg = encode_structured_data(**eip712_message_encodings)
@@ -352,6 +495,14 @@ def test_signature_verification_eip712(eip712_message_encodings):
 def test_signature_verification_eip712_with_array(eip712_with_array_message_encodings):
     account = Account.create()
     structured_msg = encode_structured_data(**eip712_with_array_message_encodings)
+    signed = Account.sign_message(structured_msg, account.key)
+    new_addr = Account.recover_message(structured_msg, signature=signed.signature)
+    assert new_addr == account.address
+
+
+def test_signature_verification_eip712_with_multi_array(eip712_with_multi_array_message_encodings):
+    account = Account.create()
+    structured_msg = encode_structured_data(**eip712_with_multi_array_message_encodings)
     signed = Account.sign_message(structured_msg, account.key)
     new_addr = Account.recover_message(structured_msg, signature=signed.signature)
     assert new_addr == account.address
@@ -384,6 +535,20 @@ def test_signature_variables_eip712_with_array(eip712_with_array_message_encodin
     assert sig.v == 27
     assert hex(sig.r) == "0x315bd45341016e306aa54a7aaf002104b7a5b51903be6ca04cef9d49555319f1"
     assert hex(sig.s) == "0x46afff92b3504a3ab106dd96c414e38709515d884433816801ddde8d10136c8c"
+
+
+def test_signature_variables_eip712_with_multi_array(eip712_with_multi_array_message_encodings):
+    structured_msg = encode_structured_data(**eip712_with_multi_array_message_encodings)
+
+    private_key = keccak(text="cow")
+    acc = Account.from_key(private_key)
+    assert HexBytes(acc.address) == HexBytes("0xcd2a3d9f938e13cd947ec05abc7fe734df8dd826")
+
+    sig = Account.sign_message(structured_msg, private_key)
+    assert sig.v == 27
+    assert hex(sig.r) == "0xe73764e9be3b30625c94b63063477920de64b1c2e7df3cc11d5fa379b7aa2b9a"
+
+    assert hex(sig.s) == "0xc96d88e54350830ce98f51696069739d6f6a8aafdc9db0ea1eb7cde26d246f3"
 
 
 def test_hashed_structured_data_with_bytes(eip712_example_with_array_json_string):
