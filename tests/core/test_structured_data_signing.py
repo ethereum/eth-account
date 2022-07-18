@@ -159,71 +159,142 @@ def eip712_with_multi_array_message_encodings(request, eip712_example_with_multi
     'primary_type, types, eip712_data, expected_hex',
     (
         (
-            "Bool",
+            "BoolInt",
             {
-                "Bool":
+                "BoolInt":
                     [
                         {"name": "bool", "type": "bool"},
                         {"name": "bool_a", "type": "bool[]"},
-                        {"name": "bool_aa", "type": "bool[][]"},
+                        {"name": "int", "type": "uint256"},
+                        {"name": "int_a", "type": "uint256[][]"},
                     ]
             },
             {
                 "bool": True,
                 "bool_a": [False, True],
-                "bool_aa": [[False, True], [True, False]]
+                "int": 212,
+                "int_a": [[212], [], [12, 24, 36]],
             },
-            'ca33d0cc7e8f16daef297fe26defef54fad22ace9fba5692a468e0f378211cad'
-            '0000000000000000000000000000000000000000000000000000000000000001'
-            'a6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb49'
-            '9fb67cd258c130e62868679cbae7c4d85bd44ada2153d10345c2df4973ddbf0d'
+            "28f15c2902d370b151fdd07fe1a051ffce870fe6162347d953c2ffb2cb863670"
+            "0000000000000000000000000000000000000000000000000000000000000001"
+            "a6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb49"
+            "00000000000000000000000000000000000000000000000000000000000000d4"
+            "eb11d95b7e83141a4db340518d5fc187abde6f73e97cb1a5c7854c23c8cdf8fa"
         ),
         (
 
-            "Int",
+            "StringBytes",
             {
-                "Int":
-                    [
-                        {"name": "int", "type": "uint256"},
-                        {"name": "int_a", "type": "uint256[]"},
-                        {"name": "int_aa", "type": "uint256[][]"},
-                    ]
-            },
-            {
-                "int": 42,
-                "int_a": [80, 7],
-                "int_aa": [[211], [307], [401, 503]]
-            },
-            '61cdf7e5fe23ed0b0fef9924f9f9289f8d13193ad9060f42dc9c7bdeb586cfd6'
-            '000000000000000000000000000000000000000000000000000000000000002a'
-            '2f2e85e98b44bf260ad17d4b58771bdd0cafce41fadd2150e7acedd197eeadfa'
-            'fc526062a57543dca9895d9ecc1bfd7f8f31f97038f134742c974dd6b8300b56'
-        ),
-        (
-
-            "String",
-            {
-                "String":
+                "StringBytes":
                     [
                         {"name": "string", "type": "string"},
                         {"name": "string_a", "type": "string[]"},
-                        {"name": "string_aa", "type": "string[][]"},
+                        {"name": "bytes", "type": "bytes"},
+                        {"name": "bytes_a", "type": "bytes[]"},
                     ]
             },
             {
                 "string": 'spam',
                 "string_a": ['spam', 'eggs'],
-                "string_aa": [['spam', 'spam'], [], ['spam', 'spam', 'eggs']]
+                "bytes": b'snekshak',
+                "bytes_a": [b'shake', b'snake'],
             },
-            '03fd7cfcd22e0b5b41cde662a2752e1f9367e99be1572dc67870d0973717dbf3'
-            '000e3bc84207015e1ae7e42b8679963a82088323f7ef1b456c44eda274f579f6'
-            '3b78c672c715dfcb45484f0c5a488c1a20679e7e4ec1d980f43165671b70a3e4'
-            'd560ffa31e85d993d6511d0069dd8ad4bd554c9fff142c1b6d6cea1658ee1fa8'
+            "763a70467632fd4d114a365d4f03c5886ce9447950874f45cbd42421cbc5f17d"
+            "000e3bc84207015e1ae7e42b8679963a82088323f7ef1b456c44eda274f579f6"
+            "3b78c672c715dfcb45484f0c5a488c1a20679e7e4ec1d980f43165671b70a3e4"
+            "9079dbeec4d62f4344389883b7fe5fcedc73483b9d6a4774ab0857bedd7dd14d"
+            "7578ae1ed519e90d30b2e031348369679d8c09f47f717eb17de4bce1a7ad5d6b"
         ),
     )
 )
 def test_encode_data_basic(primary_type, types, eip712_data, expected_hex):
     assert encode_data(primary_type, types, eip712_data).hex() == expected_hex  # noqa: E501
+
+
+@pytest.mark.parametrize(
+    'primary_type, types, eip712_data, error_type, error_message',
+    (
+        (
+            "Missing",
+            {
+                "Missing":
+                    [
+                        {"name": "bool", "type": "bool"},
+                    ]
+            },
+            {
+                "bool": None,
+            },
+            ValueError,
+            "Missing value for field bool of type bool"
+        ),
+        (
+            "NotBytes",
+            {
+                "NotBytes":
+                    [
+                        {"name": "bytes", "type": "bytes"},
+                    ]
+            },
+            {
+                "bytes": 212,
+            },
+            TypeError,
+            "Value of field `bytes` (212) is of the type `<class 'int'>`, "
+            "but expected bytes value"
+        ),
+        (
+            "NotString",
+            {
+                "NotString":
+                    [
+                        {"name": "string", "type": "string"},
+                    ]
+            },
+            {
+                "string": b'snakes',
+            },
+            TypeError,
+            "Value of field `string` (b'snakes') is of the type `<class 'bytes'>`, "
+            "but expected string value"
+        ),
+        (
+            "NotEncodableType",
+            {
+                "NotEncodableType":
+                    [
+                        {"name": "wat", "type": "wat"},
+                    ]
+            },
+            {
+                "wat": "huh",
+            },
+            TypeError,
+            "Received Invalid type `wat` in field `wat`"
+        ),
+        (
+            "NotEncodableAsType",
+            {
+                "NotEncodableAsType":
+                    [
+                        {"name": "wat", "type": "uint256"},
+                    ]
+            },
+            {
+                "wat": True,
+            },
+            TypeError,
+            "Value of `wat` (True) is not encodable as type `uint256`. "
+            "If the base type is correct, verify that the value does not "
+            "exceed the specified size for the type."
+        ),
+    )
+)
+def test_encode_data_error_messages(primary_type, types, eip712_data, error_type, error_message):
+
+    with pytest.raises(error_type) as e:
+        assert encode_data(primary_type, types, eip712_data)
+    assert str(e.value) == error_message
 
 
 @pytest.mark.parametrize(

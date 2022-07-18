@@ -145,12 +145,11 @@ def get_array_dimensions(data):
 
 
 def encode_field(types, name, field_type, value):
-    if field_type in types:
-        # TODO handle if value is None
-        return ('bytes32', keccak(encode_data(field_type, types, value)))
-
     if value is None:
-        raise ValueError(f"Missing value for field {name} of type {type}")
+        raise ValueError(f"Missing value for field {name} of type {field_type}")
+
+    if field_type in types:
+        return ('bytes32', keccak(encode_data(field_type, types, value)))
 
     if field_type == "bytes":
         if not isinstance(value, bytes):
