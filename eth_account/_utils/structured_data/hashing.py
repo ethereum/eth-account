@@ -17,7 +17,6 @@ from eth_abi.grammar import (
 from eth_utils import (
     keccak,
     to_tuple,
-    toolz,
 )
 
 from .validation import (
@@ -38,9 +37,10 @@ def get_dependencies(primary_type, types):
         deps.add(struct_name)
         fields = types[struct_name]
         for field in fields:
-            # Handle array types
             field_type = field["type"]
-            if field_type.endswith("]"):
+
+            # Handle array types
+            if is_array_type(field_type):
                 field_type = field_type[:field_type.index('[')]
 
             if field_type not in types:
@@ -101,9 +101,7 @@ def hash_struct_type(primary_type, types):
 
 
 def is_array_type(type):
-    # Identify if type such as "person[]" or "person[2]" is an array
-    abi_type = parse(type)
-    return abi_type.is_array
+    return type.endswith("]")
 
 
 @to_tuple
@@ -125,21 +123,27 @@ def get_depths_and_dimensions(data, depth):
 
 def get_array_dimensions(data):
     """
-    Given an array type data item, check that it is an array and return the dimensions as a tuple.
+    Given an array type data item, check that it is an array and return the dimensions
+    as a tuple, in order from inside to outside.
 
-    Ex: get_array_dimensions([[1, 2, 3], [4, 5, 6]]) returns (2, 3)
+    Ex: get_array_dimensions([[1, 2, 3], [4, 5, 6]]) returns (3, 2)
     """
     depths_and_dimensions = get_depths_and_dimensions(data, 0)
-    # re-form as a dictionary with `depth` as key, and all of the dimensions found at that depth.
+
+    # re-form as a dictionary with `depth` as key, and all of the dimensions
+    # found at that depth.
     grouped_by_depth = {
         depth: tuple(dimension for depth, dimension in group)
         for depth, group in groupby(depths_and_dimensions, itemgetter(0))
     }
 
     dimensions = tuple(
-        toolz.first(set(dimensions))
-        for depth, dimensions in sorted(grouped_by_depth.items())
+        # check that all dimensions are the same, else use "dynamic"
+        dimensions[0] if all(dim == dimensions[0] for dim in dimensions) else "dynamic"
+        for _depth, dimensions in sorted(grouped_by_depth.items(), reverse=True)
     )
+
+    print(f"data: {data}, dimensions: {dimensions}")
 
     return dimensions
 
@@ -169,7 +173,7 @@ def encode_field(types, name, field_type, value):
 
         return ('bytes32', keccak(text=value))
 
-    if field_type[-1] == "]":
+    if is_array_type(field_type):
         # Get the dimensions from the value
         array_dimensions = get_array_dimensions(value)
         # Get the dimensions from what was declared in the schema
@@ -184,15 +188,14 @@ def encode_field(types, name, field_type, value):
                 raise TypeError(
                     f"Array data `{value}` has dimensions `{array_dimensions}`"
                     f" whereas the schema has dimensions "
-                    f"`{tuple(map(lambda x: x[0], parsed_field_type.arrlist))}`"
+                    f"`{tuple(map(lambda x: x[0] if x else 'dynamic', parsed_field_type.arrlist))}`"
                 )
 
-        field_type_of_inside_array = (
-            field_type[:field_type.index("[")] + field_type[field_type.index("]") + 1:]
-        )
+        field_type_of_inside_array = field_type[:field_type.rindex("[")]
         field_type_value_pairs = [
             encode_field(types, name, field_type_of_inside_array, item)
-            for item in value]
+            for item in value
+        ]
 
         # handle empty array
         if value:

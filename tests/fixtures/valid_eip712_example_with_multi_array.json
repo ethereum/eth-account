@@ -23,7 +23,7 @@
 			{"name": "cc", "type": "Person[]"},
 			{"name": "bcc", "type": "Person[][]"},
 			{"name": "contents", "type": "string"},
-			{"name": "tags", "type": "string[2][4][2]"}
+			{"name": "tags", "type": "string[3][4][2]"}
 		]
 	},
 	"primaryType": "Mail",
@@ -96,16 +96,16 @@
 		"contents": "Hello, Bob!",
 		"tags": [
 			[
-				["ab", "cd"],
-				["ef", "gh"],
-				["ij", "kl"],
-				["mn", "op"]
+				["ab", "cd", "ss"],
+				["ef", "gh", "ss"],
+				["ij", "kl", "ss"],
+				["mn", "op", "ss"]
 			],
 			[
-				["ch", "de"],
-				["gb", "cn"],
-				["mx", "cz"],
-				["jp", "co"]
+				["ch", "de", "ss"],
+				["gb", "cn", "ss"],
+				["mx", "cz", "ss"],
+				["jp", "co", "ss"]
 			]
 		]
 	}

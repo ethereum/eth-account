@@ -166,7 +166,7 @@ def eip712_with_multi_array_message_encodings(request, eip712_example_with_multi
                         {"name": "bool", "type": "bool"},
                         {"name": "bool_a", "type": "bool[]"},
                         {"name": "int", "type": "uint256"},
-                        {"name": "int_a", "type": "uint256[][]"},
+                        {"name": "int_a", "type": "uint256[][3]"},
                     ]
             },
             {
@@ -175,11 +175,11 @@ def eip712_with_multi_array_message_encodings(request, eip712_example_with_multi
                 "int": 212,
                 "int_a": [[212], [], [12, 24, 36]],
             },
-            "28f15c2902d370b151fdd07fe1a051ffce870fe6162347d953c2ffb2cb863670"
-            "0000000000000000000000000000000000000000000000000000000000000001"
-            "a6eef7e35abe7026729641147f7915573c7e97b47efa546f5f6e3230263bcb49"
-            "00000000000000000000000000000000000000000000000000000000000000d4"
-            "eb11d95b7e83141a4db340518d5fc187abde6f73e97cb1a5c7854c23c8cdf8fa"
+            "8d06a59c4f3179fc688615a1d69d61ee86c9683a5c3af150874396b3021892200000000000"
+            "000000000000000000000000000000000000000000000000000001a6eef7e35abe70267296"
+            "41147f7915573c7e97b47efa546f5f6e3230263bcb49000000000000000000000000000000"
+            "00000000000000000000000000000000d4eb11d95b7e83141a4db340518d5fc187abde6f73"
+            "e97cb1a5c7854c23c8cdf8fa"
         ),
         (
 
@@ -329,7 +329,7 @@ def test_get_dependencies_eip712_with_array(
         ('Company', ()),
     )
 )
-def test_get_dependencies_eip712_with_mulit_array(
+def test_get_dependencies_eip712_with_multi_array(
     primary_type, expected, eip712_example_with_multi_array_types
 ):
     assert set(get_dependencies(
@@ -363,7 +363,7 @@ def test_encode_struct_eip712_with_array(struct_name, expected, eip712_example_w
 @pytest.mark.parametrize(
     'struct_name, expected',
     (
-        ("Mail", "Mail(uint256[] ids,Person from,Person to,Person[] cc,Person[][] bcc,string contents,string[2][4][2] tags)"),  # noqa: E501
+        ("Mail", "Mail(uint256[] ids,Person from,Person to,Person[] cc,Person[][] bcc,string contents,string[3][4][2] tags)"),  # noqa: E501
         ("Person", "Person(string name,Company company,string[] aliases,address wallet)"),
         ("Company", "Company(string name,uint256 id)"),
         ("EIP712Domain", "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"),  # noqa: E501
@@ -405,7 +405,7 @@ def test_encode_type_eip712_with_array(primary_type, expected, eip712_example_wi
 @pytest.mark.parametrize(
     'primary_type, expected',
     (
-        ('Mail', 'Mail(uint256[] ids,Person from,Person to,Person[] cc,Person[][] bcc,string contents,string[2][4][2] tags)Company(string name,uint256 id)Person(string name,Company company,string[] aliases,address wallet)'),  # noqa: E501
+        ('Mail', 'Mail(uint256[] ids,Person from,Person to,Person[] cc,Person[][] bcc,string contents,string[3][4][2] tags)Company(string name,uint256 id)Person(string name,Company company,string[] aliases,address wallet)'),  # noqa: E501
         ('Person', 'Person(string name,Company company,string[] aliases,address wallet)Company(string name,uint256 id)'),  # noqa: E501
 
         ('Company', 'Company(string name,uint256 id)'),
@@ -448,7 +448,7 @@ def test_hash_struct_type_eip712_with_array(
     (
         ('Company', '6ca77e7c32d0c89b799964b908f09a67d27441f2c23a6fb1fe12744a6ad629f7'),
         ('Person', 'c7b964db9fb195cb39c83204fdf1f0f406b6a2f3e463db9cad34aa0c040380a9'),
-        ('Mail', '187945fecf027fa97949e307f5479a019c80ea5f0f65854831b6f07815bebed0'),
+        ('Mail', '1cf41a63c532d5c0c81650d839a38629cc2ab400a6a4bd000b4188adf9dd7540'),
     )
 )
 def test_hash_struct_type_eip712_with_multi_array(
@@ -486,14 +486,13 @@ def test_encode_data_eip712_with_multi_array(
 ):
     primary_type = "Mail"
     expected_hex = (
-        "187945fecf027fa97949e307f5479a019c80ea5f0f65854831b6f07815bebed0"
-        "82ebb1c2e604ce0ff44d8591ae5cf16cbafd622284d40b37011b12dca2e2d9e4"
-        "a30aec196a390f2dc9de7320f5874214e5a7929e08a7a81d9ef96666fdcbab35"
-        "e1f45419ba2d57832f702e17b344e470f556cda74e91e703303656404b77fec1"
-        "c6c072aa6915cd93401ec3be997eedadb9bb3f6300ab5c9e61808efabf7da546"
-        "87a9c71c4a727b1ca222ac101d1fc58980c48ad66baac15c14a68bbaaced314f"
-        "b5aadf3154a261abdd9086fc627b61efca26ae5702701d05cd2305f7c52a2fc8"
-        "568ea52c97fbb2cff65869d22fbe0ed1d91bbedd3a0cc4ac3f3236b099c2d600"
+        "1cf41a63c532d5c0c81650d839a38629cc2ab400a6a4bd000b4188adf9dd754082ebb1c2e604ce"
+        "0ff44d8591ae5cf16cbafd622284d40b37011b12dca2e2d9e4a30aec196a390f2dc9de7320f587"
+        "4214e5a7929e08a7a81d9ef96666fdcbab35e1f45419ba2d57832f702e17b344e470f556cda74e"
+        "91e703303656404b77fec1c6c072aa6915cd93401ec3be997eedadb9bb3f6300ab5c9e61808efa"
+        "bf7da54687a9c71c4a727b1ca222ac101d1fc58980c48ad66baac15c14a68bbaaced314fb5aadf"
+        "3154a261abdd9086fc627b61efca26ae5702701d05cd2305f7c52a2fc888e7f5caefc6a01fd300"
+        "aaa708d99f8c04ed97879c2fc16950cb82957ff79099"
     )
     assert encode_data(primary_type, eip712_example_with_multi_array_types, eip712_example_with_multi_array_message).hex() == expected_hex  # noqa: E501
 
@@ -512,7 +511,7 @@ def test_hash_struct_main_message_eip712_with_array(eip712_example_with_array_js
 
 def test_hash_struct_main_message_eip712_with_multi_array(eip712_example_with_multi_array_json_string):  # noqa: E501
     structured_data = json.loads(eip712_example_with_multi_array_json_string)
-    expected_hex = "911909325b1876067a83af6b5cbffa5bb00dffb8cbf669a79b82489e5e7f0459"
+    expected_hex = "6c5faac29b3f4552147e5cfef75b4ac09fdc7668ba1208c5f153f047a0da4819"
     assert hash_message(structured_data).hex() == expected_hex
 
 
@@ -551,7 +550,7 @@ def test_hashed_structured_data_eip127_with_array(eip712_with_array_message_enco
 def test_hashed_structured_data_eip127_with_multi_array(eip712_with_multi_array_message_encodings):
     structured_msg = encode_structured_data(**eip712_with_multi_array_message_encodings)
     hashed_structured_msg = _hash_eip191_message(structured_msg)
-    expected_hex = "762e0e874350a38729be1166ab030e8713ddf4363123842b98dd2eb974d953b7"
+    expected_hex = "da275374c3a0790d389b6490d6fdf499f39c72105423f09d7b9be62d2fc08671"
     assert hashed_structured_msg.hex() == expected_hex
 
 
@@ -617,9 +616,8 @@ def test_signature_variables_eip712_with_multi_array(eip712_with_multi_array_mes
 
     sig = Account.sign_message(structured_msg, private_key)
     assert sig.v == 27
-    assert hex(sig.r) == "0xe73764e9be3b30625c94b63063477920de64b1c2e7df3cc11d5fa379b7aa2b9a"
-
-    assert hex(sig.s) == "0xc96d88e54350830ce98f51696069739d6f6a8aafdc9db0ea1eb7cde26d246f3"
+    assert hex(sig.r) == "0x873be7f5ac9688ea3675b0c44916340883103053de9d1f9d0c1b6e9758a78a2b"
+    assert hex(sig.s) == "0x6309769ff21b7a4f610316b249b004d4f9e9e9d6df2634d9bc0f492cda6b9c06"
 
 
 def test_hashed_structured_data_with_bytes(eip712_example_with_array_json_string):
@@ -769,10 +767,14 @@ def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function()
 @pytest.mark.parametrize(
     'data, expected',
     (
-        ([[1, 2, 3], [4, 5, 6]], (2, 3)),
-        ([[1, 2, 3]], (1, 3)),
+        ([[1, 2, 3], [4, 5, 6]], (3, 2)),
+        ([[1, 2, 3]], (3, 1)),
         ([1, 2, 3], (3,)),
         ([[[1, 2], [3, 4], [5, 6]], [[7, 8], [9, 10], [11, 12]]], (2, 3, 2)),
+
+        # test dynamic when varying array sizes exist within the same dimension
+        ([[212], [], [12, 24, 36]], ("dynamic", 3)),
+        ([[212], [], [12, [22, 24], [36]]], ("dynamic", "dynamic", 3)),
     )
 )
 def test_get_array_dimensions(data, expected):
@@ -810,10 +812,10 @@ def test_unequal_array_dimension_between_schema_and_data():
         str(e.value) == (
             "Array data "
             "`[{'name': 'Bob', 'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB'}]` has "
-            "dimensions `(1,)` whereas the schema has dimensions `(2, 3, 4)`"
+            "dimensions `(1,)` whereas the schema has dimensions `(2, 'dynamic', 4)`"
         ) or str(e.value) == (
             "Array data "
             "`[{'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', 'name': 'Bob'}]` has "
-            "dimensions `(1,)` whereas the schema has dimensions `(2, 3, 4)`"
+            "dimensions `(1,)` whereas the schema has dimensions `(2, 'dynamic', 4)`"
         )
     )
