@@ -540,14 +540,14 @@ def test_hashed_structured_data_eip712(eip712_message_encodings):
     assert hashed_structured_msg.hex() == expected_hex
 
 
-def test_hashed_structured_data_eip127_with_array(eip712_with_array_message_encodings):
+def test_hashed_structured_data_eip712_with_array(eip712_with_array_message_encodings):
     structured_msg = encode_structured_data(**eip712_with_array_message_encodings)
     hashed_structured_msg = _hash_eip191_message(structured_msg)
     expected_hex = '1780e7e042fa9ec126ccb68cd707d61580d00601b3eff8a5ec05116b46007fdb'
     assert hashed_structured_msg.hex() == expected_hex
 
 
-def test_hashed_structured_data_eip127_with_multi_array(eip712_with_multi_array_message_encodings):
+def test_hashed_structured_data_eip712_with_multi_array(eip712_with_multi_array_message_encodings):
     structured_msg = encode_structured_data(**eip712_with_multi_array_message_encodings)
     hashed_structured_msg = _hash_eip191_message(structured_msg)
     expected_hex = "da275374c3a0790d389b6490d6fdf499f39c72105423f09d7b9be62d2fc08671"
@@ -730,12 +730,12 @@ def test_invalid_structured_data_value_type_mismatch_in_type():
         "tests/fixtures/invalid_message_value_type_mismatch_type.json"
     ).read()
     invalid_structured_data = json.loads(invalid_structured_data_string)
-    with pytest.raises(TypeError) as e:
+    with pytest.raises(
+        TypeError,
+        match="Value of field `contents` \\(12345\\) is of the type `<class 'int'>`, "
+              "but expected string value"
+    ):
         hash_message(invalid_structured_data)
-    assert (
-        str(e.value) == "Value of field `contents` (12345) is of the type "
-                        "`<class 'int'>`, but expected string value"
-    )
 
 
 def test_invalid_structured_data_invalid_abi_type():
@@ -755,13 +755,13 @@ def test_structured_data_invalid_identifier_filtered_by_abi_encodable_function()
         "tests/fixtures/invalid_message_valid_abi_type_invalid_value.json"
     ).read()
     invalid_structured_data = json.loads(invalid_structured_data_string)
-    with pytest.raises(TypeError) as e:
+    with pytest.raises(
+        TypeError,
+        match="Value of `balance` \\(how do you do\\?\\) is not encodable as type "
+              "`uint256`. If the base type is correct, verify that the "
+              "value does not exceed the specified size for the type."
+    ):
         hash_message(invalid_structured_data)
-    assert (
-        str(e.value) == "Value of `balance` (how do you do?) is not encodable as type "
-                        "`uint256`. If the base type is correct, verify that the "
-                        "value does not exceed the specified size for the type."
-    )
 
 
 @pytest.mark.parametrize(

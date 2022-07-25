@@ -46,13 +46,16 @@ def get_dependencies(primary_type, types):
             if field_type not in types:
                 # We don't need to expand types that are not user defined (customized)
                 continue
+            elif field_type not in deps:
+                # Custom Struct Type
+                struct_names_yet_to_be_expanded.append(field_type)
             elif field_type in deps:
                 # skip types that we have already encountered
                 continue
             else:
-                # Custom Struct Type
-                struct_names_yet_to_be_expanded.append(field_type)
-
+                raise TypeError(
+                    f"Unable to determine type dependencies with type `{field_type}`."
+                )
     # Don't need to make a struct as dependency of itself
     deps.remove(primary_type)
 
@@ -142,8 +145,6 @@ def get_array_dimensions(data):
         dimensions[0] if all(dim == dimensions[0] for dim in dimensions) else "dynamic"
         for _depth, dimensions in sorted(grouped_by_depth.items(), reverse=True)
     )
-
-    print(f"data: {data}, dimensions: {dimensions}")
 
     return dimensions
 
