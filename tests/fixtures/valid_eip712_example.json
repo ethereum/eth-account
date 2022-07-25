@@ -13,7 +13,6 @@
 		"Mail": [
 			{"name": "from", "type": "Person"},
 			{"name": "to", "type": "Person"},
-			{"name": "cc", "type": "Person[]"},
 			{"name": "contents", "type": "string"}
 		]
 	},
@@ -33,16 +32,6 @@
 			"name": "Bob",
 			"wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
 		},
-		"cc": [
-      {
-        "name": "Alice",
-        "wallet": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-      },
-      {
-        "name": "Dot",
-        "wallet": "0xdddddddddddddddddddddddddddddddddddddddd"
-      }
-    ],
 		"contents": "Hello, Bob!"
 	}
 }
