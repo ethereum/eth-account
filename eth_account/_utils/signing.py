@@ -42,8 +42,9 @@ def sign_transaction_dict(eth_key, transaction_dict):
         (v, r, s) = sign_transaction_hash(eth_key, transaction_hash, chain_id)
     elif isinstance(unsigned_transaction, TypedTransaction):
         # Each transaction type dictates its payload, and consequently,
-        # all the funky logic around the `v` signature field is both obsolete && incorrect.
-        # We want to obtain the raw `v` and delegate to the transaction type itself.
+        # all the funky logic around the `v` signature field is both obsolete &&
+        # incorrect. We want to obtain the raw `v` and delegate
+        # to the transaction type itself.
         (v, r, s) = eth_key.sign_msg_hash(transaction_hash).vrs
     else:
         # Cannot happen, but better for code to be defensive + self-documenting.

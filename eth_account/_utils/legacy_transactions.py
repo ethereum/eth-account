@@ -60,7 +60,8 @@ def encode_transaction(unsigned_transaction, vrs):
     (v, r, s) = vrs
     chain_naive_transaction = dissoc(unsigned_transaction.as_dict(), "v", "r", "s")
     if isinstance(unsigned_transaction, TypedTransaction):
-        # Typed transaction have their own encoding format, so we must delegate the encoding.
+        # Typed transaction have their own encoding format,
+        # so we must delegate the encoding.
         chain_naive_transaction["v"] = v
         chain_naive_transaction["r"] = r
         chain_naive_transaction["s"] = s
@@ -84,7 +85,8 @@ ALLOWED_TRANSACTION_KEYS = {
     "to",
     "value",
     "data",
-    "chainId",  # set chainId to None if you want a transaction that can be replayed across networks
+    # set chainId to None if you want a transaction that can be replayed across networks
+    "chainId",
 }
 
 REQUIRED_TRANSACTION_KEYS = ALLOWED_TRANSACTION_KEYS.difference(

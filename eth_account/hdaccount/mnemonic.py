@@ -100,15 +100,17 @@ class Mnemonic:
         if len(matching_languages) < 1:
             raise ValidationError(f"Language not detected for word(s): {raw_mnemonic}")
 
-        # If both chinese simplified and chinese traditional match (because one is a subset of the
-        # other) then return simplified. This doesn't hold for other languages.
+        # If both chinese simplified and chinese traditional match (because one is a
+        # subset of the other) then return simplified. This doesn't hold for
+        # other languages.
         if len(matching_languages) == 2 and all(
             "chinese" in lang for lang in matching_languages
         ):
             return "chinese_simplified"
 
-        # Because certain wordlists share some similar words, if we detect multiple languages
-        # that the provided mnemonic word(s) could be valid in, we have to throw
+        # Because certain wordlists share some similar words, if we detect multiple
+        # languages that the provided mnemonic word(s) could be valid in, we have
+        # to throw
         if len(matching_languages) > 1:
             raise ValidationError(
                 f"Word(s) are valid in multiple languages: {raw_mnemonic}"
@@ -201,17 +203,18 @@ class Mnemonic:
     @classmethod
     def to_seed(cls, checked_mnemonic: str, passphrase: str = "") -> bytes:
         """
-        :param str checked_mnemonic: Must be a correct, fully-expanded BIP39 seed phrase.
-        :param str passphrase: Encryption passphrase used to secure the mnemonic.
+        :param str checked_mnemonic: Must be a correct, fully-expanded BIP39 seed phrase
+        :param str passphrase: Encryption passphrase used to secure the mnemonic
         :returns bytes: 64 bytes of raw seed material from PRNG
         """
         mnemonic = normalize_string(checked_mnemonic)
-        # NOTE: This domain separater ("mnemonic") is added per BIP39 spec to the passphrase
-        # https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed
+        # NOTE: This domain separater ("mnemonic") is added per BIP39 spec
+        # to the passphrase
+        # https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed  # noqa: E501
         salt = "mnemonic" + normalize_string(passphrase)
         # From BIP39:
         #   To create a binary seed from the mnemonic, we use the PBKDF2 function with a
-        # mnemonic sentence (in UTF-8 NFKD) used as the password and the string "mnemonic"
-        # and passphrase (again in UTF-8 NFKD) used as the salt.
+        # mnemonic sentence (in UTF-8 NFKD) used as the password and the string
+        # "mnemonic" and passphrase (again in UTF-8 NFKD) used as the salt.
         stretched = pbkdf2_hmac_sha512(mnemonic, salt)
         return stretched[:64]

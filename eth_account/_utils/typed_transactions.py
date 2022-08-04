@@ -82,7 +82,8 @@ TYPED_TRANSACTION_FORMATTERS = merge(
 )
 
 # Define typed transaction common sedes.
-# [[{20 bytes}, [{32 bytes}...]]...], where ... means “zero or more of the thing to the left”.
+# [[{20 bytes}, [{32 bytes}...]]...], where ... means
+# “zero or more of the thing to the left”.
 access_list_sede_type = CountableList(
     List(
         [
@@ -139,7 +140,10 @@ class TypedTransaction:
 
     @classmethod
     def from_dict(cls, dictionary: Dict[str, Any]) -> "TypedTransaction":
-        """Builds a TypedTransaction from a dictionary. Verifies the dictionary is well formed."""
+        """
+        Builds a TypedTransaction from a dictionary.
+        Verifies the dictionary is well formed.
+        """
         dictionary = set_transaction_type_if_needed(dictionary)
         if not ("type" in dictionary and is_int_or_prefixed_hexstr(dictionary["type"])):
             raise ValueError("missing or incorrect transaction type")
@@ -186,7 +190,8 @@ class TypedTransaction:
         Hashes this TypedTransaction to prepare it for signing.
 
         As per the EIP-2718 specifications,
-        the hashing format is dictated by the transaction type itself, and so we delegate the call.
+        the hashing format is dictated by the transaction type itself,
+        and so we delegate the call.
         Note that the return type will be bytes.
         """
         return self.transaction.hash()
@@ -195,10 +200,11 @@ class TypedTransaction:
         """
         Encodes this TypedTransaction and returns it as bytes.
 
-        The transaction format follows
-        EIP-2718's typed transaction format (TransactionType || TransactionPayload).
-        Note that we delegate to a transaction type's payload() method as the EIP-2718 does not
-        prescribe a TransactionPayload format, leaving types free to implement their own encoding.
+        The transaction format follows EIP-2718's typed transaction
+        format (TransactionType || TransactionPayload).
+        Note that we delegate to a transaction type's payload() method as
+        the EIP-2718 does not prescribe a TransactionPayload format,
+        leaving types free to implement their own encoding.
         """
         return bytes([self.transaction_type]) + self.transaction.payload()
 
@@ -277,8 +283,8 @@ class AccessListTransaction(_TypedTransactionImplementation):
         if "v" in dictionary and dictionary["v"] == 0:
             # This is insane logic that is required because the way we evaluate
             # correct types is in the `if not all()` branch below, and 0 obviously
-            # maps to the int(0), which maps to False... This was not an issue in non-typed
-            # transaction because v=0, couldn't exist with the chain offset.
+            # maps to the int(0), which maps to False... This was not an issue in
+            # non-typed transaction because v=0, couldn't exist with the chain offset.
             dictionary["v"] = "0x0"
         valid_fields = apply_formatters_to_dict(
             transaction_valid_values,
@@ -330,10 +336,13 @@ class AccessListTransaction(_TypedTransactionImplementation):
         ):
             raise ValueError("unexpected input")
         # Format is (0x01 || TransactionPayload)
-        # We strip the prefix, and RLP unmarshal the payload into our signed transaction serializer.
+        # We strip the prefix, and RLP unmarshal the payload into our
+        # signed transaction serializer.
         transaction_payload = encoded_transaction[1:]
         rlp_serializer = cls._signed_transaction_serializer
-        dictionary = rlp_serializer.from_bytes(transaction_payload).as_dict()  # type: ignore
+        dictionary = rlp_serializer.from_bytes(  # type: ignore
+            transaction_payload
+        ).as_dict()
         rpc_structured_dict = transaction_rlp_to_rpc_structure(dictionary)
         rpc_structured_dict["type"] = cls.transaction_type
         return cls.from_dict(rpc_structured_dict)
@@ -348,7 +357,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
         """
         Hashes this AccessListTransaction to prepare it for signing.
         As per the EIP-2930 specifications, the signature is a secp256k1 signature over
-        keccak256(0x01 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data, accessList])).
+        keccak256(0x01 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data, accessList])).  # noqa E501
         Here, we compute the keccak256(...) hash.
         """
         # Remove signature fields.
@@ -359,7 +368,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
         )
         rlp_serializer = self.__class__._unsigned_transaction_serializer
         hash = pipe(
-            rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore
+            rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore  # noqa: E501
             lambda val: rlp.encode(val),  # rlp([...])
             lambda val: bytes([self.__class__.transaction_type])
             + val,  # (0x01 || rlp([...]))
@@ -372,14 +381,16 @@ class AccessListTransaction(_TypedTransactionImplementation):
         Returns this transaction's payload as bytes.
 
         Here, the TransactionPayload = rlp([chainId,
-        nonce, gasPrice, gasLimit, to, value, data, accessList, signatureYParity, signatureR,
-        signatureS])
+        nonce, gasPrice, gasLimit, to, value, data, accessList,
+        signatureYParity, signatureR, signatureS])
         """
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")
         rlp_serializer = self.__class__._signed_transaction_serializer
         rlp_structured_dict = transaction_rpc_to_rlp_structure(self.dictionary)
-        payload = rlp.encode(rlp_serializer.from_dict(rlp_structured_dict))  # type: ignore
+        payload = rlp.encode(
+            rlp_serializer.from_dict(rlp_structured_dict)  # type: ignore
+        )
         return cast(bytes, payload)
 
     def vrs(self) -> Tuple[int, int, int]:
@@ -458,8 +469,8 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         if "v" in dictionary and dictionary["v"] == 0:
             # This is insane logic that is required because the way we evaluate
             # correct types is in the `if not all()` branch below, and 0 obviously
-            # maps to the int(0), which maps to False... This was not an issue in non-typed
-            # transaction because v=0, couldn't exist with the chain offset.
+            # maps to the int(0), which maps to False... This was not an issue in
+            # non-typed transaction because v=0, couldn't exist with the chain offset.
             dictionary["v"] = "0x0"
         valid_fields = apply_formatters_to_dict(
             transaction_valid_values,
@@ -511,10 +522,13 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         ):
             raise ValueError("unexpected input")
         # Format is (0x02 || TransactionPayload)
-        # We strip the prefix, and RLP unmarshal the payload into our signed transaction serializer.
+        # We strip the prefix, and RLP unmarshal the payload into our
+        # signed transaction serializer.
         transaction_payload = encoded_transaction[1:]
         rlp_serializer = cls._signed_transaction_serializer
-        dictionary = rlp_serializer.from_bytes(transaction_payload).as_dict()  # type: ignore
+        dictionary = rlp_serializer.from_bytes(  # type: ignore
+            transaction_payload
+        ).as_dict()
         rpc_structured_dict = transaction_rlp_to_rpc_structure(dictionary)
         rpc_structured_dict["type"] = cls.transaction_type
         return cls.from_dict(rpc_structured_dict)
@@ -529,8 +543,9 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         """
         Hashes this DynamicFeeTransaction to prepare it for signing.
         As per the EIP-1559 specifications, the signature is a secp256k1 signature over
-        keccak256(0x02 || rlp([chainId, nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to,
-        value, data, accessList])). Here, we compute the keccak256(...) hash.
+        keccak256(0x02 || rlp([chainId, nonce, maxPriorityFeePerGas,
+        maxFeePerGas, gasLimit, to, value, data, accessList])).
+        Here, we compute the keccak256(...) hash.
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, "v", "r", "s")
@@ -540,7 +555,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         )
         rlp_serializer = self.__class__._unsigned_transaction_serializer
         hash = pipe(
-            rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore
+            rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore  # noqa: E501
             lambda val: rlp.encode(val),  # rlp([...])
             lambda val: bytes([self.__class__.transaction_type])
             + val,  # (0x02 || rlp([...]))
@@ -553,14 +568,16 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         Returns this transaction's payload as bytes.
 
         Here, the TransactionPayload = rlp([chainId,
-        nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data, accessList,
-        signatureYParity, signatureR, signatureS])
+        nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data,
+        accessList, signatureYParity, signatureR, signatureS])
         """
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")
         rlp_serializer = self.__class__._signed_transaction_serializer
         rlp_structured_dict = transaction_rpc_to_rlp_structure(self.dictionary)
-        payload = rlp.encode(rlp_serializer.from_dict(rlp_structured_dict))  # type: ignore
+        payload = rlp.encode(
+            rlp_serializer.from_dict(rlp_structured_dict)  # type: ignore
+        )
         return cast(bytes, payload)
 
     def vrs(self) -> Tuple[int, int, int]:

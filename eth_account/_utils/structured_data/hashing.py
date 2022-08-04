@@ -83,7 +83,8 @@ def encode_type(primary_type, types):
     """
     Serialize types into an encoded string.
 
-    The type of a struct is encoded as name ‖ "(" ‖ member₁ ‖ "," ‖ member₂ ‖ "," ‖ … ‖ memberₙ ")"
+    The type of a struct is encoded as:
+    name ‖ "(" ‖ member₁ ‖ "," ‖ member₂ ‖ "," ‖ … ‖ memberₙ ")"
     where each member is written as type ‖ " " ‖ name.
     """
     # Getting the dependencies and sorting them alphabetically as per EIP712
@@ -186,7 +187,7 @@ def encode_field(types, name, field_type, value):
                 raise TypeError(
                     f"Array data `{value}` has dimensions `{array_dimensions}`"
                     f" whereas the schema has dimensions "
-                    f"`{tuple(map(lambda x: x[0] if x else 'dynamic', parsed_field_type.arrlist))}`"
+                    f"`{tuple(map(lambda x: x[0] if x else 'dynamic', parsed_field_type.arrlist))}`"  # noqa: E501
                 )
 
         field_type_of_inside_array = field_type[: field_type.rindex("[")]

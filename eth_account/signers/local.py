@@ -7,7 +7,8 @@ from eth_account.signers.base import (
 
 class LocalAccount(BaseAccount):
     r"""
-    A collection of convenience methods to sign and encrypt, with an embedded private key.
+    A collection of convenience methods to sign and encrypt, with an
+    embedded private key.
 
     :var bytes key: the 32-byte private key data
 
@@ -70,7 +71,8 @@ class LocalAccount(BaseAccount):
         Generate a string with the encrypted key.
 
         This uses the same structure as in
-        :meth:`~eth_account.account.Account.encrypt`, but without a private key argument.
+        :meth:`~eth_account.account.Account.encrypt`, but without a
+        private key argument.
         """
         return self._publicapi.encrypt(
             self.key, password, kdf=kdf, iterations=iterations
@@ -87,7 +89,8 @@ class LocalAccount(BaseAccount):
         Generate a string with the encrypted key.
 
         This uses the same structure as in
-        :meth:`~eth_account.account.Account.sign_message`, but without a private key argument.
+        :meth:`~eth_account.account.Account.sign_message`, but without a
+        private key argument.
         """
         return self._publicapi.sign_message(signable_message, private_key=self.key)
 
