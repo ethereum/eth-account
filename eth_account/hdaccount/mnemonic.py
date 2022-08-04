@@ -72,7 +72,7 @@ def get_wordlist(language):
 
 class Mnemonic:
     def __init__(self, raw_language="english"):
-        language = raw_language.lower().replace(' ', '_')
+        language = raw_language.lower().replace(" ", "_")
         languages = Mnemonic.list_languages()
         if language not in languages:
             raise ValidationError(
@@ -102,13 +102,17 @@ class Mnemonic:
 
         # If both chinese simplified and chinese traditional match (because one is a subset of the
         # other) then return simplified. This doesn't hold for other languages.
-        if len(matching_languages) == 2 and all("chinese" in lang for lang in matching_languages):
+        if len(matching_languages) == 2 and all(
+            "chinese" in lang for lang in matching_languages
+        ):
             return "chinese_simplified"
 
         # Because certain wordlists share some similar words, if we detect multiple languages
         # that the provided mnemonic word(s) could be valid in, we have to throw
         if len(matching_languages) > 1:
-            raise ValidationError(f"Word(s) are valid in multiple languages: {raw_mnemonic}")
+            raise ValidationError(
+                f"Word(s) are valid in multiple languages: {raw_mnemonic}"
+            )
 
         (language,) = matching_languages
         return language
@@ -136,12 +140,14 @@ class Mnemonic:
         checksum.frombytes(sha256(entropy))
 
         # Add enough bits from the checksum to make it modulo 11 (2**11 = 2048)
-        bits.extend(checksum[:entropy_size // 4])
-        indices = tuple(ba2int(bits[i * 11: (i + 1) * 11]) for i in range(len(bits) // 11))
+        bits.extend(checksum[: entropy_size // 4])
+        indices = tuple(
+            ba2int(bits[i * 11 : (i + 1) * 11]) for i in range(len(bits) // 11)
+        )
         words = tuple(self.wordlist[idx] for idx in indices)
 
         if self.language == "japanese":  # Japanese must be joined by ideographic space.
-            phrase = u"\u3000".join(words)
+            phrase = "\u3000".join(words)
         else:
             phrase = " ".join(words)
         return phrase
@@ -167,11 +173,11 @@ class Mnemonic:
 
         # Checksum the raw entropy bits
         checksum = bitarray()
-        checksum.frombytes(sha256(encoded_seed[:entropy_size * 8].tobytes()))
-        computed_checksum = checksum[:len(encoded_seed) - entropy_size * 8].tobytes()
+        checksum.frombytes(sha256(encoded_seed[: entropy_size * 8].tobytes()))
+        computed_checksum = checksum[: len(encoded_seed) - entropy_size * 8].tobytes()
 
         # Extract the stored checksum bits
-        stored_checksum = encoded_seed[entropy_size * 8:].tobytes()
+        stored_checksum = encoded_seed[entropy_size * 8 :].tobytes()
 
         # Check that the stored matches the relevant slice of the actual checksum
         # NOTE: Use secrets.compare_digest for protection again timing attacks

@@ -25,6 +25,7 @@ class LocalAccount(BaseAccount):
         >>> bytes(my_local_account) # doctest: +SKIP
         b"\\x01\\x23..."
     """
+
     def __init__(self, key, account):
         """
         Initialize a new account with the the given private key.
@@ -71,7 +72,9 @@ class LocalAccount(BaseAccount):
         This uses the same structure as in
         :meth:`~eth_account.account.Account.encrypt`, but without a private key argument.
         """
-        return self._publicapi.encrypt(self.key, password, kdf=kdf, iterations=iterations)
+        return self._publicapi.encrypt(
+            self.key, password, kdf=kdf, iterations=iterations
+        )
 
     def signHash(self, message_hash):
         return self._publicapi.signHash(

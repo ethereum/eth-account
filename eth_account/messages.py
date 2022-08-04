@@ -56,6 +56,7 @@ class SignableMessage(NamedTuple):
 
     .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
     """
+
     version: bytes  # must be length 1
     header: bytes  # aka "version specific data"
     body: bytes  # aka "data to sign"
@@ -69,17 +70,18 @@ def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
             "The EIP-191 signable message standard only supports one-byte versions."
         )
 
-    joined = b'\x19' + version + signable_message.header + signable_message.body
+    joined = b"\x19" + version + signable_message.header + signable_message.body
     return Hash32(keccak(joined))
 
 
 # watch for updates to signature format
 def encode_intended_validator(
-        validator_address: Union[Address, str],
-        primitive: bytes = None,
-        *,
-        hexstr: str = None,
-        text: str = None) -> SignableMessage:
+    validator_address: Union[Address, str],
+    primitive: bytes = None,
+    *,
+    hexstr: str = None,
+    text: str = None,
+) -> SignableMessage:
     """
     Encode a message using the "intended validator" approach (ie~ version 0) defined in EIP-191_.
 
@@ -109,17 +111,18 @@ def encode_intended_validator(
     canonical_address = to_canonical_address(validator_address)
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     return SignableMessage(
-        HexBytes(b'\x00'),  # version 0, as defined in EIP-191
+        HexBytes(b"\x00"),  # version 0, as defined in EIP-191
         canonical_address,
         message_bytes,
     )
 
 
 def encode_structured_data(
-        primitive: Union[bytes, int, Mapping] = None,
-        *,
-        hexstr: str = None,
-        text: str = None) -> SignableMessage:
+    primitive: Union[bytes, int, Mapping] = None,
+    *,
+    hexstr: str = None,
+    text: str = None,
+) -> SignableMessage:
     """
     Encode an EIP-712_ message.
 
@@ -151,17 +154,15 @@ def encode_structured_data(
         message_string = to_text(primitive, hexstr=hexstr, text=text)
         structured_data = load_and_validate_structured_message(message_string)
     return SignableMessage(
-        HexBytes(b'\x01'),
+        HexBytes(b"\x01"),
         hash_domain(structured_data),
         hash_eip712_message(structured_data),
     )
 
 
 def encode_defunct(
-        primitive: bytes = None,
-        *,
-        hexstr: str = None,
-        text: str = None) -> SignableMessage:
+    primitive: bytes = None, *, hexstr: str = None, text: str = None
+) -> SignableMessage:
     r"""
     Encode a message for signing, using an old, unrecommended approach.
 
@@ -209,21 +210,19 @@ def encode_defunct(
         SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
     """
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
-    msg_length = str(len(message_bytes)).encode('utf-8')
+    msg_length = str(len(message_bytes)).encode("utf-8")
 
     # Encoding version E defined by EIP-191
     return SignableMessage(
-        b'E',
-        b'thereum Signed Message:\n' + msg_length,
+        b"E",
+        b"thereum Signed Message:\n" + msg_length,
         message_bytes,
     )
 
 
 def defunct_hash_message(
-        primitive: bytes = None,
-        *,
-        hexstr: str = None,
-        text: str = None) -> HexBytes:
+    primitive: bytes = None, *, hexstr: str = None, text: str = None
+) -> HexBytes:
     """
     Convert the provided message into a message hash, to be signed.
 

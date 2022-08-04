@@ -76,7 +76,7 @@ from eth_account.signers.local import (
     LocalAccount,
 )
 
-VRS = TypeVar('VRS', bytes, HexStr, int)
+VRS = TypeVar("VRS", bytes, HexStr, int)
 
 
 class Account:
@@ -85,9 +85,10 @@ class Account:
 
     It does **not** require a connection to an Ethereum node.
     """
+
     _keys = keys
 
-    _default_kdf = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
+    _default_kdf = os.getenv("ETH_ACCOUNT_KDF", "scrypt")
 
     # Enable unaudited features (off by default)
     _use_unaudited_hdwallet_features = False
@@ -100,7 +101,7 @@ class Account:
         cls._use_unaudited_hdwallet_features = True
 
     @combomethod
-    def create(self, extra_entropy=''):
+    def create(self, extra_entropy=""):
         r"""
         Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`.
 
@@ -164,7 +165,9 @@ class Account:
         elif is_dict(keyfile_json):
             keyfile = keyfile_json
         else:
-            raise TypeError("The keyfile should be supplied as a JSON string, or a dictionary.")
+            raise TypeError(
+                "The keyfile should be supplied as a JSON string, or a dictionary."
+            )
         password_bytes = text_if_str(to_bytes, password)
         return HexBytes(decode_keyfile_json(keyfile, password_bytes))
 
@@ -224,7 +227,9 @@ class Account:
         password_bytes = text_if_str(to_bytes, password)
         assert len(key_bytes) == 32
 
-        return create_keyfile_json(key_bytes, password_bytes, kdf=kdf, iterations=iterations)
+        return create_keyfile_json(
+            key_bytes, password_bytes, kdf=kdf, iterations=iterations
+        )
 
     @combomethod
     def privateKeyToAccount(self, private_key):
@@ -265,10 +270,12 @@ class Account:
         return LocalAccount(key, self)
 
     @combomethod
-    def from_mnemonic(self,
-                      mnemonic: str,
-                      passphrase: str = "",
-                      account_path: str = ETHEREUM_DEFAULT_PATH) -> LocalAccount:
+    def from_mnemonic(
+        self,
+        mnemonic: str,
+        passphrase: str = "",
+        account_path: str = ETHEREUM_DEFAULT_PATH,
+    ) -> LocalAccount:
         """
         Generate an account from a mnemonic.
 
@@ -334,11 +341,13 @@ class Account:
         return LocalAccount(key, self)
 
     @combomethod
-    def create_with_mnemonic(self,
-                             passphrase: str = "",
-                             num_words: int = 12,
-                             language: str = "english",
-                             account_path: str = ETHEREUM_DEFAULT_PATH) -> Tuple[LocalAccount, str]:
+    def create_with_mnemonic(
+        self,
+        passphrase: str = "",
+        num_words: int = 12,
+        language: str = "english",
+        account_path: str = ETHEREUM_DEFAULT_PATH,
+    ) -> Tuple[LocalAccount, str]:
         r"""
         Create a new private key and related mnemonic.
 
@@ -381,10 +390,12 @@ class Account:
         return self.from_mnemonic(mnemonic, passphrase, account_path), mnemonic
 
     @combomethod
-    def recover_message(self,
-                        signable_message: SignableMessage,
-                        vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
-                        signature: bytes = None) -> ChecksumAddress:
+    def recover_message(
+        self,
+        signable_message: SignableMessage,
+        vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
+        signature: bytes = None,
+    ) -> ChecksumAddress:
         r"""
         Get the address of the account that signed the given message.
         You must specify exactly one of: vrs or signature
@@ -475,10 +486,12 @@ class Account:
         return self._recover_hash(message_hash, vrs, signature)
 
     @combomethod
-    def _recover_hash(self,
-                      message_hash: Hash32,
-                      vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
-                      signature: bytes = None) -> ChecksumAddress:
+    def _recover_hash(
+        self,
+        message_hash: Hash32,
+        vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
+        signature: bytes = None,
+    ) -> ChecksumAddress:
         hash_bytes = HexBytes(message_hash)
         if len(hash_bytes) != 32:
             raise ValueError("The message hash must be exactly 32-bytes")
@@ -489,7 +502,9 @@ class Account:
         elif signature is not None:
             signature_bytes = HexBytes(signature)
             signature_bytes_standard = to_standard_signature_bytes(signature_bytes)
-            signature_obj = self._keys.Signature(signature_bytes=signature_bytes_standard)
+            signature_obj = self._keys.Signature(
+                signature_bytes=signature_bytes_standard
+            )
         else:
             raise TypeError("You must supply the vrs tuple or the signature bytes")
         pubkey = signature_obj.recover_public_key_from_msg_hash(hash_bytes)
@@ -524,7 +539,7 @@ class Account:
             '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
         """
         txn_bytes = HexBytes(serialized_transaction)
-        if len(txn_bytes) > 0 and txn_bytes[0] <= 0x7f:
+        if len(txn_bytes) > 0 and txn_bytes[0] <= 0x7F:
             # We are dealing with a typed transaction.
             typed_transaction = TypedTransaction.from_bytes(txn_bytes)
             msg_hash = typed_transaction.hash()
@@ -559,9 +574,11 @@ class Account:
         self._keys = KeyAPI(backend)
 
     @combomethod
-    def sign_message(self,
-                     signable_message: SignableMessage,
-                     private_key: Union[bytes, HexStr, int, keys.PrivateKey]) -> SignedMessage:
+    def sign_message(
+        self,
+        signable_message: SignableMessage,
+        private_key: Union[bytes, HexStr, int, keys.PrivateKey],
+    ) -> SignedMessage:
         r"""
         Sign the provided message.
 
@@ -636,9 +653,11 @@ class Account:
         return self._sign_hash(message_hash, private_key)
 
     @combomethod
-    def _sign_hash(self,
-                   message_hash: Hash32,
-                   private_key: Union[bytes, HexStr, int, keys.PrivateKey]) -> SignedMessage:
+    def _sign_hash(
+        self,
+        message_hash: Hash32,
+        private_key: Union[bytes, HexStr, int, keys.PrivateKey],
+    ) -> SignedMessage:
         msg_hash_bytes = HexBytes(message_hash)
         if len(msg_hash_bytes) != 32:
             raise ValueError("The message hash must be exactly 32-bytes")
@@ -773,19 +792,24 @@ class Account:
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
         """
         if not isinstance(transaction_dict, Mapping):
-            raise TypeError("transaction_dict must be dict-like, got %r" % transaction_dict)
+            raise TypeError(
+                "transaction_dict must be dict-like, got %r" % transaction_dict
+            )
 
         account = self.from_key(private_key)
 
         # allow from field, *only* if it matches the private key
-        if 'from' in transaction_dict:
-            if transaction_dict['from'] == account.address:
-                sanitized_transaction = dissoc(transaction_dict, 'from')
+        if "from" in transaction_dict:
+            if transaction_dict["from"] == account.address:
+                sanitized_transaction = dissoc(transaction_dict, "from")
             else:
-                raise TypeError("from field must match key's %s, but it was %s" % (
-                    account.address,
-                    transaction_dict['from'],
-                ))
+                raise TypeError(
+                    "from field must match key's %s, but it was %s"
+                    % (
+                        account.address,
+                        transaction_dict["from"],
+                    )
+                )
         else:
             sanitized_transaction = transaction_dict
 

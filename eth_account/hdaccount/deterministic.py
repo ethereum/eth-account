@@ -71,9 +71,7 @@ class Node(int):
 
     def __new__(cls, index):
         if 0 > index or index > 2**31:
-            raise ValidationError(
-                f"{cls} cannot be initialized with value {index}"
-            )
+            raise ValidationError(f"{cls} cannot be initialized with value {index}")
 
         obj = int.__new__(cls, index + cls.OFFSET)
         obj.index = index
@@ -116,6 +114,7 @@ class SoftNode(Node):
     """
     Soft node (unhardened), where value = index .
     """
+
     TAG = ""  # No tag
     OFFSET = 0x0  # No offset
 
@@ -124,6 +123,7 @@ class HardNode(Node):
     """
     Hard node, where value = index + BIP32_HARDENED_CONSTANT .
     """
+
     TAG = "H"  # "H" (or "'") means hard node (but use "H" for clarity)
     OFFSET = 0x80000000  # 2**31, BIP32 "Hardening constant"
 
@@ -205,7 +205,7 @@ class HDPath:
         if len(path) < 1:
             raise ValidationError("Cannot parse path from empty string.")
 
-        nodes = path.split('/')  # Should at least make 1 entry in resulting list
+        nodes = path.split("/")  # Should at least make 1 entry in resulting list
         if nodes[0] not in BASE_NODE_IDENTIFIERS:
             raise ValidationError(f'Path is not valid: "{path}". Must start with "m"')
 
@@ -227,8 +227,8 @@ class HDPath:
         """
         Encodes this class to a string (reversing the decoding in the constructor).
         """
-        encoded_path = ('m',) + tuple(node.encode() for node in self._path)
-        return '/'.join(encoded_path)
+        encoded_path = ("m",) + tuple(node.encode() for node in self._path)
+        return "/".join(encoded_path)
 
     def derive(self, seed: bytes) -> bytes:
         """
