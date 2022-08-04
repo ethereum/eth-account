@@ -1,1 +1,0 @@
-Allow bumpversion to find version
