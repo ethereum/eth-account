@@ -1,3 +1,4 @@
+import re
 from itertools import (
     groupby,
 )
@@ -24,42 +25,20 @@ from .validation import (
 )
 
 
-def get_dependencies(primary_type, types):
+def get_dependencies(primary_type, types, results, remove=True):
     """
     Perform DFS to get all the dependencies of the primary_type.
     """
-    deps = set()
-    struct_names_yet_to_be_expanded = [primary_type]
+    primary_type = re.search("^\w*", primary_type).group(0)
+    if not primary_type or primary_type in results or primary_type not in types:
+        return results
 
-    while len(struct_names_yet_to_be_expanded) > 0:
-        struct_name = struct_names_yet_to_be_expanded.pop()
-
-        deps.add(struct_name)
-        fields = types[struct_name]
-        for field in fields:
-            field_type = field["type"]
-
-            # Handle array types
-            if is_array_type(field_type):
-                field_type = field_type[:field_type.index('[')]
-
-            if field_type not in types:
-                # We don't need to expand types that are not user defined (customized)
-                continue
-            elif field_type not in deps:
-                # Custom Struct Type
-                struct_names_yet_to_be_expanded.append(field_type)
-            elif field_type in deps:
-                # skip types that we have already encountered
-                continue
-            else:
-                raise TypeError(
-                    f"Unable to determine type dependencies with type `{field_type}`."
-                )
-    # Don't need to make a struct as dependency of itself
-    deps.remove(primary_type)
-
-    return tuple(deps)
+    results.add(primary_type)
+    for field in types[primary_type]:
+        get_dependencies(field["type"], types, results, False)
+    if remove:
+        results.remove(primary_type)
+    return results
 
 
 def field_identifier(field):
@@ -87,9 +66,8 @@ def encode_type(primary_type, types):
     where each member is written as type ‖ " " ‖ name.
     """
     # Getting the dependencies and sorting them alphabetically as per EIP712
-    deps = get_dependencies(primary_type, types)
+    deps = get_dependencies(primary_type, types, set())
     sorted_deps = (primary_type,) + tuple(sorted(deps))
-
     result = ''.join(
         [
             encode_struct(struct_name, types[struct_name])
@@ -234,7 +212,6 @@ def encode_data(primary_type, types, data):
             data[field["name"]])
         encoded_types.append(type)
         encoded_values.append(value)
-
     return encode_abi(encoded_types, encoded_values)
 
 

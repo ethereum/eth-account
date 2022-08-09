@@ -305,7 +305,7 @@ def test_encode_data_error_messages(primary_type, types, eip712_data, error_type
     )
 )
 def test_get_dependencies_eip712(primary_type, expected, eip712_example_types):
-    assert get_dependencies(primary_type, eip712_example_types) == expected
+    assert get_dependencies(primary_type, eip712_example_types, set()) == set(expected)
 
 
 @pytest.mark.parametrize(
@@ -318,7 +318,7 @@ def test_get_dependencies_eip712(primary_type, expected, eip712_example_types):
 def test_get_dependencies_eip712_with_array(
     primary_type, expected, eip712_example_with_array_types
 ):
-    assert get_dependencies(primary_type, eip712_example_with_array_types) == expected
+    assert get_dependencies(primary_type, eip712_example_with_array_types, set()) == set(expected)
 
 
 @pytest.mark.parametrize(
@@ -332,8 +332,8 @@ def test_get_dependencies_eip712_with_array(
 def test_get_dependencies_eip712_with_multi_array(
     primary_type, expected, eip712_example_with_multi_array_types
 ):
-    assert set(get_dependencies(
-        primary_type, eip712_example_with_multi_array_types)) == set(expected)
+    assert get_dependencies(
+        primary_type, eip712_example_with_multi_array_types, set()) == set(expected)
 
 
 @pytest.mark.parametrize(
