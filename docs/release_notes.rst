@@ -39,6 +39,19 @@ Deprecations and Removals
 
 - Drop support for Python 3.6 (`#139 <https://github.com/ethereum/eth-account/issues/139>`__)
 
+eth-account v0.5.7 (2022-01-27)
+-------------------------------
+
+Features
+~~~~~~~~
+
+- Add support for Python 3.9 and 3.10 (`#139 <https://github.com/ethereum/eth-account/issues/139>`__)
+
+
+Bugfixes
+~~~~~~~~
+
+- ``recover_message`` now raises an ``eth_keys.exceptions.BadSignature`` error if the v, r, and s points are invalid (`#142 <https://github.com/ethereum/eth-account/issues/142>`__)
 
 eth-account v0.5.6 (2021-09-22)
 -------------------------------
