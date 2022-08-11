@@ -45,10 +45,14 @@ build-docs:
 	$(MAKE) -C docs clean
 	$(MAKE) -C docs html
 	$(MAKE) -C docs doctest
+
+validate-docs:
 	./newsfragments/validate_files.py
 	towncrier build --draft --version preview
 
-docs: build-docs
+check-docs: build-docs validate-docs
+
+docs: check-docs
 	open docs/_build/html/index.html
 
 linux-docs: build-docs
