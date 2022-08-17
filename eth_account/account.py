@@ -581,34 +581,6 @@ class Account:
         return cast(SignedMessage, self._sign_hash(message_hash, private_key))
 
     @combomethod
-    def signHash(self, message_hash, private_key):
-        """
-        Sign the provided hash.
-
-        .. WARNING:: *Never* sign a hash that you didn't generate,
-            it can be an arbitrary transaction. For example, it might
-            send all of your account's ether to an attacker.
-            Instead, prefer :meth:`~eth_account.account.Account.sign_message`,
-            which cannot accidentally sign a transaction.
-
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.sign_message`.
-            This method will be removed in v0.6
-
-        :param message_hash: the 32-byte message hash to be signed
-        :type message_hash: hex str, bytes or int
-        :param private_key: the key to sign the message with
-        :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
-        :returns: Various details about the signature - most
-          importantly the fields: v, r, and s
-        :rtype: ~eth_account.datastructures.SignedMessage
-        """
-        warnings.warn(
-            "signHash is deprecated in favor of sign_message",
-            category=DeprecationWarning,
-        )
-        return self._sign_hash(message_hash, private_key)
-
-    @combomethod
     def _sign_hash(
         self,
         message_hash: Hash32,

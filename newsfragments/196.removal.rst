@@ -1,0 +1,1 @@
+remove deprecated methods noted to go in v0.6
