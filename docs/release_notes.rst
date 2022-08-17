@@ -5,8 +5,6 @@ Release Notes
 
 eth-account v0.6.1 (2022-02-24)
 -------------------------------
-Eth_Account 0.6.1 (2022-02-24)
-------------------------------
 
 Bugfixes
 ~~~~~~~~
@@ -22,8 +20,6 @@ Miscellaneous changes
 
 eth-account v0.6.0 (2022-01-20)
 -------------------------------
-Eth_Account 0.6.0 (2022-01-20)
-------------------------------
 
 Features
 ~~~~~~~~
@@ -42,6 +38,44 @@ Deprecations and Removals
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Drop support for Python 3.6 (`#139 <https://github.com/ethereum/eth-account/issues/139>`__)
+
+
+eth-account v0.5.9 (2022-08-04)
+-------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- fix DoS-able regex pattern (`#178 <https://github.com/ethereum/eth-account/issues/178>`__)
+
+
+Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#183 <https://github.com/ethereum/eth-account/issues/183>`__, `#184 <https://github.com/ethereum/eth-account/issues/184>`__
+
+
+eth-account v0.5.8 (2022-06-06)
+-------------------------------
+
+Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#163 <https://github.com/ethereum/eth-account/issues/163>`__, `#168 <https://github.com/ethereum/eth-account/issues/168>`__
+
+eth-account v0.5.7 (2022-01-27)
+-------------------------------
+
+Features
+~~~~~~~~
+
+- Add support for Python 3.9 and 3.10 (`#139 <https://github.com/ethereum/eth-account/issues/139>`__)
+
+
+Bugfixes
+~~~~~~~~
+
+- ``recover_message`` now raises an ``eth_keys.exceptions.BadSignature`` error if the v, r, and s points are invalid (`#142 <https://github.com/ethereum/eth-account/issues/142>`__)
 
 
 eth-account v0.5.6 (2021-09-22)
