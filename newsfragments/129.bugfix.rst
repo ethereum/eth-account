@@ -1,1 +1,0 @@
-bump ansi-regex to 5.0.1 to fix minor ReDos vulnerability

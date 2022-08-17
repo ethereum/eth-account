@@ -1,1 +1,0 @@
-Update mypy to a version compatible with Python 3.9 and 3.10. Added lint tests against all Python supported versions.
