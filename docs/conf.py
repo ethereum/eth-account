@@ -82,7 +82,6 @@ exclude_patterns = [
     "_build",
     "modules.rst",
     "eth_account.internal.rst",
-    "eth_account.hdaccount.rst",
 ]
 
 # The reST default role (used for this markup: `text`) to use for all
