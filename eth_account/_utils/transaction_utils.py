@@ -1,9 +1,13 @@
 from typing import (
     Any,
     Dict,
-    Sequence,
+    Tuple,
+    TypedDict,
 )
 
+from eth_typing import (
+    Hash32,
+)
 from toolz import (
     assoc,
     dissoc,
@@ -13,6 +17,10 @@ from eth_account._utils.validation import (
     is_rlp_structured_access_list,
     is_rpc_structured_access_list,
 )
+
+RLPStructure = Tuple[Tuple[str, Tuple[Hash32, ...]], ...]
+RPCDict = TypedDict('RPCDict', {'address': str, 'storageKeys': Tuple[Hash32, ...]})
+RPCStructure = Tuple[RPCDict, ...]
 
 
 def set_transaction_type_if_needed(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -39,7 +47,7 @@ def transaction_rpc_to_rlp_structure(dictionary: Dict[str, Any]) -> Dict[str, An
     return dictionary
 
 
-def _access_list_rpc_to_rlp_structure(access_list: Sequence) -> Sequence:
+def _access_list_rpc_to_rlp_structure(access_list: RPCStructure) -> RLPStructure:
     if not is_rpc_structured_access_list(access_list):
         raise ValueError("provided object not formatted as JSON-RPC-structured access list")
     rlp_structured_access_list = []
@@ -67,16 +75,15 @@ def transaction_rlp_to_rpc_structure(dictionary: Dict[str, Any]) -> Dict[str, An
     return dictionary
 
 
-def _access_list_rlp_to_rpc_structure(access_list: Sequence) -> Sequence:
+def _access_list_rlp_to_rpc_structure(access_list: RLPStructure) -> RPCStructure:
     if not is_rlp_structured_access_list(access_list):
         raise ValueError("provided object not formatted as rlp-structured access list")
     rpc_structured_access_list = []
     for t in access_list:
         # build a dictionary with appropriate keys for each tuple
-        rpc_structured_access_list.append(
-            {
-                'address': t[0],
-                'storageKeys': t[1]
-            }
-        )
+        d: RPCDict = {
+            'address': t[0],
+            'storageKeys': t[1]
+        }
+        rpc_structured_access_list.append(d)
     return tuple(rpc_structured_access_list)

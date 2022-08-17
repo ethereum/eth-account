@@ -1,7 +1,12 @@
+from __future__ import (
+    annotations,
+)
+
 from collections.abc import (
     Mapping,
 )
 from typing import (
+    Any,
     NamedTuple,
     Union,
 )
@@ -116,7 +121,7 @@ def encode_intended_validator(
 
 
 def encode_structured_data(
-        primitive: Union[bytes, int, Mapping] = None,
+        primitive: Union[bytes, int, Mapping[str, Mapping[str, Any]]] = None,
         *,
         hexstr: str = None,
         text: str = None) -> SignableMessage:
