@@ -195,22 +195,32 @@ def encode_defunct(
 
         >>> message_text = "I♥SF"
         >>> encode_defunct(text=message_text)
-        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')  # noqa: E501
+        SignableMessage(version=b'E',
+                        header=b'thereum Signed Message:\n6',
+                        body=b'I\xe2\x99\xa5SF')
 
         These four also produce the same hash:
         >>> encode_defunct(to_bytes(text=message_text))
-        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')  # noqa: E501
+        SignableMessage(version=b'E',
+                        header=b'thereum Signed Message:\n6',
+                        body=b'I\xe2\x99\xa5SF')
 
         >>> encode_defunct(bytes(message_text, encoding='utf-8'))
-        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')  # noqa: E501
+        SignableMessage(version=b'E',
+                        header=b'thereum Signed Message:\n6',
+                        body=b'I\xe2\x99\xa5SF')
 
         >>> to_hex(text=message_text)
         '0x49e299a55346'
         >>> encode_defunct(hexstr='0x49e299a55346')
-        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')  # noqa: E501
+        SignableMessage(version=b'E',
+                        header=b'thereum Signed Message:\n6',
+                        body=b'I\xe2\x99\xa5SF')
 
         >>> encode_defunct(0x49e299a55346)
-        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')  # noqa: E501
+        SignableMessage(version=b'E',
+                        header=b'thereum Signed Message:\n6',
+                        body=b'I\xe2\x99\xa5SF')
     """
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     msg_length = str(len(message_bytes)).encode("utf-8")

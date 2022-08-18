@@ -215,9 +215,7 @@ def eip712_with_multi_array_message_encodings(
     ),
 )
 def test_encode_data_basic(primary_type, types, eip712_data, expected_hex):
-    assert (
-        encode_data(primary_type, types, eip712_data).hex() == expected_hex
-    )  # noqa: E501
+    assert encode_data(primary_type, types, eip712_data).hex() == expected_hex
 
 
 @pytest.mark.parametrize(
@@ -496,7 +494,7 @@ def test_hash_struct_type_eip712_with_multi_array(
     assert (
         hash_struct_type(primary_type, eip712_example_with_multi_array_types).hex()
         == expected_hex
-    )  # noqa: E501
+    )
 
 
 def test_encode_data_eip712(eip712_example_types, eip712_example_message):
@@ -510,7 +508,7 @@ def test_encode_data_eip712(eip712_example_types, eip712_example_message):
     assert (
         encode_data(primary_type, eip712_example_types, eip712_example_message).hex()
         == expected_hex
-    )  # noqa: E501
+    )
 
 
 def test_encode_data_eip712_with_array(

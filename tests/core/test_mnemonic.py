@@ -48,12 +48,12 @@ def test_failed_checksum():
         ("korean", "강북"),
         (
             "chinese_simplified",
-            "也",
-        ),  # NOTE: This succeeds even though this character is in both
+            "也",  # NOTE: This succeeds even though this character is in both
+        ),
         (
             "chinese_traditional",
-            "滅",
-        ),  # traditional and simplified Chinese, assumes simplified
+            "滅",  # traditional and simplified Chinese, assumes simplified
+        ),
     ],
 )
 def test_detection(language, word):

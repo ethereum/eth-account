@@ -657,7 +657,7 @@ def test_eth_long_account_address_sign_data_with_intended_validator(
         "web3js_eth_keys.datatypes.PrivateKey_example",
         "31byte_r_and_s",
         "access_list_tx",
-    ],  # noqa: E501
+    ],
 )
 def test_eth_account_sign_transaction(
     acct, txn, private_key, expected_raw_tx, tx_hash, r, s, v

@@ -146,8 +146,8 @@ def derive_child_key(
     The function CKDpriv((k_par, c_par), i) → (k_i, c_i) computes a child extended
     private key from the parent extended private key:
 
-    1. Check whether the child is a hardened key (i ≥ 2**31). If the child is a hardened
-       key,
+    1. Check whether the child is a hardened key (i ≥ 2**31).
+       If the child is a hardened key,
        let I = HMAC-SHA512(Key = c_par, Data = 0x00 || ser_256(k_par) || ser_32(i)).
        (Note: The 0x00 pads the private key to make it 33 bytes long.)
        If it is not a hardened key, then

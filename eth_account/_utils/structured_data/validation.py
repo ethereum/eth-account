@@ -11,9 +11,7 @@ TYPE_REGEX = r"^[a-zA-Z_$][a-zA-Z_$0-9]*(\[([1-9]\d*\b)*\])*$"
 
 def validate_has_attribute(attr_name, dict_data):
     if attr_name not in dict_data:
-        raise ValidationError(
-            "Attribute `{0}` not found in the JSON string".format(attr_name)
-        )
+        raise ValidationError(f"Attribute `{attr_name}` not found in the JSON string")
 
 
 def validate_types_attribute(structured_data):
