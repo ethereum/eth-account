@@ -35,7 +35,8 @@ lint-roll:
 	$(MAKE) lint
 
 test:
-	pytest tests
+	coverage run -m pytest tests
+	coverage report
 
 test-all:
 	tox
