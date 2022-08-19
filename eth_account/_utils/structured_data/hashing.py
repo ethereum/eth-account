@@ -41,7 +41,7 @@ def get_dependencies(primary_type, types):
 
             # Handle array types
             if is_array_type(field_type):
-                field_type = field_type[:field_type.index('[')]
+                field_type = field_type[: field_type.index("[")]
 
             if field_type not in types:
                 # We don't need to expand types that are not user defined (customized)
@@ -75,7 +75,7 @@ def field_identifier(field):
 def encode_struct(struct_name, struct_field_types):
     return "{0}({1})".format(
         struct_name,
-        ','.join(map(field_identifier, struct_field_types)),
+        ",".join(map(field_identifier, struct_field_types)),
     )
 
 
@@ -83,18 +83,16 @@ def encode_type(primary_type, types):
     """
     Serialize types into an encoded string.
 
-    The type of a struct is encoded as name ‖ "(" ‖ member₁ ‖ "," ‖ member₂ ‖ "," ‖ … ‖ memberₙ ")"
+    The type of a struct is encoded as:
+    name ‖ "(" ‖ member₁ ‖ "," ‖ member₂ ‖ "," ‖ … ‖ memberₙ ")"
     where each member is written as type ‖ " " ‖ name.
     """
     # Getting the dependencies and sorting them alphabetically as per EIP712
     deps = get_dependencies(primary_type, types)
     sorted_deps = (primary_type,) + tuple(sorted(deps))
 
-    result = ''.join(
-        [
-            encode_struct(struct_name, types[struct_name])
-            for struct_name in sorted_deps
-        ]
+    result = "".join(
+        [encode_struct(struct_name, types[struct_name]) for struct_name in sorted_deps]
     )
     return result
 
@@ -154,7 +152,7 @@ def encode_field(types, name, field_type, value):
         raise ValueError(f"Missing value for field {name} of type {field_type}")
 
     if field_type in types:
-        return ('bytes32', keccak(encode_data(field_type, types, value)))
+        return ("bytes32", keccak(encode_data(field_type, types, value)))
 
     if field_type == "bytes":
         if not isinstance(value, bytes):
@@ -163,7 +161,7 @@ def encode_field(types, name, field_type, value):
                 f"but expected bytes value"
             )
 
-        return ('bytes32', keccak(value))
+        return ("bytes32", keccak(value))
 
     if field_type == "string":
         if not isinstance(value, str):
@@ -172,7 +170,7 @@ def encode_field(types, name, field_type, value):
                 f"but expected string value"
             )
 
-        return ('bytes32', keccak(text=value))
+        return ("bytes32", keccak(text=value))
 
     if is_array_type(field_type):
         # Get the dimensions from the value
@@ -189,10 +187,10 @@ def encode_field(types, name, field_type, value):
                 raise TypeError(
                     f"Array data `{value}` has dimensions `{array_dimensions}`"
                     f" whereas the schema has dimensions "
-                    f"`{tuple(map(lambda x: x[0] if x else 'dynamic', parsed_field_type.arrlist))}`"
+                    f"`{tuple(map(lambda x: x[0] if x else 'dynamic', parsed_field_type.arrlist))}`"  # noqa: E501
                 )
 
-        field_type_of_inside_array = field_type[:field_type.rindex("[")]
+        field_type_of_inside_array = field_type[: field_type.rindex("[")]
         field_type_value_pairs = [
             encode_field(types, name, field_type_of_inside_array, item)
             for item in value
@@ -204,7 +202,7 @@ def encode_field(types, name, field_type, value):
         else:
             data_types, data_hashes = [], []
 
-        return('bytes32', keccak(encode_abi(data_types, data_hashes)))
+        return ("bytes32", keccak(encode_abi(data_types, data_hashes)))
 
     # First checking to see if field_type is valid as per abi
     if not is_encodable_type(field_type):
@@ -223,15 +221,13 @@ def encode_field(types, name, field_type, value):
 
 
 def encode_data(primary_type, types, data):
-    encoded_types = ['bytes32']
+    encoded_types = ["bytes32"]
     encoded_values = [hash_struct_type(primary_type, types)]
 
     for field in types[primary_type]:
         type, value = encode_field(
-            types,
-            field["name"],
-            field["type"],
-            data[field["name"]])
+            types, field["name"], field["type"], data[field["name"]]
+        )
         encoded_types.append(type)
         encoded_values.append(value)
 
@@ -247,11 +243,7 @@ def load_and_validate_structured_message(structured_json_string_data):
 
 def hash_domain(structured_data):
     return keccak(
-        encode_data(
-            "EIP712Domain",
-            structured_data["types"],
-            structured_data["domain"]
-        )
+        encode_data("EIP712Domain", structured_data["types"], structured_data["domain"])
     )
 
 
@@ -260,6 +252,6 @@ def hash_message(structured_data):
         encode_data(
             structured_data["primaryType"],
             structured_data["types"],
-            structured_data["message"]
+            structured_data["message"],
         )
     )

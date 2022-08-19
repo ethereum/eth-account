@@ -43,8 +43,8 @@ class SignableMessage(NamedTuple):
     A message compatible with EIP-191_ that is ready to be signed.
 
     The properties are components of an EIP-191_ signable message. Other message formats
-    can be encoded into this format for easy signing. This data structure doesn't need to
-    know about the original message format. For example, you can think of
+    can be encoded into this format for easy signing. This data structure doesn't need
+    to know about the original message format. For example, you can think of
     EIP-712 as compiling down to an EIP-191 message.
 
     In typical usage, you should never need to create these by hand. Instead, use
@@ -56,6 +56,7 @@ class SignableMessage(NamedTuple):
 
     .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
     """
+
     version: bytes  # must be length 1
     header: bytes  # aka "version specific data"
     body: bytes  # aka "data to sign"
@@ -69,19 +70,21 @@ def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
             "The EIP-191 signable message standard only supports one-byte versions."
         )
 
-    joined = b'\x19' + version + signable_message.header + signable_message.body
+    joined = b"\x19" + version + signable_message.header + signable_message.body
     return Hash32(keccak(joined))
 
 
 # watch for updates to signature format
 def encode_intended_validator(
-        validator_address: Union[Address, str],
-        primitive: bytes = None,
-        *,
-        hexstr: str = None,
-        text: str = None) -> SignableMessage:
+    validator_address: Union[Address, str],
+    primitive: bytes = None,
+    *,
+    hexstr: str = None,
+    text: str = None,
+) -> SignableMessage:
     """
-    Encode a message using the "intended validator" approach (ie~ version 0) defined in EIP-191_.
+    Encode a message using the "intended validator" approach (ie~ version 0)
+    defined in EIP-191_.
 
     Supply the message as exactly one of these three arguments:
     bytes as a primitive, a hex string, or a unicode string.
@@ -89,8 +92,8 @@ def encode_intended_validator(
     .. WARNING:: Note that this code has not gone through an external audit.
         Also, watch for updates to the format, as the EIP is still in DRAFT.
 
-    :param validator_address: which on-chain contract is capable of validating this message,
-        provided as a checksummed address or in native bytes.
+    :param validator_address: which on-chain contract is capable of validating this
+        message, provided as a checksummed address or in native bytes.
     :param primitive: the binary message to be signed
     :type primitive: bytes or int
     :param str hexstr: the message encoded as hex
@@ -105,21 +108,23 @@ def encode_intended_validator(
             "It must be a checksum address, or an address converted to bytes."
         )
     # The validator_address is a str or Address (which is a subtype of bytes). Both of
-    #   these are AnyStr, which includes str and bytes. Not sure why mypy complains here...
+    # these are AnyStr, which includes str and bytes.
+    # Not sure why mypy complains here...
     canonical_address = to_canonical_address(validator_address)
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
     return SignableMessage(
-        HexBytes(b'\x00'),  # version 0, as defined in EIP-191
+        HexBytes(b"\x00"),  # version 0, as defined in EIP-191
         canonical_address,
         message_bytes,
     )
 
 
 def encode_structured_data(
-        primitive: Union[bytes, int, Mapping] = None,
-        *,
-        hexstr: str = None,
-        text: str = None) -> SignableMessage:
+    primitive: Union[bytes, int, Mapping] = None,
+    *,
+    hexstr: str = None,
+    text: str = None,
+) -> SignableMessage:
     """
     Encode an EIP-712_ message.
 
@@ -151,17 +156,15 @@ def encode_structured_data(
         message_string = to_text(primitive, hexstr=hexstr, text=text)
         structured_data = load_and_validate_structured_message(message_string)
     return SignableMessage(
-        HexBytes(b'\x01'),
+        HexBytes(b"\x01"),
         hash_domain(structured_data),
         hash_eip712_message(structured_data),
     )
 
 
 def encode_defunct(
-        primitive: bytes = None,
-        *,
-        hexstr: str = None,
-        text: str = None) -> SignableMessage:
+    primitive: bytes = None, *, hexstr: str = None, text: str = None
+) -> SignableMessage:
     r"""
     Encode a message for signing, using an old, unrecommended approach.
 
@@ -170,11 +173,12 @@ def encode_defunct(
 
     EIP-191 defines this as "version ``E``".
 
-    .. NOTE: This standard includes the number of bytes in the message as a part of the header.
-        Awkwardly, the number of bytes in the message is encoded in decimal ascii.
-        So if the message is 'abcde', then the length is encoded as the ascii
-        character '5'. This is one of the reasons that this message format is not preferred.
-        There is ambiguity when the message '00' is encoded, for example.
+    .. NOTE: This standard includes the number of bytes in the message as a part of
+        the header. Awkwardly, the number of bytes in the message is encoded in
+        decimal ascii. So if the message is 'abcde', then the length is encoded
+        as the ascii character '5'. This is one of the reasons that this message
+        format is not preferred. There is ambiguity when the message '00' is
+        encoded, for example.
 
     Supply exactly one of the three arguments: bytes, a hex string, or a unicode string.
 
@@ -191,43 +195,52 @@ def encode_defunct(
 
         >>> message_text = "I♥SF"
         >>> encode_defunct(text=message_text)
-        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
+        SignableMessage(version=b'E',
+                        header=b'thereum Signed Message:\n6',
+                        body=b'I\xe2\x99\xa5SF')
 
         These four also produce the same hash:
         >>> encode_defunct(to_bytes(text=message_text))
-        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
+        SignableMessage(version=b'E',
+                        header=b'thereum Signed Message:\n6',
+                        body=b'I\xe2\x99\xa5SF')
 
         >>> encode_defunct(bytes(message_text, encoding='utf-8'))
-        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
+        SignableMessage(version=b'E',
+                        header=b'thereum Signed Message:\n6',
+                        body=b'I\xe2\x99\xa5SF')
 
         >>> to_hex(text=message_text)
         '0x49e299a55346'
         >>> encode_defunct(hexstr='0x49e299a55346')
-        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
+        SignableMessage(version=b'E',
+                        header=b'thereum Signed Message:\n6',
+                        body=b'I\xe2\x99\xa5SF')
 
         >>> encode_defunct(0x49e299a55346)
-        SignableMessage(version=b'E', header=b'thereum Signed Message:\n6', body=b'I\xe2\x99\xa5SF')
+        SignableMessage(version=b'E',
+                        header=b'thereum Signed Message:\n6',
+                        body=b'I\xe2\x99\xa5SF')
     """
     message_bytes = to_bytes(primitive, hexstr=hexstr, text=text)
-    msg_length = str(len(message_bytes)).encode('utf-8')
+    msg_length = str(len(message_bytes)).encode("utf-8")
 
     # Encoding version E defined by EIP-191
     return SignableMessage(
-        b'E',
-        b'thereum Signed Message:\n' + msg_length,
+        b"E",
+        b"thereum Signed Message:\n" + msg_length,
         message_bytes,
     )
 
 
 def defunct_hash_message(
-        primitive: bytes = None,
-        *,
-        hexstr: str = None,
-        text: str = None) -> HexBytes:
+    primitive: bytes = None, *, hexstr: str = None, text: str = None
+) -> HexBytes:
     """
     Convert the provided message into a message hash, to be signed.
 
-    .. CAUTION:: Intented for use with the deprecated :meth:`eth_account.account.Account.signHash`.
+    .. CAUTION:: Intented for use with the deprecated
+        :meth:`eth_account.account.Account.signHash`.
         This is for backwards compatibility only. All new implementations
         should use :meth:`encode_defunct` instead.
 
