@@ -1,0 +1,1 @@
+remove deprecated methods that were noted to go in v0.5

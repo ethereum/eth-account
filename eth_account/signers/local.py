@@ -48,18 +48,6 @@ class LocalAccount(BaseAccount):
         return self._address
 
     @property
-    def privateKey(self):
-        """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.signers.local.LocalAccount.key`.
-            This attribute will be removed in v0.5
-        """
-        warnings.warn(
-            "privateKey is deprecated in favor of key",
-            category=DeprecationWarning,
-        )
-        return self._private_key
-
-    @property
     def key(self):
         """
         Get the private key.
