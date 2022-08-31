@@ -7,7 +7,7 @@ from operator import (
 )
 
 from eth_abi import (
-    encode_abi,
+    encode,
     is_encodable,
     is_encodable_type,
 )
@@ -202,7 +202,7 @@ def encode_field(types, name, field_type, value):
         else:
             data_types, data_hashes = [], []
 
-        return ("bytes32", keccak(encode_abi(data_types, data_hashes)))
+        return ("bytes32", keccak(encode(data_types, data_hashes)))
 
     # First checking to see if field_type is valid as per abi
     if not is_encodable_type(field_type):
@@ -231,7 +231,7 @@ def encode_data(primary_type, types, data):
         encoded_types.append(type)
         encoded_values.append(value)
 
-    return encode_abi(encoded_types, encoded_values)
+    return encode(encoded_types, encoded_values)
 
 
 def load_and_validate_structured_message(structured_json_string_data):
