@@ -12,7 +12,7 @@
 		],
 		"Mail": [
 			{"name": "from", "type": "person"},
-			{"name": "to", "type": "person[2][3][4]"},
+			{"name": "to", "type": "person[2][][4]"},
 			{"name": "contents", "type": "string"}
 		]
 	},

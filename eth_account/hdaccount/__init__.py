@@ -21,7 +21,8 @@ def seed_from_mnemonic(words: str, passphrase: str) -> bytes:
     expanded_words = Mnemonic(lang).expand(words)
     if not Mnemonic(lang).is_mnemonic_valid(expanded_words):
         raise ValidationError(
-            f"Provided words: '{expanded_words}', are not a valid BIP39 mnemonic phrase!"
+            f"Provided words: '{expanded_words}', are not a "
+            "valid BIP39 mnemonic phrase!"
         )
     return Mnemonic.to_seed(expanded_words, passphrase)
 

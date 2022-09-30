@@ -3,10 +3,41 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.7.0 (2022-08-17)
+-------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- bump ansi-regex to 5.0.1 to fix minor ReDos vulnerability (`#129 <https://github.com/ethereum/eth-account/issues/129>`__)
+- Enable lint runs again on CI (`#166 <https://github.com/ethereum/eth-account/issues/166>`__)
+- fix DoS-able regex pattern (`#178 <https://github.com/ethereum/eth-account/issues/178>`__)
+- Allow towncrier to build the release notes again (`#185 <https://github.com/ethereum/eth-account/issues/185>`__)
+
+
+Improved Documentation
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Add example to generate multiple accounts from a mnemonic (`#153 <https://github.com/ethereum/eth-account/issues/153>`__)
+- Pin Jinja2 at >=3.0.0,<3.1.0; pin towncrier==18.5.0; open up Sphinx requirement to allow >=1.6.5,<5. (`#156 <https://github.com/ethereum/eth-account/issues/156>`__)
+- added missing quotes to readme dev environment setup example (`#172 <https://github.com/ethereum/eth-account/issues/172>`__)
+
+
+Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#79 <https://github.com/ethereum/eth-account/issues/79>`__, `#155 <https://github.com/ethereum/eth-account/issues/155>`__, `#162 <https://github.com/ethereum/eth-account/issues/162>`__, `#164 <https://github.com/ethereum/eth-account/issues/164>`__, `#165 <https://github.com/ethereum/eth-account/issues/165>`__
+
+
+Breaking changes
+~~~~~~~~~~~~~~~~
+
+- Change bitarray dependency requirement to be >=2.4,<3 since 2.4 has wheels for all platform types. (`#154 <https://github.com/ethereum/eth-account/issues/154>`__)
+- Fix errors in EIP-712 signing (`#175 <https://github.com/ethereum/eth-account/issues/175>`__)
+
+
 eth-account v0.6.1 (2022-02-24)
 -------------------------------
-Eth_Account 0.6.1 (2022-02-24)
-------------------------------
 
 Bugfixes
 ~~~~~~~~
@@ -22,8 +53,6 @@ Miscellaneous changes
 
 eth-account v0.6.0 (2022-01-20)
 -------------------------------
-Eth_Account 0.6.0 (2022-01-20)
-------------------------------
 
 Features
 ~~~~~~~~
@@ -42,6 +71,44 @@ Deprecations and Removals
 ~~~~~~~~~~~~~~~~~~~~~~~~~
 
 - Drop support for Python 3.6 (`#139 <https://github.com/ethereum/eth-account/issues/139>`__)
+
+
+eth-account v0.5.9 (2022-08-04)
+-------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- fix DoS-able regex pattern (`#178 <https://github.com/ethereum/eth-account/issues/178>`__)
+
+
+Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#183 <https://github.com/ethereum/eth-account/issues/183>`__, `#184 <https://github.com/ethereum/eth-account/issues/184>`__
+
+
+eth-account v0.5.8 (2022-06-06)
+-------------------------------
+
+Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#163 <https://github.com/ethereum/eth-account/issues/163>`__, `#168 <https://github.com/ethereum/eth-account/issues/168>`__
+
+eth-account v0.5.7 (2022-01-27)
+-------------------------------
+
+Features
+~~~~~~~~
+
+- Add support for Python 3.9 and 3.10 (`#139 <https://github.com/ethereum/eth-account/issues/139>`__)
+
+
+Bugfixes
+~~~~~~~~
+
+- ``recover_message`` now raises an ``eth_keys.exceptions.BadSignature`` error if the v, r, and s points are invalid (`#142 <https://github.com/ethereum/eth-account/issues/142>`__)
 
 
 eth-account v0.5.6 (2021-09-22)

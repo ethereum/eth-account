@@ -22,9 +22,9 @@ CHAIN_ID_OFFSET = 35
 V_OFFSET = 27
 
 # signature versions
-PERSONAL_SIGN_VERSION = b'E'  # Hex value 0x45
-INTENDED_VALIDATOR_SIGN_VERSION = b'\x00'  # Hex value 0x00
-STRUCTURED_DATA_SIGN_VERSION = b'\x01'  # Hex value 0x01
+PERSONAL_SIGN_VERSION = b"E"  # Hex value 0x45
+INTENDED_VALIDATOR_SIGN_VERSION = b"\x00"  # Hex value 0x00
+STRUCTURED_DATA_SIGN_VERSION = b"\x01"  # Hex value 0x01
 
 
 def sign_transaction_dict(eth_key, transaction_dict):
@@ -42,8 +42,9 @@ def sign_transaction_dict(eth_key, transaction_dict):
         (v, r, s) = sign_transaction_hash(eth_key, transaction_hash, chain_id)
     elif isinstance(unsigned_transaction, TypedTransaction):
         # Each transaction type dictates its payload, and consequently,
-        # all the funky logic around the `v` signature field is both obsolete && incorrect.
-        # We want to obtain the raw `v` and delegate to the transaction type itself.
+        # all the funky logic around the `v` signature field is both obsolete &&
+        # incorrect. We want to obtain the raw `v` and delegate
+        # to the transaction type itself.
         (v, r, s) = eth_key.sign_msg_hash(transaction_hash).vrs
     else:
         # Cannot happen, but better for code to be defensive + self-documenting.
@@ -128,7 +129,7 @@ def sign_transaction_hash(account, transaction_hash, chain_id):
 
 
 def _pad_to_eth_word(bytes_val):
-    return bytes_val.rjust(32, b'\0')
+    return bytes_val.rjust(32, b"\0")
 
 
 def to_bytes32(val):

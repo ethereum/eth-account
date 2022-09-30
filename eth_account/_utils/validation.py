@@ -19,7 +19,7 @@ from eth_utils.curried import (
     to_int,
 )
 
-VALID_EMPTY_ADDRESSES = {None, b'', ''}
+VALID_EMPTY_ADDRESSES = {None, b"", ""}
 
 
 def is_none(val):
@@ -27,12 +27,7 @@ def is_none(val):
 
 
 def is_valid_address(value):
-    if is_binary_address(value):
-        return True
-    elif is_checksum_address(value):
-        return True
-    else:
-        return False
+    return is_binary_address(value) or is_checksum_address(value)
 
 
 def is_int_or_prefixed_hexstr(val):
@@ -60,8 +55,8 @@ def is_rpc_structured_access_list(val):
             return False
         if len(d) != 2:
             return False
-        address = d.get('address')
-        storage_keys = d.get('storageKeys')
+        address = d.get("address")
+        storage_keys = d.get("storageKeys")
         if any(_ is None for _ in (address, storage_keys)):
             return False
         if not is_address(address):
@@ -93,27 +88,29 @@ def is_rlp_structured_access_list(val):
 
 
 LEGACY_TRANSACTION_FORMATTERS = {
-    'nonce': hexstr_if_str(to_int),
-    'gasPrice': hexstr_if_str(to_int),
-    'gas': hexstr_if_str(to_int),
-    'to': apply_one_of_formatters((
-        (is_string, hexstr_if_str(to_bytes)),
-        (is_bytes, identity),
-        (is_none, lambda val: b''),
-    )),
-    'value': hexstr_if_str(to_int),
-    'data': hexstr_if_str(to_bytes),
-    'v': hexstr_if_str(to_int),
-    'r': hexstr_if_str(to_int),
-    's': hexstr_if_str(to_int),
+    "nonce": hexstr_if_str(to_int),
+    "gasPrice": hexstr_if_str(to_int),
+    "gas": hexstr_if_str(to_int),
+    "to": apply_one_of_formatters(
+        (
+            (is_string, hexstr_if_str(to_bytes)),
+            (is_bytes, identity),
+            (is_none, lambda val: b""),
+        )
+    ),
+    "value": hexstr_if_str(to_int),
+    "data": hexstr_if_str(to_bytes),
+    "v": hexstr_if_str(to_int),
+    "r": hexstr_if_str(to_int),
+    "s": hexstr_if_str(to_int),
 }
 
 LEGACY_TRANSACTION_VALID_VALUES = {
-    'nonce': is_int_or_prefixed_hexstr,
-    'gasPrice': is_int_or_prefixed_hexstr,
-    'gas': is_int_or_prefixed_hexstr,
-    'to': is_empty_or_checksum_address,
-    'value': is_int_or_prefixed_hexstr,
-    'data': lambda val: isinstance(val, (int, str, bytes, bytearray)),
-    'chainId': lambda val: val is None or is_int_or_prefixed_hexstr(val),
+    "nonce": is_int_or_prefixed_hexstr,
+    "gasPrice": is_int_or_prefixed_hexstr,
+    "gas": is_int_or_prefixed_hexstr,
+    "to": is_empty_or_checksum_address,
+    "value": is_int_or_prefixed_hexstr,
+    "data": lambda val: isinstance(val, (int, str, bytes, bytearray)),
+    "chainId": lambda val: val is None or is_int_or_prefixed_hexstr(val),
 }
