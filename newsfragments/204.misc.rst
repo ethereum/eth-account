@@ -1,0 +1,1 @@
+bump elliptic and @ethersproject/signing-key in /tests/integration/ethers-cli
