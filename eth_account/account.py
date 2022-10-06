@@ -3,6 +3,13 @@ from collections.abc import (
 )
 import json
 import os
+from typing import (
+    Optional,
+    Tuple,
+    TypeVar,
+    Union,
+    cast,
+)
 import warnings
 
 from cytoolz import (
@@ -18,6 +25,11 @@ from eth_keys import (
 )
 from eth_keys.exceptions import (
     ValidationError,
+)
+from eth_typing import (
+    ChecksumAddress,
+    Hash32,
+    HexStr,
 )
 from eth_utils.curried import (
     combomethod,
@@ -64,16 +76,19 @@ from eth_account.signers.local import (
     LocalAccount,
 )
 
+VRS = TypeVar("VRS", bytes, HexStr, int)
 
-class Account(object):
+
+class Account:
     """
     The primary entry point for working with Ethereum private keys.
 
     It does **not** require a connection to an Ethereum node.
     """
+
     _keys = keys
 
-    _default_kdf = os.getenv('ETH_ACCOUNT_KDF', 'scrypt')
+    _default_kdf = os.getenv("ETH_ACCOUNT_KDF", "scrypt")
 
     # Enable unaudited features (off by default)
     _use_unaudited_hdwallet_features = False
@@ -86,11 +101,13 @@ class Account(object):
         cls._use_unaudited_hdwallet_features = True
 
     @combomethod
-    def create(self, extra_entropy=''):
+    def create(self, extra_entropy=""):
         r"""
-        Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`.
+        Creates a new private key, and returns it as a
+        :class:`~eth_account.local.LocalAccount`.
 
-        :param extra_entropy: Add extra randomness to whatever randomness your OS can provide
+        :param extra_entropy: Add extra randomness to whatever randomness your OS
+          can provide
         :type extra_entropy: str or bytes or int
         :returns: an object with private key and convenience methods
 
@@ -103,7 +120,8 @@ class Account(object):
             >>> acct.key
             HexBytes('0x8676e9a8c86c8921e922e61e0bb6e9e9689aad4c99082620610b00140e5f21b8')
 
-            # These methods are also available: sign_message(), sign_transaction(), encrypt()
+            # These methods are also available: sign_message(), sign_transaction(),
+            # encrypt().
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
@@ -116,7 +134,8 @@ class Account(object):
         """
         Decrypts a private key.
 
-        The key may have been encrypted using an Ethereum client or :meth:`~Account.encrypt`.
+        The key may have been encrypted using an Ethereum client or
+        :meth:`~Account.encrypt`.
 
         :param keyfile_json: The encrypted key
         :type keyfile_json: dict or str
@@ -130,7 +149,7 @@ class Account(object):
             ... 'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
             ... 'crypto': {'cipher': 'aes-128-ctr',
             ...  'cipherparams': {'iv': '482ef54775b0cc59f25717711286f5c8'},
-            ...  'ciphertext': 'cb636716a9fd46adbb31832d964df2082536edd5399a3393327dc89b0193a2be',
+            ...  'ciphertext': 'cb636716a9fd46adbb31832d964df2082536edd5399a3393327dc89b0193a2be',  # noqa: E501
             ...  'kdf': 'scrypt',
             ...  'kdfparams': {},
             ...  'kdfparams': {'dklen': 32,
@@ -138,7 +157,7 @@ class Account(object):
             ...                'p': 8,
             ...                'r': 1,
             ...                'salt': 'd3c9a9945000fcb6c9df0f854266d573'},
-            ...  'mac': '4f626ec5e7fea391b2229348a65bfef532c2a4e8372c0a6a814505a350a7689d'},
+            ...  'mac': '4f626ec5e7fea391b2229348a65bfef532c2a4e8372c0a6a814505a350a7689d'},  # noqa: E501
             ... 'id': 'b812f3f9-78cc-462a-9e89-74418aa27cb0',
             ... 'version': 3}
             >>> Account.decrypt(encrypted, 'password')
@@ -150,7 +169,9 @@ class Account(object):
         elif is_dict(keyfile_json):
             keyfile = keyfile_json
         else:
-            raise TypeError("The keyfile should be supplied as a JSON string, or a dictionary.")
+            raise TypeError(
+                "The keyfile should be supplied as a JSON string, or a dictionary."
+            )
         password_bytes = text_if_str(to_bytes, password)
         return HexBytes(decode_keyfile_json(keyfile, password_bytes))
 
@@ -164,8 +185,10 @@ class Account(object):
 
         :param private_key: The raw private key
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
-        :param str password: The password which you will need to unlock the account in your client
-        :param str kdf: The key derivation function to use when encrypting your private key
+        :param str password: The password which you will need to unlock the account
+          in your client
+        :param str kdf: The key derivation function to use when encrypting your
+          private key
         :param int iterations: The work factor for the key derivation function
         :returns: The data to use in your encrypted file
         :rtype: dict
@@ -210,19 +233,9 @@ class Account(object):
         password_bytes = text_if_str(to_bytes, password)
         assert len(key_bytes) == 32
 
-        return create_keyfile_json(key_bytes, password_bytes, kdf=kdf, iterations=iterations)
-
-    @combomethod
-    def privateKeyToAccount(self, private_key):
-        """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.from_key`.
-            This method will be removed in v0.5
-        """
-        warnings.warn(
-            "privateKeyToAccount is deprecated in favor of from_key",
-            category=DeprecationWarning,
+        return create_keyfile_json(
+            key_bytes, password_bytes, kdf=kdf, iterations=iterations
         )
-        return self.from_key(private_key)
 
     @combomethod
     def from_key(self, private_key):
@@ -243,18 +256,20 @@ class Account(object):
             >>> acct.key
             HexBytes('0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364')
 
-            # These methods are also available: sign_message(), sign_transaction(), encrypt()
-            # They correspond to the same-named methods in Account.*
+            # These methods are also available: sign_message(), sign_transaction(),
+            # encrypt(). They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
         key = self._parsePrivateKey(private_key)
         return LocalAccount(key, self)
 
     @combomethod
-    def from_mnemonic(self,
-                      mnemonic: str,
-                      passphrase: str = "",
-                      account_path: str = ETHEREUM_DEFAULT_PATH):
+    def from_mnemonic(
+        self,
+        mnemonic: str,
+        passphrase: str = "",
+        account_path: str = ETHEREUM_DEFAULT_PATH,
+    ) -> LocalAccount:
         """
         Generate an account from a mnemonic.
 
@@ -262,8 +277,8 @@ class Account(object):
 
         :param str mnemonic: space-separated list of BIP39 mnemonic seed words
         :param str passphrase: Optional passphrase used to encrypt the mnemonic
-        :param str account_path: Specify an alternate HD path for deriving the seed using
-            BIP32 HD wallet key derivation.
+        :param str account_path: Specify an alternate HD path for deriving the seed
+            using BIP32 HD wallet key derivation.
         :return: object with methods for signing and encrypting
         :rtype: LocalAccount
 
@@ -272,20 +287,49 @@ class Account(object):
             >>> from eth_account import Account
             >>> Account.enable_unaudited_hdwallet_features()
             >>> acct = Account.from_mnemonic(
-            ...  "coral allow abandon recipe top tray caught video climb similar prepare bracket "
-            ...  "antenna rubber announce gauge volume hub hood burden skill immense add acid")
+            ...  "coral allow abandon recipe top tray caught video climb similar "
+            ...  "prepare bracket antenna rubber announce gauge volume "
+            ...  "hub hood burden skill immense add acid")
             >>> acct.address
             '0x9AdA5dAD14d925f4df1378409731a9B71Bc8569d'
 
-            # These methods are also available: sign_message(), sign_transaction(), encrypt()
-            # They correspond to the same-named methods in Account.*
+            # These methods are also available: sign_message(), sign_transaction(),
+            #  encrypt(). They correspond to the same-named methods in Account.*
             # but without the private key argument
+
+        Or, generate multiple accounts from a mnemonic.
+
+             >>> from eth_account import Account
+             >>> Account.enable_unaudited_hdwallet_features()
+             >>> iterator = 0
+             >>> for i in range(10):
+             ...     acct = Account.from_mnemonic(
+             ...         "health embark april buyer eternal leopard "
+             ...         "want before nominee head thing tackle",
+             ...         account_path=f"m/44'/60'/0'/0/{iterator}")
+             ...     iterator = iterator + 1
+             ...     acct.address
+             '0x61Cc15522D06983Ac7aADe23f9d5433d38e78195'
+             '0x1240460F6E370f28079E5F9B52f9DcB759F051b7'
+             '0xd30dC9f996539826C646Eb48bb45F6ee1D1474af'
+             '0x47e64beb58c9A469c5eD086aD231940676b44e7C'
+             '0x6D39032ffEF9987988a069F52EFe4d95D0770555'
+             '0x3836A6530D1889853b047799Ecd8827255072e77'
+             '0xed5490dEfF8d8FfAe45cb4066C3daC7C6BFF6a22'
+             '0xf04F9Ff322799253bcC6B12762AD127570a092c5'
+             '0x900F7fa9fbe85BB25b6cdB94Da24D807f7feb213'
+             '0xa248e118b0D19010387b1B768686cd9B473FA137'
+
+        .. CAUTION:: For the love of Bob please do not use this mnemonic,
+                     it is for testing purposes only.
+
         """
         if not self._use_unaudited_hdwallet_features:
             raise AttributeError(
-                "The use of the Mnemonic features of Account is disabled by default until "
-                "its API stabilizes. To use these features, please enable them by running "
-                "`Account.enable_unaudited_hdwallet_features()` and try again."
+                "The use of the Mnemonic features of Account is disabled by "
+                "default until its API stabilizes. To use these features, please "
+                "enable them by running `Account.enable_unaudited_hdwallet_features()` "
+                "and try again."
             )
         seed = seed_from_mnemonic(mnemonic, passphrase)
         private_key = key_from_seed(seed, account_path)
@@ -293,27 +337,32 @@ class Account(object):
         return LocalAccount(key, self)
 
     @combomethod
-    def create_with_mnemonic(self,
-                             passphrase: str = "",
-                             num_words: int = 12,
-                             language: str = "english",
-                             account_path: str = ETHEREUM_DEFAULT_PATH):
+    def create_with_mnemonic(
+        self,
+        passphrase: str = "",
+        num_words: int = 12,
+        language: str = "english",
+        account_path: str = ETHEREUM_DEFAULT_PATH,
+    ) -> Tuple[LocalAccount, str]:
         r"""
         Create a new private key and related mnemonic.
 
         .. CAUTION:: This feature is experimental, unaudited, and likely to change soon
 
-        Creates a new private key, and returns it as a :class:`~eth_account.local.LocalAccount`,
-        alongside the mnemonic that can used to regenerate it using any BIP39-compatible wallet.
+        Creates a new private key, and returns it as a
+        :class:`~eth_account.local.LocalAccount`, alongside the mnemonic that can
+        used to regenerate it using any BIP39-compatible wallet.
 
         :param str passphrase: Extra passphrase to encrypt the seed phrase
-        :param int num_words: Number of words to use with seed phrase. Default is 12 words.
+        :param int num_words: Number of words to use with seed phrase.
+                              Default is 12 words.
                               Must be one of [12, 15, 18, 21, 24].
         :param str language: Language to use for BIP39 mnemonic seed phrase.
-        :param str account_path: Specify an alternate HD path for deriving the seed using
-            BIP32 HD wallet key derivation.
-        :returns: A tuple consisting of an object with private key and convenience methods,
-                  and the mnemonic seed phrase that can be used to restore the account.
+        :param str account_path: Specify an alternate HD path for deriving the
+            seed using BIP32 HD wallet key derivation.
+        :returns: A tuple consisting of an object with private key and
+                  convenience methods, and the mnemonic seed phrase that can be
+                  used to restore the account.
         :rtype: (LocalAccount, str)
 
         .. doctest:: python
@@ -326,21 +375,28 @@ class Account(object):
             >>> acct == Account.from_mnemonic(mnemonic)
             True
 
-            # These methods are also available: sign_message(), sign_transaction(), encrypt()
+            # These methods are also available:
+            # sign_message(), sign_transaction(), encrypt()
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
         if not self._use_unaudited_hdwallet_features:
             raise AttributeError(
-                "The use of the Mnemonic features of Account is disabled by default until "
-                "its API stabilizes. To use these features, please enable them by running "
-                "`Account.enable_unaudited_hdwallet_features()` and try again."
+                "The use of the Mnemonic features of Account is disabled by "
+                "default until its API stabilizes. To use these features, please "
+                "enable them by running `Account.enable_unaudited_hdwallet_features()` "
+                "and try again."
             )
         mnemonic = generate_mnemonic(num_words, language)
         return self.from_mnemonic(mnemonic, passphrase, account_path), mnemonic
 
     @combomethod
-    def recover_message(self, signable_message: SignableMessage, vrs=None, signature=None):
+    def recover_message(
+        self,
+        signable_message: SignableMessage,
+        vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
+        signature: bytes = None,
+    ) -> ChecksumAddress:
         r"""
         Get the address of the account that signed the given message.
         You must specify exactly one of: vrs or signature
@@ -404,34 +460,15 @@ class Account(object):
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
         """
         message_hash = _hash_eip191_message(signable_message)
-        return self._recover_hash(message_hash, vrs, signature)
+        return cast(ChecksumAddress, self._recover_hash(message_hash, vrs, signature))
 
     @combomethod
-    def recoverHash(self, message_hash, vrs=None, signature=None):
-        """
-        Get the address of the account that signed the message with the given hash.
-        You must specify exactly one of: vrs or signature
-
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.recover_message`.
-            This method might be removed as early as v0.5
-
-        :param message_hash: the hash of the message that you want to verify
-        :type message_hash: hex str or bytes or int
-        :param vrs: the three pieces generated by an elliptic curve signature
-        :type vrs: tuple(v, r, s), each element is hex str, bytes or int
-        :param signature: signature bytes concatenated as r+s+v
-        :type signature: hex str or bytes or int
-        :returns: address of signer, hex-encoded & checksummed
-        :rtype: str
-        """
-        warnings.warn(
-            "recoverHash is deprecated in favor of recover_message",
-            category=DeprecationWarning,
-        )
-        return self._recover_hash(message_hash, vrs, signature)
-
-    @combomethod
-    def _recover_hash(self, message_hash, vrs=None, signature=None):
+    def _recover_hash(
+        self,
+        message_hash: Hash32,
+        vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
+        signature: bytes = None,
+    ) -> ChecksumAddress:
         hash_bytes = HexBytes(message_hash)
         if len(hash_bytes) != 32:
             raise ValueError("The message hash must be exactly 32-bytes")
@@ -442,23 +479,13 @@ class Account(object):
         elif signature is not None:
             signature_bytes = HexBytes(signature)
             signature_bytes_standard = to_standard_signature_bytes(signature_bytes)
-            signature_obj = self._keys.Signature(signature_bytes=signature_bytes_standard)
+            signature_obj = self._keys.Signature(
+                signature_bytes=signature_bytes_standard
+            )
         else:
             raise TypeError("You must supply the vrs tuple or the signature bytes")
         pubkey = signature_obj.recover_public_key_from_msg_hash(hash_bytes)
-        return pubkey.to_checksum_address()
-
-    @combomethod
-    def recoverTransaction(self, serialized_transaction):
-        """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.recover_transaction`.
-            This method will be removed in v0.5
-        """
-        warnings.warn(
-            "recoverTransaction is deprecated in favor of recover_transaction",
-            category=DeprecationWarning,
-        )
-        return self.recover_transaction(serialized_transaction)
+        return cast(ChecksumAddress, pubkey.to_checksum_address())
 
     @combomethod
     def recover_transaction(self, serialized_transaction):
@@ -477,7 +504,7 @@ class Account(object):
             '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
         """
         txn_bytes = HexBytes(serialized_transaction)
-        if len(txn_bytes) > 0 and txn_bytes[0] <= 0x7f:
+        if len(txn_bytes) > 0 and txn_bytes[0] <= 0x7F:
             # We are dealing with a typed transaction.
             typed_transaction = TypedTransaction.from_bytes(txn_bytes)
             msg_hash = typed_transaction.hash()
@@ -488,17 +515,6 @@ class Account(object):
         msg_hash = hash_of_signed_transaction(txn)
         return self._recover_hash(msg_hash, vrs=vrs_from(txn))
 
-    def setKeyBackend(self, backend):
-        """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.set_key_backend`.
-            This method will be removed in v0.5
-        """
-        warnings.warn(
-            "setKeyBackend is deprecated in favor of set_key_backend",
-            category=DeprecationWarning,
-        )
-        self.set_key_backend(backend)
-
     def set_key_backend(self, backend):
         """
         Change the backend used by the underlying eth-keys library.
@@ -506,13 +522,18 @@ class Account(object):
         *(The default is fine for most users)*
 
         :param backend: any backend that works in
-            `eth_keys.KeyApi(backend) <https://github.com/ethereum/eth-keys/#keyapibackendnone>`_
+            `eth_keys.KeyApi(backend)
+            <https://github.com/ethereum/eth-keys/#keyapibackendnone>`_
 
         """
         self._keys = KeyAPI(backend)
 
     @combomethod
-    def sign_message(self, signable_message: SignableMessage, private_key):
+    def sign_message(
+        self,
+        signable_message: SignableMessage,
+        private_key: Union[bytes, HexStr, int, keys.PrivateKey],
+    ) -> SignedMessage:
         r"""
         Sign the provided message.
 
@@ -522,15 +543,16 @@ class Account(object):
         :meth:`w3.eth.sign() <web3.eth.Eth.sign>`
         you can use :meth:`~eth_account.messages.encode_defunct`.
 
-        Other options are the "validator", or "structured data" standards. (Both of these
-        are in *DRAFT* status currently, so be aware that the implementation is not
-        guaranteed to be stable). You can import all supported message encoders in
+        Other options are the "validator", or "structured data" standards. (Both of
+        these are in *DRAFT* status currently, so be aware that the implementation is
+        not guaranteed to be stable). You can import all supported message encoders in
         ``eth_account.messages``.
 
         :param signable_message: the encoded message for signing
         :param private_key: the key to sign the message with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
-        :returns: Various details about the signature - most importantly the fields: v, r, and s
+        :returns: Various details about the signature - most importantly the
+            fields: v, r, and s
         :rtype: ~eth_account.datastructures.SignedMessage
 
         .. doctest:: python
@@ -556,7 +578,7 @@ class Account(object):
         .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
         """
         message_hash = _hash_eip191_message(signable_message)
-        return self._sign_hash(message_hash, private_key)
+        return cast(SignedMessage, self._sign_hash(message_hash, private_key))
 
     @combomethod
     def signHash(self, message_hash, private_key):
@@ -587,7 +609,11 @@ class Account(object):
         return self._sign_hash(message_hash, private_key)
 
     @combomethod
-    def _sign_hash(self, message_hash, private_key):
+    def _sign_hash(
+        self,
+        message_hash: Hash32,
+        private_key: Union[bytes, HexStr, int, keys.PrivateKey],
+    ) -> SignedMessage:
         msg_hash_bytes = HexBytes(message_hash)
         if len(msg_hash_bytes) != 32:
             raise ValueError("The message hash must be exactly 32-bytes")
@@ -604,36 +630,26 @@ class Account(object):
         )
 
     @combomethod
-    def signTransaction(self, transaction_dict, private_key):
-        """
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.sign_transaction`.
-            This method will be removed in v0.5
-        """
-        warnings.warn(
-            "signTransaction is deprecated in favor of sign_transaction",
-            category=DeprecationWarning,
-        )
-        return self.sign_transaction(transaction_dict, private_key)
-
-    @combomethod
     def sign_transaction(self, transaction_dict, private_key):
         """
         Sign a transaction using a local private key.
 
-        It produces signature details and the hex-encoded transaction suitable for broadcast using
-        :meth:`w3.eth.sendRawTransaction() <web3.eth.Eth.sendRawTransaction>`.
+        It produces signature details and the hex-encoded transaction suitable for
+        broadcast using :meth:`w3.eth.sendRawTransaction()
+        <web3.eth.Eth.sendRawTransaction>`.
 
         To create the transaction dict that calls a contract, use contract object:
         `my_contract.functions.my_function().buildTransaction()
         <http://web3py.readthedocs.io/en/latest/contracts.html#methods>`_
 
-        Note: For non-legacy (typed) transactions, if the transaction type is not explicitly
-        provided, it may be determined from the transaction parameters of a well-formed
-        transaction. See below for examples on how to sign with different transaction types.
+        Note: For non-legacy (typed) transactions, if the transaction type is not
+        explicitly provided, it may be determined from the transaction parameters of
+        a well-formed transaction. See below for examples on how to sign with
+        different transaction types.
 
-        :param dict transaction_dict: the transaction with available keys, depending on the type of
-          transaction: nonce, chainId, to, data, value, gas, gasPrice, type, accessList,
-          maxFeePerGas, and maxPriorityFeePerGas
+        :param dict transaction_dict: the transaction with available keys, depending
+          on the type of transaction: nonce, chainId, to, data, value, gas, gasPrice,
+          type, accessList, maxFeePerGas, and maxPriorityFeePerGas
         :param private_key: the private key to sign the data with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: Various details about the signature - most
@@ -642,7 +658,7 @@ class Account(object):
 
         .. code-block:: python
 
-            >>> # EIP-1559 dynamic fee transaction (more efficient and preferred over legacy txn)
+            >>> # EIP-1559 dynamic fee transaction (more efficient and preferred over legacy txn)  # noqa: E501
             >>> dynamic_fee_transaction = {
                     "type": 2,  # optional - can be implicitly determined based on max fee params  # noqa: E501
                     "gas": 100000,
@@ -665,9 +681,11 @@ class Account(object):
             >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
             >>> signed = Account.sign_transaction(dynamic_fee_transaction, key)
             {'hash': HexBytes('0x126431f2a7fda003aada7c2ce52b0ce3cbdbb1896230d3333b9eea24f42d15b0'),
+
              'r': 110093478023675319011132687961420618950720745285952062287904334878381994888509,
-             'rawTransaction': HexBytes('0x02f8b282076c2284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000080a0f366b34a5c206859b9778b4c909207e53443cca9e0b82e0b94bc4b47e6434d3da04a731eda413a944d4ea2d2236671e586e57388d0e9d40db53044ae4089f2aec8'),  # noqa: E501
+             'rawTransaction': HexBytes('0x02f8b282076c2284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000080a0f366b34a5c206859b9778b4c909207e53443cca9e0b82e0b94bc4b47e6434d3da04a731eda413a944d4ea2d2236671e586e57388d0e9d40db53044ae4089f2aec8'),
              's': 33674551144139401179914073499472892825822542092106065756005379322302694600392,
+
              'v': 0}
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
 
@@ -687,7 +705,7 @@ class Account(object):
             >>> signed = Account.sign_transaction(legacy_transaction, key)
             {'hash': HexBytes('0x6893a6ee8df79b0f5d64a180cd1ef35d030f3e296a5361cf04d02ce720d32ec5'),
              'r': 4487286261793418179817841024889747115779324305375823110249149479905075174044,
-             'rawTransaction': HexBytes('0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'),  # noqa: E501
+             'rawTransaction': HexBytes('0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'),
              's': 30785525769477805655994251009256770582792548537338581640010273753578382951464,
              'v': 37}
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
@@ -722,19 +740,24 @@ class Account(object):
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
         """
         if not isinstance(transaction_dict, Mapping):
-            raise TypeError("transaction_dict must be dict-like, got %r" % transaction_dict)
+            raise TypeError(
+                "transaction_dict must be dict-like, got %r" % transaction_dict
+            )
 
         account = self.from_key(private_key)
 
         # allow from field, *only* if it matches the private key
-        if 'from' in transaction_dict:
-            if transaction_dict['from'] == account.address:
-                sanitized_transaction = dissoc(transaction_dict, 'from')
+        if "from" in transaction_dict:
+            if transaction_dict["from"] == account.address:
+                sanitized_transaction = dissoc(transaction_dict, "from")
             else:
-                raise TypeError("from field must match key's %s, but it was %s" % (
-                    account.address,
-                    transaction_dict['from'],
-                ))
+                raise TypeError(
+                    "from field must match key's %s, but it was %s"
+                    % (
+                        account.address,
+                        transaction_dict["from"],
+                    )
+                )
         else:
             sanitized_transaction = transaction_dict
 
@@ -760,12 +783,14 @@ class Account(object):
         """
         Generate a :class:`eth_keys.datatypes.PrivateKey` from the provided key.
 
-        If the key is already of type :class:`eth_keys.datatypes.PrivateKey`, return the key.
+        If the key is already of type :class:`eth_keys.datatypes.PrivateKey`,
+        return the key.
 
         :param key: the private key from which a :class:`eth_keys.datatypes.PrivateKey`
                     will be generated
         :type key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
-        :returns: the provided key represented as a :class:`eth_keys.datatypes.PrivateKey`
+        :returns: the provided key represented as a
+                  :class:`eth_keys.datatypes.PrivateKey`
         """
         if isinstance(key, self._keys.PrivateKey):
             return key

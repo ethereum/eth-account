@@ -72,7 +72,7 @@ def get_wordlist(language):
 
 class Mnemonic:
     def __init__(self, raw_language="english"):
-        language = raw_language.lower().replace(' ', '_')
+        language = raw_language.lower().replace(" ", "_")
         languages = Mnemonic.list_languages()
         if language not in languages:
             raise ValidationError(
@@ -100,20 +100,26 @@ class Mnemonic:
         if len(matching_languages) < 1:
             raise ValidationError(f"Language not detected for word(s): {raw_mnemonic}")
 
-        # If both chinese simplified and chinese traditional match (because one is a subset of the
-        # other) then return simplified. This doesn't hold for other languages.
-        if len(matching_languages) == 2 and all("chinese" in lang for lang in matching_languages):
+        # If both chinese simplified and chinese traditional match (because one is a
+        # subset of the other) then return simplified. This doesn't hold for
+        # other languages.
+        if len(matching_languages) == 2 and all(
+            "chinese" in lang for lang in matching_languages
+        ):
             return "chinese_simplified"
 
-        # Because certain wordlists share some similar words, if we detect multiple languages
-        # that the provided mnemonic word(s) could be valid in, we have to throw
+        # Because certain wordlists share some similar words, if we detect multiple
+        # languages that the provided mnemonic word(s) could be valid in, we have
+        # to throw
         if len(matching_languages) > 1:
-            raise ValidationError(f"Word(s) are valid in multiple languages: {raw_mnemonic}")
+            raise ValidationError(
+                f"Word(s) are valid in multiple languages: {raw_mnemonic}"
+            )
 
         (language,) = matching_languages
         return language
 
-    def generate(self, num_words=12) -> str:
+    def generate(self, num_words: int = 12) -> str:
         if num_words not in VALID_WORD_COUNTS:
             raise ValidationError(
                 f"Invalid choice for number of words: {num_words}, should be one of "
@@ -121,7 +127,7 @@ class Mnemonic:
             )
         return self.to_mnemonic(os.urandom(4 * num_words // 3))  # 4/3 bytes per word
 
-    def to_mnemonic(self, entropy) -> str:
+    def to_mnemonic(self, entropy: bytes) -> str:
         entropy_size = len(entropy)
         if entropy_size not in VALID_ENTROPY_SIZES:
             raise ValidationError(
@@ -136,12 +142,14 @@ class Mnemonic:
         checksum.frombytes(sha256(entropy))
 
         # Add enough bits from the checksum to make it modulo 11 (2**11 = 2048)
-        bits.extend(checksum[:entropy_size // 4])
-        indices = tuple(ba2int(bits[i * 11: (i + 1) * 11]) for i in range(len(bits) // 11))
+        bits.extend(checksum[: entropy_size // 4])
+        indices = tuple(
+            ba2int(bits[i * 11 : (i + 1) * 11]) for i in range(len(bits) // 11)
+        )
         words = tuple(self.wordlist[idx] for idx in indices)
 
         if self.language == "japanese":  # Japanese must be joined by ideographic space.
-            phrase = u"\u3000".join(words)
+            phrase = "\u3000".join(words)
         else:
             phrase = " ".join(words)
         return phrase
@@ -167,11 +175,11 @@ class Mnemonic:
 
         # Checksum the raw entropy bits
         checksum = bitarray()
-        checksum.frombytes(sha256(encoded_seed[:entropy_size * 8].tobytes()))
-        computed_checksum = checksum[:len(encoded_seed) - entropy_size * 8].tobytes()
+        checksum.frombytes(sha256(encoded_seed[: entropy_size * 8].tobytes()))
+        computed_checksum = checksum[: len(encoded_seed) - entropy_size * 8].tobytes()
 
         # Extract the stored checksum bits
-        stored_checksum = encoded_seed[entropy_size * 8:].tobytes()
+        stored_checksum = encoded_seed[entropy_size * 8 :].tobytes()
 
         # Check that the stored matches the relevant slice of the actual checksum
         # NOTE: Use secrets.compare_digest for protection again timing attacks
@@ -195,17 +203,18 @@ class Mnemonic:
     @classmethod
     def to_seed(cls, checked_mnemonic: str, passphrase: str = "") -> bytes:
         """
-        :param str checked_mnemonic: Must be a correct, fully-expanded BIP39 seed phrase.
-        :param str passphrase: Encryption passphrase used to secure the mnemonic.
+        :param str checked_mnemonic: Must be a correct, fully-expanded BIP39 seed phrase
+        :param str passphrase: Encryption passphrase used to secure the mnemonic
         :returns bytes: 64 bytes of raw seed material from PRNG
         """
         mnemonic = normalize_string(checked_mnemonic)
-        # NOTE: This domain separater ("mnemonic") is added per BIP39 spec to the passphrase
-        # https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed
+        # NOTE: This domain separater ("mnemonic") is added per BIP39 spec
+        # to the passphrase
+        # https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed  # noqa: E501
         salt = "mnemonic" + normalize_string(passphrase)
         # From BIP39:
         #   To create a binary seed from the mnemonic, we use the PBKDF2 function with a
-        # mnemonic sentence (in UTF-8 NFKD) used as the password and the string "mnemonic"
-        # and passphrase (again in UTF-8 NFKD) used as the salt.
+        # mnemonic sentence (in UTF-8 NFKD) used as the password and the string
+        # "mnemonic" and passphrase (again in UTF-8 NFKD) used as the salt.
         stretched = pbkdf2_hmac_sha512(mnemonic, salt)
         return stretched[:64]

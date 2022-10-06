@@ -3,6 +3,9 @@ from abc import (
     abstractmethod,
 )
 
+from eth_account.datastructures import (
+    SignedMessage,
+)
 from eth_account.messages import (
     SignableMessage,
 )
@@ -28,7 +31,7 @@ class BaseAccount(ABC):
         pass
 
     @abstractmethod
-    def sign_message(self, signable_message: SignableMessage):
+    def sign_message(self, signable_message: SignableMessage) -> SignedMessage:
         """
         Sign the EIP-191_ message.
 
@@ -51,7 +54,8 @@ class BaseAccount(ABC):
         as in :meth:`~eth_account.account.Account.signHash`
         but without specifying the private key.
 
-        .. CAUTION:: Deprecated for :meth:`~eth_account.signers.base.BaseAccount.sign_message`.
+        .. CAUTION:: Deprecated for
+            :meth:`~eth_account.signers.base.BaseAccount.sign_message`.
             To be removed in v0.6
 
         :param bytes message_hash: 32 byte hash of the message to sign
@@ -67,7 +71,8 @@ class BaseAccount(ABC):
         :meth:`~eth_account.account.Account.sign_transaction`
         but without specifying the private key.
 
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.signers.local.sign_transaction`.
+        .. CAUTION:: Deprecated for
+            :meth:`~eth_account.account.signers.local.sign_transaction`.
             This method will be removed in v0.6
 
         :param dict transaction_dict: transaction with all fields specified

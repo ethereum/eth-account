@@ -9,3 +9,4 @@ recursive-include eth_account/hdaccount/wordlist *txt
 
 recursive-exclude * __pycache__
 recursive-exclude * *.py[co]
+prune venv*

@@ -37,7 +37,7 @@ git clone git@github.com:ethereum/eth-account.git
 cd eth-account
 virtualenv -p python3 venv
 . venv/bin/activate
-pip install -e .[dev]
+pip install -e ".[dev]"
 ```
 
 To run the integration test cases, you need to install node and the custom cli tool as follows:

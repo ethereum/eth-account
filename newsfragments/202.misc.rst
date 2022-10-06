@@ -1,0 +1,1 @@
+Drop upper bound for `eth-abi` dependency, allowing projects dependent on `eth-account` to fine tune their own upper bound for `eth-abi`.

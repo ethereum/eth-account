@@ -25,7 +25,7 @@ common: &common
         command: pip install --user tox
     - run:
         name: run tox
-        command: ~/.local/bin/tox -r
+        command: python -m tox -r
     - save_cache:
         paths:
           - .hypothesis
@@ -64,7 +64,7 @@ integration: &integration
         command: cd tests/integration/ethers-cli && sudo npm install -g . && cd ../../../
     - run:
         name: run tox
-        command: ~/.local/bin/tox -r
+        command: python -m tox -r
     - save_cache:
         paths:
           - .hypothesis
@@ -79,81 +79,123 @@ jobs:
   docs:
     <<: *common
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.8
         environment:
           TOXENV: docs
-  lint:
+  py37-lint:
     <<: *common
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.7
         environment:
-          TOXENV: lint
-  py36-core:
-    <<: *common
-    docker:
-      - image: circleci/python:3.6
-        environment:
-          TOXENV: py36-core
+          TOXENV: py37-lint
   py37-core:
     <<: *common
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.7
         environment:
           TOXENV: py37-core
+  py38-lint:
+    <<: *common
+    docker:
+      - image: cimg/python:3.8
+        environment:
+          TOXENV: py38-lint
   py38-core:
     <<: *common
     docker:
-      - image: circleci/python:3.8
+      - image: cimg/python:3.8
         environment:
           TOXENV: py38-core
-  py36-integration:
-    <<: *integration
+  py39-lint:
+    <<: *common
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.9
         environment:
-          TOXENV: py36-integration
+          TOXENV: py39-lint
+  py39-core:
+    <<: *common
+    docker:
+      - image: cimg/python:3.9
+        environment:
+          TOXENV: py39-core
+  py310-lint:
+    <<: *common
+    docker:
+      - image: cimg/python:3.10
+        environment:
+          TOXENV: py310-lint
+  py310-core:
+    <<: *common
+    docker:
+      - image: cimg/python:3.10
+        environment:
+          TOXENV: py310-core
   py37-integration:
     <<: *integration
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.7
         environment:
           TOXENV: py37-integration
   py38-integration:
     <<: *integration
     docker:
-      - image: circleci/python:3.8
+      - image: cimg/python:3.8
         environment:
           TOXENV: py38-integration
-  py36-wheel-cli:
-    <<: *common
+  py39-integration:
+    <<: *integration
     docker:
-      - image: circleci/python:3.6
+      - image: cimg/python:3.9
         environment:
-          TOXENV: py36-wheel-cli
+          TOXENV: py39-integration
+  py310-integration:
+    <<: *integration
+    docker:
+      - image: cimg/python:3.10
+        environment:
+          TOXENV: py310-integration
   py37-wheel-cli:
     <<: *common
     docker:
-      - image: circleci/python:3.7
+      - image: cimg/python:3.7
         environment:
           TOXENV: py37-wheel-cli
   py38-wheel-cli:
     <<: *common
     docker:
-      - image: circleci/python:3.8
+      - image: cimg/python:3.8
         environment:
           TOXENV: py38-wheel-cli
+  py39-wheel-cli:
+    <<: *common
+    docker:
+      - image: cimg/python:3.9
+        environment:
+          TOXENV: py39-wheel-cli
+  py310-wheel-cli:
+    <<: *common
+    docker:
+      - image: cimg/python:3.10
+        environment:
+          TOXENV: py310-wheel-cli
 workflows:
   version: 2
   test:
     jobs:
       - docs
-      - lint
-      - py36-core
+      - py37-lint
+      - py38-lint
+      - py39-lint
+      - py310-lint
       - py37-core
       - py38-core
-      - py36-integration
+      - py39-core
+      - py310-core
       - py37-integration
       - py38-integration
-      - py36-wheel-cli
+      - py39-integration
+      - py310-integration
       - py37-wheel-cli
       - py38-wheel-cli
+      - py39-wheel-cli
+      - py310-wheel-cli

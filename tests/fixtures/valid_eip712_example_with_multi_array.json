@@ -1,0 +1,112 @@
+{
+	"types": {
+		"EIP712Domain": [
+			{"name": "name", "type": "string"},
+			{"name": "version", "type": "string"},
+			{"name": "chainId", "type": "uint256"},
+			{"name": "verifyingContract", "type": "address"}
+		],
+		"Company": [
+			{"name": "name", "type": "string"},
+			{"name": "id", "type": "uint256"}
+		],
+		"Person": [
+			{"name": "name", "type": "string"},
+			{"name": "company", "type": "Company"},
+			{"name": "aliases", "type": "string[]"},
+			{"name": "wallet", "type": "address"}
+		],
+		"Mail": [
+			{"name": "ids", "type": "uint256[]"},
+			{"name": "from", "type": "Person"},
+			{"name": "to", "type": "Person"},
+			{"name": "cc", "type": "Person[]"},
+			{"name": "bcc", "type": "Person[][]"},
+			{"name": "contents", "type": "string"},
+			{"name": "tags", "type": "string[3][4][2]"}
+		]
+	},
+	"primaryType": "Mail",
+	"domain": {
+		"name": "Ether Mail",
+		"version": "1",
+		"chainId": 1,
+		"verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+	},
+	"message": {
+		"ids": [2, 3, 5, 7, 11, 13, 17, 19],
+		"from": {
+			"name": "Cow",
+			"company": {
+				"name": "farm",
+				"id": 1
+			},
+			"aliases": ["Vaca", "Корова", "Koe"],
+			"wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+		},
+		"to": {
+			"name": "Bob",
+			"company": {
+				"name": "fishery",
+				"id": 2
+			},
+			"aliases": ["Bib", "Bab"],
+			"wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+		},
+		"cc": [
+			{
+				"name": "Alice",
+				"company": {
+					"name": "theme-park",
+					"id": 3
+				},
+				"aliases": [],
+				"wallet": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+			},
+			{
+				"name": "Dot",
+				"company": {
+					"name": "ice-cream",
+					"id": 4
+				},
+				"aliases": ["Dash"],
+				"wallet": "0xdddddddddddddddddddddddddddddddddddddddd"
+			}
+		],
+		"bcc": [[
+			{
+				"name": "Earnest",
+				"company": {
+					"name": "eatery",
+					"id": 5
+				},
+				"aliases": [],
+				"wallet": "0xeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+			},
+			{
+				"name": "Felicia",
+				"company": {
+					"name": "fine dining",
+					"id": 6
+				},
+				"aliases": ["Fiona"],
+				"wallet": "0xffffffffffffffffffffffffffffffffffffffff"
+			}
+		]],
+		"contents": "Hello, Bob!",
+		"tags": [
+			[
+				["ab", "cd", "ss"],
+				["ef", "gh", "ss"],
+				["ij", "kl", "ss"],
+				["mn", "op", "ss"]
+			],
+			[
+				["ch", "de", "ss"],
+				["gb", "cn", "ss"],
+				["mx", "cz", "ss"],
+				["jp", "co", "ss"]
+			]
+		]
+	}
+}

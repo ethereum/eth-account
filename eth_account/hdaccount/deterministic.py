@@ -12,7 +12,8 @@ Notes
 -----
 
 * Integers are modulo the order of the curve (referred to as n).
-* Addition (+) of two coordinate pair is defined as application of the EC group operation.
+* Addition (+) of two coordinate pair is defined as application of
+  the EC group operation.
 * Concatenation (||) is the operation of appending one byte sequence onto another.
 
 
@@ -24,21 +25,25 @@ Definitions
   with the integer p.
 * ser_32(i): serialize a 32-bit unsigned integer i as a 4-byte sequence,
   most significant byte first.
-* ser_256(p): serializes the integer p as a 32-byte sequence, most significant byte first.
-* ser_P(P): serializes the coordinate pair P = (x,y) as a byte sequence using SEC1's compressed
-  form: (0x02 or 0x03) || ser_256(x), where the header byte depends on the parity of the
-  omitted y coordinate.
-* parse_256(p): interprets a 32-byte sequence as a 256-bit number, most significant byte first.
+* ser_256(p): serializes the integer p as a 32-byte sequence, most significant
+  byte first.
+* ser_P(P): serializes the coordinate pair P = (x,y) as a byte sequence using SEC1's
+  compressed form: (0x02 or 0x03) || ser_256(x), where the header byte depends on the
+  parity of the omitted y coordinate.
+* parse_256(p): interprets a 32-byte sequence as a 256-bit number, most significant
+  byte first.
 
 """
 # Additional notes:
-# - This module currently only implements private parent key => private child key CKD function,
-#   as it is not necessary to the HD key derivation functions used in this library to implement
-#   the other functions yet (as this module is only used for derivation of private keys). That
-#   could change, but wasn't deemed necessary at the time this module was introduced.
-# - Unlike other libraries, this library does not use Bitcoin key serialization, because it is
-#   not intended to be ultimately used for Bitcoin key derivations. This presents a simplified
-#   API, and no expectation is given for `xpub/xpriv` key derivation.
+# - This module currently only implements private parent key => private child key
+#   CKD function, as it is not necessary to the HD key derivation functions used
+#   in this library to implement the other functions yet (as this module is only
+#   used for derivation of private keys). That could change, but wasn't deemed
+#   necessary at the time this module was introduced.
+# - Unlike other libraries, this library does not use Bitcoin key serialization,
+#   because it is not intended to be ultimately used for Bitcoin key derivations.
+#   This presents a simplified API, and no expectation is given for `xpub/xpriv`
+#   key derivation.
 from typing import (
     Tuple,
     Type,
@@ -71,19 +76,16 @@ class Node(int):
 
     def __new__(cls, index):
         if 0 > index or index > 2**31:
-            raise ValidationError(
-                f"{cls} cannot be initialized with value {index}"
-            )
+            raise ValidationError(f"{cls} cannot be initialized with value {index}")
 
-        # mypy/typeshed bug requires type ignore: https://github.com/python/typeshed/issues/2686
-        obj = int.__new__(cls, index + cls.OFFSET)  # type: ignore
+        obj = int.__new__(cls, index + cls.OFFSET)
         obj.index = index
         return obj
 
     def __repr__(self):
         return f"{self.__class__.__name__}({self.index})"
 
-    def __add__(self, other: int):
+    def __add__(self, other: int) -> "Node":
         return self.__class__(self.index + other)
 
     def serialize(self) -> bytes:
@@ -117,6 +119,7 @@ class SoftNode(Node):
     """
     Soft node (unhardened), where value = index .
     """
+
     TAG = ""  # No tag
     OFFSET = 0x0  # No offset
 
@@ -125,6 +128,7 @@ class HardNode(Node):
     """
     Hard node, where value = index + BIP32_HARDENED_CONSTANT .
     """
+
     TAG = "H"  # "H" (or "'") means hard node (but use "H" for clarity)
     OFFSET = 0x80000000  # 2**31, BIP32 "Hardening constant"
 
@@ -142,7 +146,8 @@ def derive_child_key(
     The function CKDpriv((k_par, c_par), i) → (k_i, c_i) computes a child extended
     private key from the parent extended private key:
 
-    1. Check whether the child is a hardened key (i ≥ 2**31). If the child is a hardened key,
+    1. Check whether the child is a hardened key (i ≥ 2**31).
+       If the child is a hardened key,
        let I = HMAC-SHA512(Key = c_par, Data = 0x00 || ser_256(k_par) || ser_32(i)).
        (Note: The 0x00 pads the private key to make it 33 bytes long.)
        If it is not a hardened key, then
@@ -206,7 +211,7 @@ class HDPath:
         if len(path) < 1:
             raise ValidationError("Cannot parse path from empty string.")
 
-        nodes = path.split('/')  # Should at least make 1 entry in resulting list
+        nodes = path.split("/")  # Should at least make 1 entry in resulting list
         if nodes[0] not in BASE_NODE_IDENTIFIERS:
             raise ValidationError(f'Path is not valid: "{path}". Must start with "m"')
 
@@ -228,8 +233,8 @@ class HDPath:
         """
         Encodes this class to a string (reversing the decoding in the constructor).
         """
-        encoded_path = ('m',) + tuple(node.encode() for node in self._path)
-        return '/'.join(encoded_path)
+        encoded_path = ("m",) + tuple(node.encode() for node in self._path)
+        return "/".join(encoded_path)
 
     def derive(self, seed: bytes) -> bytes:
         """
