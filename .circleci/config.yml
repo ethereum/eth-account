@@ -82,6 +82,8 @@ jobs:
       - image: cimg/python:3.8
         environment:
           TOXENV: docs
+  
+  # Python 3.7
   py37-lint:
     <<: *common
     docker:
@@ -94,6 +96,20 @@ jobs:
       - image: cimg/python:3.7
         environment:
           TOXENV: py37-core
+  py37-wheel-cli:
+    <<: *common
+    docker:
+      - image: cimg/python:3.7
+        environment:
+          TOXENV: py37-wheel-cli
+  py37-integration:
+    <<: *integration
+    docker:
+      - image: cimg/python:3.7
+        environment:
+          TOXENV: py37-integration
+  
+  # Python 3.8
   py38-lint:
     <<: *common
     docker:
@@ -106,6 +122,20 @@ jobs:
       - image: cimg/python:3.8
         environment:
           TOXENV: py38-core
+  py38-integration:
+    <<: *integration
+    docker:
+      - image: cimg/python:3.8
+        environment:
+          TOXENV: py38-integration  
+  py38-wheel-cli:
+    <<: *common
+    docker:
+      - image: cimg/python:3.8
+        environment:
+          TOXENV: py38-wheel-cli
+  
+  # Python 3.9
   py39-lint:
     <<: *common
     docker:
@@ -118,6 +148,20 @@ jobs:
       - image: cimg/python:3.9
         environment:
           TOXENV: py39-core
+  py39-wheel-cli:
+    <<: *common
+    docker:
+      - image: cimg/python:3.9
+        environment:
+          TOXENV: py39-wheel-cli
+  py39-integration:
+    <<: *integration
+    docker:
+      - image: cimg/python:3.9
+        environment:
+          TOXENV: py39-integration
+  
+  # Python 3.11
   py310-lint:
     <<: *common
     docker:
@@ -130,54 +174,45 @@ jobs:
       - image: cimg/python:3.10
         environment:
           TOXENV: py310-core
-  py37-integration:
-    <<: *integration
-    docker:
-      - image: cimg/python:3.7
-        environment:
-          TOXENV: py37-integration
-  py38-integration:
-    <<: *integration
-    docker:
-      - image: cimg/python:3.8
-        environment:
-          TOXENV: py38-integration
-  py39-integration:
-    <<: *integration
-    docker:
-      - image: cimg/python:3.9
-        environment:
-          TOXENV: py39-integration
   py310-integration:
     <<: *integration
     docker:
       - image: cimg/python:3.10
         environment:
           TOXENV: py310-integration
-  py37-wheel-cli:
-    <<: *common
-    docker:
-      - image: cimg/python:3.7
-        environment:
-          TOXENV: py37-wheel-cli
-  py38-wheel-cli:
-    <<: *common
-    docker:
-      - image: cimg/python:3.8
-        environment:
-          TOXENV: py38-wheel-cli
-  py39-wheel-cli:
-    <<: *common
-    docker:
-      - image: cimg/python:3.9
-        environment:
-          TOXENV: py39-wheel-cli
   py310-wheel-cli:
     <<: *common
     docker:
       - image: cimg/python:3.10
         environment:
           TOXENV: py310-wheel-cli
+
+  # Python 3.11
+  py311-lint:
+    <<: *common
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          TOXENV: py311-lint
+  py311-core:
+    <<: *common
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          TOXENV: py311-core
+  py311-integration:
+    <<: *integration
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          TOXENV: py310-integration
+  py311-wheel-cli:
+    <<: *common
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          TOXENV: py311-wheel-cli
+
 workflows:
   version: 2
   test:
@@ -187,15 +222,19 @@ workflows:
       - py38-lint
       - py39-lint
       - py310-lint
+      - py311-lint
       - py37-core
       - py38-core
       - py39-core
       - py310-core
+      - py311-core
       - py37-integration
       - py38-integration
       - py39-integration
       - py310-integration
+      - py311-integration
       - py37-wheel-cli
       - py38-wheel-cli
       - py39-wheel-cli
       - py310-wheel-cli
+      - py311-wheel-cli
