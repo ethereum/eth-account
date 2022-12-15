@@ -130,6 +130,18 @@ jobs:
       - image: cimg/python:3.10
         environment:
           TOXENV: py310-core
+  py311-lint:
+    <<: *common
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          TOXENV: py311-lint
+  py311-core:
+    <<: *common
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          TOXENV: py311-core
   py37-integration:
     <<: *integration
     docker:
@@ -154,6 +166,12 @@ jobs:
       - image: cimg/python:3.10
         environment:
           TOXENV: py310-integration
+  py311-integration:
+    <<: *integration
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          TOXENV: py311-integration
   py37-wheel-cli:
     <<: *common
     docker:
@@ -178,6 +196,12 @@ jobs:
       - image: cimg/python:3.10
         environment:
           TOXENV: py310-wheel-cli
+  py311-wheel-cli:
+    <<: *common
+    docker:
+      - image: cimg/python:3.11
+        environment:
+          TOXENV: py311-wheel-cli
 workflows:
   version: 2
   test:
@@ -187,15 +211,19 @@ workflows:
       - py38-lint
       - py39-lint
       - py310-lint
+      - py311-lint
       - py37-core
       - py38-core
       - py39-core
       - py310-core
+      - py311-core
       - py37-integration
       - py38-integration
       - py39-integration
       - py310-integration
+      - py311-integration
       - py37-wheel-cli
       - py38-wheel-cli
       - py39-wheel-cli
       - py310-wheel-cli
+      - py311-wheel-cli
