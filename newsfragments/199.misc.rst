@@ -1,1 +1,0 @@
-Add black SHA to .git-blame-ignore-revs

@@ -1,1 +1,0 @@
-bump cross-fetch and @ethersproject/web in /tests/integration/ethers-cli

@@ -3,6 +3,40 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.8.0 (2022-12-15)
+-------------------------------
+
+Features
+~~~~~~~~
+
+- update all references to deprecated `eth_abi.encode_abi` to `eth_abi.encode` (`#200 <https://github.com/ethereum/eth-account/issues/200>`__)
+
+
+Performance improvements
+~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Reduce the number of pbkdf2 iterations to speed up tests (`#77 <https://github.com/ethereum/eth-account/issues/77>`__)
+
+
+Deprecations and Removals
+~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- remove deprecated methods that were noted to go in v0.5 (`#195 <https://github.com/ethereum/eth-account/issues/195>`__)
+
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- add coverage reporting to pytest (`#192 <https://github.com/ethereum/eth-account/issues/192>`__)
+- Use updated circleci Python images, fix Sphinx warning (`#194 <https://github.com/ethereum/eth-account/issues/194>`__)
+
+
+Miscellaneous changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#197 <https://github.com/ethereum/eth-account/issues/197>`__, `#198 <https://github.com/ethereum/eth-account/issues/198>`__, `#199 <https://github.com/ethereum/eth-account/issues/199>`__, `#202 <https://github.com/ethereum/eth-account/issues/202>`__, `#203 <https://github.com/ethereum/eth-account/issues/203>`__, `#204 <https://github.com/ethereum/eth-account/issues/204>`__, `#206 <https://github.com/ethereum/eth-account/issues/206>`__
+
+
 eth-account v0.7.0 (2022-08-17)
 -------------------------------
 
