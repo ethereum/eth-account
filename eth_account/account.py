@@ -748,7 +748,8 @@ class Account:
         if "from" in transaction_dict:
             if transaction_dict["from"] == account.address:
                 sanitized_transaction = deepcopy(transaction_dict)
-                sanitized_transaction.pop("from", None)
+                if "from" in sanitized_transaction:
+                    del sanitized_transaction["from"]
             else:
                 raise TypeError(
                     "from field must match key's %s, but it was %s"
