@@ -67,7 +67,7 @@ setup(
     install_requires=[
         "bitarray>=2.4.0,<3",
         # "eth-abi>=4.0.0",
-        "eth-abi @ git+ssh://git@github.com/ethereum/eth-abi.git#egg=eth-abi"
+        # "eth-abi @ git+ssh://git@github.com/ethereum/eth-abi.git#egg=eth-abi"
         "eth-keyfile>=0.6.0,<0.7.0",
         "eth-keys>=0.4.0,<0.5",
         "eth-rlp>=0.3.0,<1",
