@@ -9,9 +9,9 @@ from typing import (
     Union,
     cast,
 )
+from copy import deepcopy
 
-from cytoolz import (
-    dissoc,
+from toolz import (
     identity,
     merge,
     partial,
@@ -361,7 +361,11 @@ class AccessListTransaction(_TypedTransactionImplementation):
         Here, we compute the keccak256(...) hash.
         """
         # Remove signature fields.
-        transaction_without_signature_fields = dissoc(self.dictionary, "v", "r", "s")
+        transaction_without_signature_fields = deepcopy(self.dictionary)
+        for key in ["v", "r", "s"]:
+            if key in transaction_without_signature_fields:
+                del transaction_without_signature_fields[key]
+
         # RPC-structured transaction to rlp-structured transaction
         rlp_structured_txn_without_sig_fields = transaction_rpc_to_rlp_structure(
             transaction_without_signature_fields
@@ -548,7 +552,11 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         Here, we compute the keccak256(...) hash.
         """
         # Remove signature fields.
-        transaction_without_signature_fields = dissoc(self.dictionary, "v", "r", "s")
+        transaction_without_signature_fields = deepcopy(self.dictionary)
+        for key in ["v", "r", "s"]:
+            if key in transaction_without_signature_fields:
+                del transaction_without_signature_fields[key]
+
         # RPC-structured transaction to rlp-structured transaction
         rlp_structured_txn_without_sig_fields = transaction_rpc_to_rlp_structure(
             transaction_without_signature_fields

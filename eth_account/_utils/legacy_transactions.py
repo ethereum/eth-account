@@ -1,11 +1,11 @@
 import itertools
+from copy import deepcopy
 from typing import (
     Dict,
 )
 
-from cytoolz import (
+from toolz import (
     curry,
-    dissoc,
     merge,
     partial,
     pipe,
@@ -58,7 +58,11 @@ def serializable_unsigned_transaction_from_dict(transaction_dict):
 
 def encode_transaction(unsigned_transaction, vrs):
     (v, r, s) = vrs
-    chain_naive_transaction = dissoc(unsigned_transaction.as_dict(), "v", "r", "s")
+    chain_naive_transaction = deepcopy(unsigned_transaction.as_dict())
+    for key in ["v", "r", "s"]:
+        if key in chain_naive_transaction:
+            del chain_naive_transaction[key]
+
     if isinstance(unsigned_transaction, TypedTransaction):
         # Typed transaction have their own encoding format,
         # so we must delegate the encoding.

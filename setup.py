@@ -73,8 +73,9 @@ setup(
         "eth-utils>=2.0.0,<3",
         "hexbytes>=0.1.0,<1",
         "rlp>=1.0.0,<4",
+        "toolz>=0.12.0",
     ],
-    python_requires=">=3.6, <4",
+    python_requires=">=3.7, <4",
     extras_require=extras_require,
     py_modules=["eth_account"],
     license="MIT",
@@ -93,5 +94,6 @@ setup(
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
 )

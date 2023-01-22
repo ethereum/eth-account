@@ -1,6 +1,6 @@
 import pytest
 
-from cytoolz import (
+from toolz.dicttoolz import (
     assoc,
     dissoc,
 )
