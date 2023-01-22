@@ -1,6 +1,3 @@
-from cytoolz import (
-    identity,
-)
 from eth_utils import (
     is_binary_address,
     is_checksum_address,
@@ -94,7 +91,7 @@ LEGACY_TRANSACTION_FORMATTERS = {
     "to": apply_one_of_formatters(
         (
             (is_string, hexstr_if_str(to_bytes)),
-            (is_bytes, identity),
+            (is_bytes, lambda x: x),
             (is_none, lambda val: b""),
         )
     ),

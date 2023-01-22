@@ -1,6 +1,7 @@
 from collections.abc import (
     Mapping,
 )
+from copy import deepcopy
 import json
 import os
 from typing import (
@@ -12,9 +13,6 @@ from typing import (
 )
 import warnings
 
-from cytoolz import (
-    dissoc,
-)
 from eth_keyfile import (
     create_keyfile_json,
     decode_keyfile_json,
@@ -749,7 +747,8 @@ class Account:
         # allow from field, *only* if it matches the private key
         if "from" in transaction_dict:
             if transaction_dict["from"] == account.address:
-                sanitized_transaction = dissoc(transaction_dict, "from")
+                sanitized_transaction = deepcopy(transaction_dict)
+                sanitized_transaction.pop("from", None)
             else:
                 raise TypeError(
                     "from field must match key's %s, but it was %s"

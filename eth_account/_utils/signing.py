@@ -1,6 +1,3 @@
-from cytoolz import (
-    pipe,
-)
 from eth_utils import (
     to_bytes,
     to_int,
@@ -133,11 +130,7 @@ def _pad_to_eth_word(bytes_val):
 
 
 def to_bytes32(val):
-    return pipe(
-        val,
-        to_bytes,
-        _pad_to_eth_word,
-    )
+    return _pad_to_eth_word(to_bytes(val))
 
 
 def sign_message_hash(key, msg_hash):
