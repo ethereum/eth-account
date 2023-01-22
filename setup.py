@@ -50,7 +50,7 @@ with open("./README.md") as readme:
 setup(
     name="eth-account",
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
-    version="0.8.0",
+    version="0.9.0",
     description="""eth-account: Sign Ethereum transactions and messages with local private keys""",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -66,7 +66,8 @@ setup(
     },
     install_requires=[
         "bitarray>=2.4.0,<3",
-        "eth-abi>=3.0.1",
+        # "eth-abi>=4.0.0",
+        "eth-abi @ git+ssh://git@github.com/ethereum/eth-abi.git#egg=eth-abi"
         "eth-keyfile>=0.6.0,<0.7.0",
         "eth-keys>=0.4.0,<0.5",
         "eth-rlp>=0.3.0,<1",
