@@ -22,6 +22,9 @@ from eth_utils import (
 from hexbytes import (
     HexBytes,
 )
+from toolz import (
+    dissoc,
+)
 
 from eth_account import (
     Account,
@@ -678,10 +681,7 @@ def test_eth_account_sign_transaction_from_eth_test(acct, transaction):
     expected_raw_txn = transaction["signed"]
     key = transaction["key"]
 
-    unsigned_txn = deepcopy(transaction)
-    for key in ["key", "signed", "unsigned"]:
-        if key in unsigned_txn:
-            del unsigned_txn[key]
+    unsigned_txn = dissoc(transaction, "key", "signed", "unsigned")
 
     # validate r, in order to validate the transaction hash
     # There is some ambiguity about whether `r` will always be deterministically

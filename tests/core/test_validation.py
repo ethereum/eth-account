@@ -1,11 +1,11 @@
 import pytest
 
+from eth_abi.exceptions import (
+    ABITypeError,
+)
 from toolz.dicttoolz import (
     assoc,
     dissoc,
-)
-from eth_abi.exceptions import (
-    ABITypeError,
 )
 
 from eth_account import (

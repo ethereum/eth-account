@@ -1,15 +1,8 @@
 import itertools
-from copy import deepcopy
 from typing import (
     Dict,
 )
 
-from toolz import (
-    curry,
-    merge,
-    partial,
-    pipe,
-)
 from eth_rlp import (
     HashableRLP,
 )
@@ -21,6 +14,15 @@ from rlp.sedes import (
     Binary,
     big_endian_int,
     binary,
+)
+from toolz import (
+    curry,
+    merge,
+    partial,
+    pipe,
+)
+from toolz.dicttoolz import (
+    dissoc,
 )
 
 from .transaction_utils import (
@@ -58,11 +60,7 @@ def serializable_unsigned_transaction_from_dict(transaction_dict):
 
 def encode_transaction(unsigned_transaction, vrs):
     (v, r, s) = vrs
-    chain_naive_transaction = deepcopy(unsigned_transaction.as_dict())
-    for key in ["v", "r", "s"]:
-        if key in chain_naive_transaction:
-            del chain_naive_transaction[key]
-
+    chain_naive_transaction = dissoc(unsigned_transaction.as_dict(), "v", "r", "s")
     if isinstance(unsigned_transaction, TypedTransaction):
         # Typed transaction have their own encoding format,
         # so we must delegate the encoding.

@@ -1,7 +1,6 @@
 from collections.abc import (
     Mapping,
 )
-from copy import deepcopy
 import json
 import os
 from typing import (
@@ -40,6 +39,9 @@ from eth_utils.curried import (
 )
 from hexbytes import (
     HexBytes,
+)
+from toolz import (
+    dissoc,
 )
 
 from eth_account._utils.legacy_transactions import (
@@ -747,9 +749,7 @@ class Account:
         # allow from field, *only* if it matches the private key
         if "from" in transaction_dict:
             if transaction_dict["from"] == account.address:
-                sanitized_transaction = deepcopy(transaction_dict)
-                if "from" in sanitized_transaction:
-                    del sanitized_transaction["from"]
+                sanitized_transaction = dissoc(transaction_dict, "from")
             else:
                 raise TypeError(
                     "from field must match key's %s, but it was %s"

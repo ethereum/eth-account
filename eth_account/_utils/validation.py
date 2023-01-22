@@ -15,6 +15,9 @@ from eth_utils.curried import (
     to_bytes,
     to_int,
 )
+from toolz import (
+    identity,
+)
 
 VALID_EMPTY_ADDRESSES = {None, b"", ""}
 
@@ -91,7 +94,7 @@ LEGACY_TRANSACTION_FORMATTERS = {
     "to": apply_one_of_formatters(
         (
             (is_string, hexstr_if_str(to_bytes)),
-            (is_bytes, lambda x: x),
+            (is_bytes, identity),
             (is_none, lambda val: b""),
         )
     ),

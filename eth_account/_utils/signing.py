@@ -2,6 +2,9 @@ from eth_utils import (
     to_bytes,
     to_int,
 )
+from toolz import (
+    pipe,
+)
 
 from eth_account._utils.legacy_transactions import (
     ChainAwareUnsignedTransaction,
@@ -130,7 +133,11 @@ def _pad_to_eth_word(bytes_val):
 
 
 def to_bytes32(val):
-    return _pad_to_eth_word(to_bytes(val))
+    return pipe(
+        val,
+        to_bytes,
+        _pad_to_eth_word,
+    )
 
 
 def sign_message_hash(key, msg_hash):
