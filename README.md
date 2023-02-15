@@ -5,7 +5,7 @@
 [![PyPI version](https://badge.fury.io/py/eth-account.svg)](https://badge.fury.io/py/eth-account)
 [![Python versions](https://img.shields.io/pypi/pyversions/eth-account.svg)](https://pypi.python.org/pypi/eth-account)
 [![Docs build](https://readthedocs.org/projects/eth-account/badge/?version=latest)](http://eth-account.readthedocs.io/en/latest/?badge=latest)
-   
+
 
 Sign Ethereum transactions and messages with local private keys
 
@@ -44,7 +44,7 @@ To run the integration test cases, you need to install node and the custom cli t
 
 ```sh
 apt-get install -y nodejs  # As sudo
-./tests/integration/ethers-cli/setup_node_v12.sh  # As sudo
+./tests/integration/ethers-cli/setup_node_v18.sh  # As sudo
 cd tests/integration/ethers-cli
 npm install -g .  # As sudo
 ```

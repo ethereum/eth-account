@@ -21,9 +21,9 @@
 
 
 export DEBIAN_FRONTEND=noninteractive
-SCRSUFFIX="_12.x"
-NODENAME="Node.js 12.x"
-NODEREPO="node_12.x"
+SCRSUFFIX="_18.x"
+NODENAME="Node.js 18.x"
+NODEREPO="node_18.x"
 NODEPKG="nodejs"
 
 print_status() {
