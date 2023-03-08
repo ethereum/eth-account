@@ -253,3 +253,124 @@ def defunct_hash_message(
     signable = encode_defunct(primitive, hexstr=hexstr, text=text)
     hashed = _hash_eip191_message(signable)
     return HexBytes(hashed)
+
+
+def _fixInt(v):
+    if type(v) == str:
+        base = 16 if '0x' in v else 10
+        return int(v, base)
+    elif type(v) == int:
+        return v
+    return None
+
+
+def _fixByte(v):
+    if type(v) == str and len(v) % 2 == 0:
+        newValue = v
+        if '0x' in v:
+            newValue = newValue.replace('0x', '')
+        return bytes.fromhex(newValue)
+    elif type(v) == list:
+        testList = [0 <= _v <= 255 for _v in v]
+        if all(testList):
+            return bytes(v)
+    return None
+
+
+def _fix(v, tp, types):
+    isArray = '[' in tp and ']' in tp
+    if isArray:
+        tp = tp[:tp.index('[')]
+    if tp in ['uint8', 'uint16', 'uint32', 'uint64', 'uint128', 'uint256', 'uint512', 'int8', 'int16', 'int32', 'int64',
+              'int128', 'int256', 'int512']:
+        if isArray:
+            r = []
+            for i, _ in enumerate(v):
+                newV = _fixInt(v[i])
+                if newV is not None:
+                    r.append(newV)
+                else:
+                    return None
+            return r
+        else:
+            return _fixInt(v)
+
+    elif tp in ['bytes1', 'bytes32', 'bytes']:
+        if isArray:
+            r = []
+            for i, _ in enumerate(v):
+                newV = _fixByte(v[i])
+                if newV is not None:
+                    r.append(newV)
+                else:
+                    return None
+            return r
+        else:
+            return _fixByte(v)
+    elif tp == 'address':
+        return v
+    elif tp == 'string':
+        return v
+    else:  # custom type
+        if not (tp in types):
+            return None
+        newTypes = types[tp]
+        if isArray:
+            r = []
+            for i, _ in enumerate(v):
+                newV = {}
+                for tInfo in newTypes:
+                    key = tInfo['name']
+                    tp = tInfo['type']
+                    newV[key] = _fix(v[i][key], tp, types)
+                r.append(newV)
+            return r
+        else:
+            newV = {}
+            for tInfo in newTypes:
+                key = tInfo['name']
+                tp = tInfo['type']
+                newV[key] = _fix(v[key], tp, types)
+            return newV
+
+
+def _getPrimaryType(types: dict, values: dict):
+    primaryType = ''
+    for typeKey in types:
+        vTypes = types[typeKey]
+        ok = True
+        for vType in vTypes:
+            if vType['name'] not in values:
+                ok = False
+                break
+        if ok:
+            primaryType = typeKey
+            break
+    if primaryType == '':
+        return None
+    return primaryType
+
+
+def TypedDataConvert(domain: dict, types: dict, values: dict):
+    EIP712DomainMap = {
+        'name': {'name': 'name', 'type': 'string'},
+        'version': {'name': 'version', 'type': 'string'},
+        'chainId': {'name': 'chainId', 'type': 'uint256'},
+        'verifyingContract': {'name': 'verifyingContract', 'type': 'address'},
+        'salt': {'name': 'salt', 'type': 'bytes32'},
+    }
+    primaryType = _getPrimaryType(types, values)
+    newValue = _fix(values.copy(), primaryType, types)
+    EIP712Domain = []
+    for domainKey in domain:
+        EIP712Domain.append(EIP712DomainMap[domainKey])
+    newTypes = types.copy()
+    newTypes['EIP712Domain'] = EIP712Domain
+    newDomain = _fix(domain, 'EIP712Domain', newTypes)
+    completedStruct = {
+        "types": newTypes,
+        "domain": newDomain,
+        "message": newValue,
+        "primaryType": primaryType,
+    }
+    return completedStruct
