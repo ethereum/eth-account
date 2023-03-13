@@ -537,15 +537,13 @@ class Account:
         r"""
         Sign the provided message.
 
-        This API supports any messaging format that will encode to EIP-191_ messages.
+        This API supports any messaging format that will encode to EIP-191 messages.
 
-        If you would like historical compatibility with
-        :meth:`w3.eth.sign() <web3.eth.Eth.sign>`
+        If you would like historical compatibility with :meth:`w3.eth.sign() <web3.eth.Eth.sign>`
         you can use :meth:`~eth_account.messages.encode_defunct`.
 
-        Other options are the "validator", or "structured data" standards. (Both of
-        these are in *DRAFT* status currently, so be aware that the implementation is
-        not guaranteed to be stable). You can import all supported message encoders in
+        Other options are the "validator", or "structured data" standards.
+        You can import all supported message encoders in
         ``eth_account.messages``.
 
         :param signable_message: the encoded message for signing

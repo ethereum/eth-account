@@ -90,7 +90,6 @@ def encode_intended_validator(
     bytes as a primitive, a hex string, or a unicode string.
 
     .. WARNING:: Note that this code has not gone through an external audit.
-        Also, watch for updates to the format, as the EIP is still in DRAFT.
 
     :param validator_address: which on-chain contract is capable of validating this
         message, provided as a checksummed address or in native bytes.
@@ -139,7 +138,6 @@ def encode_structured_data(
 
     .. WARNING:: Note that this code has not gone through an external audit, and
         the test cases are incomplete.
-        Also, watch for updates to the format, as the EIP is still in DRAFT.
 
     :param primitive: the binary message to be signed
     :type primitive: bytes or int or Mapping (eg~ dict )
