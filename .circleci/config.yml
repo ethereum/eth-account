@@ -61,7 +61,7 @@ integration: &integration
         command: sudo -E bash tests/integration/ethers-cli/setup_node_v18.sh && sudo apt-get install -y nodejs
     - run:
         name: Build ethers-cli
-        command: cd tests/integration/ethers-cli && sudo npm install -g . && cd ../../../
+        command: cd tests/integration/ethers-cli && sudo npm install && sudo npm install -g . && cd ../../../
     - run:
         name: run tox
         command: python -m tox -r
