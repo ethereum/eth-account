@@ -1,2 +1,5 @@
-build:
-    image: latest
+version: 2
+
+python:
+  install:
+  - requirements: requirements-docs.txt
