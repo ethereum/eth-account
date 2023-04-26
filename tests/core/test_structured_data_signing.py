@@ -1,5 +1,4 @@
 import json
-import pytest
 import re
 import time
 
@@ -10,6 +9,7 @@ from eth_utils import (
 from hexbytes import (
     HexBytes,
 )
+import pytest
 
 from eth_account import (
     Account,

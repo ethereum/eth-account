@@ -1,5 +1,3 @@
-import pytest
-
 from cytoolz import (
     assoc,
     dissoc,
@@ -7,6 +5,7 @@ from cytoolz import (
 from eth_abi.exceptions import (
     ABITypeError,
 )
+import pytest
 
 from eth_account import (
     Account,

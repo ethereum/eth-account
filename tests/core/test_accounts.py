@@ -1,11 +1,6 @@
 # coding=utf-8
 
-from hypothesis import (
-    given,
-    strategies as st,
-)
 import os
-import pytest
 
 from cytoolz import (
     dissoc,
@@ -25,6 +20,11 @@ from eth_utils import (
 from hexbytes import (
     HexBytes,
 )
+from hypothesis import (
+    given,
+    strategies as st,
+)
+import pytest
 
 from eth_account import (
     Account,
@@ -224,7 +224,10 @@ def test_eth_account_default_kdf(acct, monkeypatch):
     assert os.getenv("ETH_ACCOUNT_KDF") == "pbkdf2"
 
     import importlib
-    from eth_account import account
+
+    from eth_account import (
+        account,
+    )
 
     importlib.reload(account)
     assert account.Account._default_kdf == "pbkdf2"

@@ -1,10 +1,11 @@
+import subprocess
+
 from hypothesis import (
     given,
     settings,
     strategies as st,
 )
 import pytest
-import subprocess
 
 from eth_account import (
     Account,
