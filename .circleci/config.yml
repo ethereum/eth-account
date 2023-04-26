@@ -44,7 +44,7 @@ windows_steps: &windows_steps
   executor:
     name: win/default
     shell: bash.exe
-  working_directory: C:\Users\circleci\project\<REPO_NAME>
+  working_directory: C:\Users\circleci\project\eth-account
   steps:
     - checkout
     - restore_cache:

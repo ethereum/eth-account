@@ -8,15 +8,15 @@ from setuptools import (
 extras_require = {
     "test": [
         "hypothesis>=4.18.0,<5",
-        "pytest>=6.2.5,<7",
-        "pytest-xdist",
+        "pytest>=7.0.0",
+        "pytest-xdist>=2.4.0",
         "coverage",
     ],
     "lint": [
         "flake8==3.7.9",
         "isort>=4.2.15,<5",
         "mypy==0.910",
-        "pydocstyle>=5.0.0,<6",
+        "pydocstyle>=6.0.0",
         "black>=22,<23",
     ],
     "doc": [

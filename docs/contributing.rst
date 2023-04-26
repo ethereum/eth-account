@@ -7,17 +7,17 @@ Thank you for your interest in contributing! We welcome all contributions no mat
 Setting the stage
 ~~~~~~~~~~~~~~~~~
 
-First, we need to clone the <PROJECT_NAME> repository:
+First, we need to clone the eth-account repository:
 
 .. code:: sh
 
-    $ git clone https://github.com/ethereum/<REPO_NAME>.git
+    $ git clone https://github.com/ethereum/eth-account.git
 
 
 .. include:: /fragments/virtualenv_explainer.rst
 
 After we have activated our virtual environment, we need to install all dependencies that are needed to run, develop, and test.
-This is as easy as navigating to the <REPO_NAME> directory and running:
+This is as easy as navigating to the eth-account directory and running:
 
 .. code:: sh
 
@@ -93,7 +93,7 @@ do not pass the CI build yet won't get reviewed unless explicitly requested.
 
 If the pull request introduces changes that should be reflected in the release notes,
 please add a `newsfragment` file as explained
-`here <https://github.com/ethereum/<REPO_NAME>/blob/main/newsfragments/README.md>`_.
+`here <https://github.com/ethereum/eth-account/blob/main/newsfragments/README.md>`_.
 
 If possible, the change to the release notes file should be included in the commit that introduces the
 feature or bugfix.
