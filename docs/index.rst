@@ -12,6 +12,12 @@ Contents
     eth_account
     eth_account.signers
     release_notes
+ 
+.. toctree::
+    :maxdepth: 1
+    :caption: Community
+
+    contributing
 
 
 Indices and tables

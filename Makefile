@@ -28,18 +28,16 @@ clean-pyc:
 	find . -name '__pycache__' -exec rm -rf {} +
 
 lint:
-	tox -elint
+	tox run -e lint
 
 lint-roll:
-	isort --recursive eth_account tests
+	isort <MODULE_NAME> tests
+	black <MODULE_NAME> tests setup.py
 	$(MAKE) lint
 
 test:
 	coverage run -m pytest tests
 	coverage report
-
-test-all:
-	tox
 
 build-docs:
 	sphinx-apidoc -o docs/ . setup.py "*conftest*"
@@ -48,7 +46,7 @@ build-docs:
 	$(MAKE) -C docs doctest
 
 validate-docs:
-	./newsfragments/validate_files.py
+	python ./newsfragments/validate_files.py
 	towncrier build --draft --version preview
 
 check-docs: build-docs validate-docs
@@ -56,7 +54,7 @@ check-docs: build-docs validate-docs
 docs: check-docs
 	open docs/_build/html/index.html
 
-linux-docs: build-docs
+linux-docs: check-docs
 	xdg-open docs/_build/html/index.html
 
 check-bump:
@@ -74,8 +72,8 @@ notes: check-bump
 	git commit -m "Compile release notes"
 
 release: check-bump clean
-	# require that you be on a branch that's linked to upstream/master
-	git status -s -b | head -1 | grep "\.\.upstream/master"
+	# require that you be on a branch that's linked to upstream/main
+	git status -s -b | head -1 | grep "\.\.upstream/main"
 	# verify that docs build correctly
 	./newsfragments/validate_files.py is-empty
 	make build-docs
@@ -83,11 +81,11 @@ release: check-bump clean
 	git config commit.gpgSign true
 	bumpversion $(bump)
 	git push upstream && git push upstream --tags
-	python setup.py sdist bdist_wheel
+	python -m build
 	twine upload dist/*
 	git config commit.gpgSign "$(CURRENT_SIGN_SETTING)"
 
 
 dist: clean
-	python setup.py sdist bdist_wheel
+	python -m build
 	ls -l dist

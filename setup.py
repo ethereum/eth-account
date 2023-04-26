@@ -11,7 +11,6 @@ extras_require = {
         "pytest>=6.2.5,<7",
         "pytest-xdist",
         "coverage",
-        "tox==3.25.0",
     ],
     "lint": [
         "flake8==3.7.9",
@@ -26,8 +25,10 @@ extras_require = {
         "towncrier>=21,<22",
     ],
     "dev": [
-        "bumpversion>=0.5.3,<1",
-        "pytest-watch>=4.1.0,<5",
+        "bumpversion>=0.5.3",
+        "pytest-watch>=4.1.0",
+        "tox>=4.0.0",
+        "build>=0.9.0",
         "wheel",
         "twine",
         "ipython",
@@ -57,40 +58,39 @@ setup(
     author_email="snakecharmers@ethereum.org",
     url="https://github.com/ethereum/eth-account",
     include_package_data=True,
-    package_data={
-        "eth_account": [
-            "py.typed",
-            "hdaccount/wordlist/*.txt",
-        ]
-    },
     install_requires=[
         "bitarray>=2.4.0,<3",
         "eth-abi>=4.0.0-b.2",
         "eth-keyfile>=0.6.0,<0.7.0",
         "eth-keys>=0.4.0,<0.5",
         "eth-rlp>=0.3.0,<1",
-        "eth-utils>=2.0.0,<3",
+        "eth-utils>=2",
         "hexbytes>=0.1.0,<1",
         "rlp>=1.0.0,<4",
     ],
-    python_requires=">=3.6, <4",
+    python_requires=">=3.7, <4",
     extras_require=extras_require,
     py_modules=["eth_account"],
     license="MIT",
     zip_safe=False,
     keywords="ethereum",
     packages=find_packages(exclude=["tests", "tests.*"]),
+    package_data={
+        "eth_account": [
+            "py.typed",
+            "hdaccount/wordlist/*.txt",
+        ]
+    },
     classifiers=[
         "Development Status :: 3 - Alpha",
         "Intended Audience :: Developers",
         "License :: OSI Approved :: MIT License",
         "Natural Language :: English",
-        "Operating System :: MacOS",
-        "Operating System :: POSIX",
         "Programming Language :: Python :: 3",
         "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
     ],
 )
