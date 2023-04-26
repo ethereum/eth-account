@@ -8,7 +8,6 @@ help:
 	@echo "lint - check style with flake8"
 	@echo "lint-roll - automatically fix problems with isort, flake8, etc"
 	@echo "test - run tests quickly with the default Python"
-	@echo "testall - run tests on every Python version with tox"
 	@echo "docs - generate docs and open in browser (linux-docs for version on linux)"
 	@echo "notes - consume towncrier newsfragments/ and update release notes in docs/"
 	@echo "release - package and upload a release (does not run notes target)"
@@ -72,8 +71,8 @@ notes: check-bump
 	git commit -m "Compile release notes"
 
 release: check-bump clean
-	# require that you be on a branch that's linked to upstream/main
-	git status -s -b | head -1 | grep "\.\.upstream/main"
+	# require that you be on a branch that's linked to upstream/master
+	git status -s -b | head -1 | grep "\.\.upstream/master"
 	# verify that docs build correctly
 	./newsfragments/validate_files.py is-empty
 	make build-docs
