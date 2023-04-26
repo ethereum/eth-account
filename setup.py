@@ -13,10 +13,10 @@ extras_require = {
         "coverage",
     ],
     "lint": [
-        "flake8==3.7.9",
-        # "isort>=4.2.15,<5",
+        "flake8==6.0.0",  # flake8 claims semver but adds new warnings at minor releases, leave it pinned.
+        "flake8-bugbear==23.3.23",  # flake8-bugbear does not follow semver, leave it pinned.
         "isort>=5.10.1",
-        "mypy==0.910",
+        "mypy==0.971",  # mypy does not follow semver, leave it pinned.
         "pydocstyle>=6.0.0",
         "black>=23",
     ],
