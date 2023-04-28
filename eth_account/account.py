@@ -603,6 +603,7 @@ class Account:
         warnings.warn(
             "signHash is deprecated in favor of sign_message",
             category=DeprecationWarning,
+            stacklevel=2,
         )
         return self._sign_hash(message_hash, private_key)
 

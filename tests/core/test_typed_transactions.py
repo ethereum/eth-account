@@ -1,8 +1,7 @@
-import pytest
-
 from hexbytes import (
     HexBytes,
 )
+import pytest
 
 from eth_account._utils.typed_transactions import (
     AccessListTransaction,

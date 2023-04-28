@@ -1,5 +1,4 @@
 import json
-import pytest
 import re
 import time
 
@@ -10,6 +9,7 @@ from eth_utils import (
 from hexbytes import (
     HexBytes,
 )
+import pytest
 
 from eth_account import (
     Account,
@@ -295,7 +295,6 @@ def test_encode_data_basic(primary_type, types, eip712_data, expected_hex):
 def test_encode_data_error_messages(
     primary_type, types, eip712_data, error_type, error_message
 ):
-
     with pytest.raises(error_type) as e:
         assert encode_data(primary_type, types, eip712_data)
     assert str(e.value) == error_message

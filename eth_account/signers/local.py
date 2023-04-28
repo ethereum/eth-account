@@ -86,6 +86,7 @@ class LocalAccount(BaseAccount):
         warnings.warn(
             "signTransaction is deprecated in favor of sign_transaction",
             category=DeprecationWarning,
+            stacklevel=2,
         )
         return self.sign_transaction(transaction_dict)
 

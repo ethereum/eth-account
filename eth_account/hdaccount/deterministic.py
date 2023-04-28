@@ -216,7 +216,7 @@ class HDPath:
             raise ValidationError(f'Path is not valid: "{path}". Must start with "m"')
 
         decoded_path = []
-        for idx, node in enumerate(nodes[1:]):  # We don't need the root node 'm'
+        for _idx, node in enumerate(nodes[1:]):  # We don't need the root node 'm'
             try:
                 decoded_path.append(Node.decode(node))
             except ValidationError as err:
