@@ -1,1 +1,0 @@
-drop python3.6 support from setup

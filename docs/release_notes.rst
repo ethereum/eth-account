@@ -3,6 +3,37 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.9.0 (2023-06-07)
+-------------------------------
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+
+- drop python3.6 support from setup (`#228 <https://github.com/ethereum/eth-account/issues/228>`__)
+
+
+Improved Documentation
+~~~~~~~~~~~~~~~~~~~~~~
+
+- remove notices of Draft status for eips 712 and 191 (`#222 <https://github.com/ethereum/eth-account/issues/222>`__)
+
+
+Features
+~~~~~~~~
+
+- Add support for Python 3.11 (`#212 <https://github.com/ethereum/eth-account/issues/212>`__)
+
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Upgrade Node from v12.x to v18.x in tests (`#217 <https://github.com/ethereum/eth-account/issues/217>`__)
+- pulled full new node_v18 install script (`#223 <https://github.com/ethereum/eth-account/issues/223>`__)
+- bump versions for docs dependencies (`#224 <https://github.com/ethereum/eth-account/issues/224>`__)
+- add sphinx_rtd_theme to docs/conf.py extensions list (`#225 <https://github.com/ethereum/eth-account/issues/225>`__)
+- merge in updates from python project template (`#288 <https://github.com/ethereum/eth-account/issues/288>`__)
+
+
 eth-account v0.8.0 (2022-12-15)
 -------------------------------
 
