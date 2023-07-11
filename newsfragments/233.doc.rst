@@ -1,0 +1,1 @@
+Added usage notes and example for ``encode_structured_data``

@@ -1,3 +1,6 @@
+from copy import (
+    deepcopy,
+)
 import json
 import re
 import time
@@ -916,3 +919,125 @@ def test_unequal_array_dimension_between_schema_and_data():
         "`[{'wallet': '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB', 'name': 'Bob'}]` "
         "has dimensions `(1,)` whereas the schema has dimensions `(2, 'dynamic', 4)`"
     )
+
+
+def test_encode_structured_data_ignores_additional_data_in_a_custom_type():
+    message_with_additonal_data = {
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+            ],
+            "Person": [
+                {"name": "name", "type": "string"},
+            ],
+        },
+        "primaryType": "Person",
+        "domain": {
+            "name": "Name",
+        },
+        "message": {
+            "name": "Bob",
+            "pet": {
+                "animal": "cat",
+                "age": 3,
+            },
+        },
+    }
+
+    message_without_additonal_data = deepcopy(message_with_additonal_data)
+    message_without_additonal_data["message"].pop("pet")
+    assert message_without_additonal_data["message"].get("pet") is None
+
+    assert encode_structured_data(
+        message_with_additonal_data
+    ) == encode_structured_data(message_without_additonal_data)
+
+
+def test_encode_typed_data_ignores_unused_types():
+    message_with_unused_type = {
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+            ],
+            "Person": [
+                {"name": "name", "type": "string"},
+            ],
+            "OtherPerson": [
+                {"name": "name", "type": "string"},
+            ],
+        },
+        "primaryType": "Person",
+        "domain": {
+            "name": "Name",
+        },
+        "message": {
+            "name": "Bob",
+        },
+    }
+
+    message_without_unused_type = deepcopy(message_with_unused_type)
+    message_without_unused_type["types"].pop("OtherPerson")
+    assert message_without_unused_type["types"].get("OtherPerson") is None
+
+    assert encode_structured_data(message_with_unused_type) == encode_structured_data(
+        message_without_unused_type
+    )
+
+
+def test_encode_typed_data_errors_on_unused_field_in_EIP712Domain():
+    message_with_extra_EIP712Domain_field = {
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+                {"name": "number", "type": "uint256"},
+            ],
+            "Person": [
+                {"name": "name", "type": "string"},
+            ],
+            "OtherPerson": [
+                {"name": "name", "type": "string"},
+            ],
+        },
+        "primaryType": "Person",
+        "domain": {
+            "name": "Name",
+        },
+        "message": {
+            "name": "Bob",
+        },
+    }
+
+    with pytest.raises(expected_exception=KeyError, match="number"):
+        encode_structured_data(message_with_extra_EIP712Domain_field)
+
+
+def test_encode_typed_data_ignores_extra_info_in_domain():
+    message_with_extra_info_in_domain = {
+        "types": {
+            "EIP712Domain": [
+                {"name": "name", "type": "string"},
+            ],
+            "Person": [
+                {"name": "name", "type": "string"},
+            ],
+            "OtherPerson": [
+                {"name": "name", "type": "string"},
+            ],
+        },
+        "primaryType": "Person",
+        "domain": {
+            "name": "Name",
+            "number": 27,
+        },
+        "message": {
+            "name": "Bob",
+        },
+    }
+
+    message_without_extra_info_in_domain = deepcopy(message_with_extra_info_in_domain)
+    message_without_extra_info_in_domain["domain"].pop("number")
+    assert message_without_extra_info_in_domain["domain"].get("number") is None
+
+    assert encode_structured_data(
+        message_with_extra_info_in_domain
+    ) == encode_structured_data(message_without_extra_info_in_domain)

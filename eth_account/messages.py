@@ -124,7 +124,7 @@ def encode_structured_data(
     hexstr: str = None,
     text: str = None,
 ) -> SignableMessage:
-    """
+    r"""
     Encode an EIP-712_ message.
 
     EIP-712 is the "structured data" approach (ie~ version 1 of an EIP-191 message).
@@ -144,6 +144,81 @@ def encode_structured_data(
     :param hexstr: the message encoded as hex
     :param text: the message as a series of unicode characters (a normal Py3 str)
     :returns: The EIP-191 encoded message, ready for signing
+
+
+    Usage Notes:
+     - An EIP712 message consists of 4 top-level keys: ``types``, ``primaryType``,
+       ``domain``, and ``message``. All 4 must be present to encode properly.
+     - The key ``EIP712Domain`` must be present within ``types``.
+     - The `type` of a field may be a Solidity type or a `custom` type, i.e., one
+       that is defined within the ``types`` section of the typed data.
+     - Extra information in ``message`` and ``domain`` will be ignored when encoded.
+       For example, if the custom type ``Person`` defines the fields ``name`` and
+       ``wallet``, but an additional ``id`` field is provided in ``message``, the
+       resulting encoding will be the same as if the ``id`` information was not present.
+     - Unused custom types will be ignored in the same way.
+
+    .. doctest:: python
+
+        >>> # an example of basic usage
+        >>> import json
+        >>> from eth_account import Account
+        >>> from eth_account.messages import encode_structured_data
+
+        >>> typed_data = {
+        ...     "types": {
+        ...         "EIP712Domain": [
+        ...             {"name": "name", "type": "string"},
+        ...             {"name": "version", "type": "string"},
+        ...             {"name": "chainId", "type": "uint256"},
+        ...             {"name": "verifyingContract", "type": "address"},
+        ...         ],
+        ...         "Person": [
+        ...             {"name": "name", "type": "string"},
+        ...             {"name": "wallet", "type": "address"},
+        ...         ],
+        ...         "Mail": [
+        ...             {"name": "from", "type": "Person"},
+        ...             {"name": "to", "type": "Person"},
+        ...             {"name": "contents", "type": "string"},
+        ...         ],
+        ...     },
+        ...     "primaryType": "Mail",
+        ...     "domain": {
+        ...         "name": "Ether Mail",
+        ...         "version": "1",
+        ...         "chainId": 1,
+        ...         "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+        ...     },
+        ...     "message": {
+        ...         "from": {
+        ...             "name": "Cow",
+        ...             "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+        ...         },
+        ...         "to": {
+        ...             "name": "Bob",
+        ...             "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+        ...         },
+        ...         "contents": "Hello, Bob!",
+        ...     },
+        ... }
+
+        >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+
+        >>> signable_msg_from_dict = encode_structured_data(typed_data)
+        >>> signable_msg_from_str = encode_structured_data(text=json.dumps(typed_data))
+        >>> signable_msg_from_hexstr = encode_structured_data(
+        ...     hexstr=json.dumps(typed_data).encode("utf-8").hex()
+        ... )
+
+        >>> signed_msg_from_dict = Account.sign_message(signable_msg_from_dict, key)
+        >>> signed_msg_from_str = Account.sign_message(signable_msg_from_str, key)
+        >>> signed_msg_from_hexstr = Account.sign_message(signable_msg_from_hexstr, key)
+
+        >>> signed_msg_from_dict == signed_msg_from_str == signed_msg_from_hexstr
+        True
+        >>> signed_msg_from_dict.messageHash
+        HexBytes('0xbe609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2')
 
     .. _EIP-712: https://eips.ethereum.org/EIPS/eip-712
     """
