@@ -2,6 +2,8 @@ from collections.abc import (
     Mapping,
 )
 from typing import (
+    Any,
+    Dict,
     NamedTuple,
     Union,
 )
@@ -22,8 +24,12 @@ from hexbytes import (
     HexBytes,
 )
 
-from eth_account._utils.structured_data.hashing import (
+from eth_account._utils.encode_typed_data import (
     hash_domain,
+    hash_EIP712_message,
+)
+from eth_account._utils.structured_data.hashing import (
+    hash_domain as hash_eip712_domain,
     hash_message as hash_eip712_message,
     load_and_validate_structured_message,
 )
@@ -230,7 +236,7 @@ def encode_structured_data(
         structured_data = load_and_validate_structured_message(message_string)
     return SignableMessage(
         HexBytes(b"\x01"),
-        hash_domain(structured_data),
+        hash_eip712_domain(structured_data),
         hash_eip712_message(structured_data),
     )
 
@@ -328,122 +334,98 @@ def defunct_hash_message(
     return HexBytes(hashed)
 
 
-def _fixInt(v):
-    if type(v) == str:
-        base = 16 if '0x' in v else 10
-        return int(v, base)
-    elif type(v) == int:
-        return v
-    return None
+def encode_typed_data(
+    domain_data: Dict[Any, Any],
+    message_types: Dict[Any, Any],
+    message_data: Dict,
+) -> SignableMessage:
+    r"""
+    Encode an EIP-712_ message in a manner compatible with `signTypedData`.
+    TODO: add link to signTypedData
+
+    Supply the message as exactly three arguments:
+
+        - domain_data, a dict of the EIP-712 domain data
+        - message_types, a dict of custom types
+        - message_value, a dict of the data to be signed
+
+    .. WARNING:: Note that this code has not gone through an external audit, and
+        the test cases are incomplete.
+
+    Usage Notes:
+        -
+
+    Differences from Metamask's signTypedData:
+        - Custom types that are not alphanumeric will encode differently.
+        - Custom types that are used but not defined in ``types`` will not encode.
+
+    :param domain: EIP712 domain data
+    :param types: custom types used by the `value` data
+    :param value: data to be signed
+    :returns: an encoded message ready to be signed
 
 
-def _fixByte(v):
-    if type(v) == str and len(v) % 2 == 0:
-        newValue = v
-        if '0x' in v:
-            newValue = newValue.replace('0x', '')
-        return bytes.fromhex(newValue)
-    elif type(v) == list:
-        testList = [0 <= _v <= 255 for _v in v]
-        if all(testList):
-            return bytes(v)
-    return None
+    Usage Notes:
+        -
 
+    .. doctest:: python
 
-def _fix(v, tp, types):
-    isArray = '[' in tp and ']' in tp
-    if isArray:
-        tp = tp[:tp.index('[')]
-    if tp in ['uint8', 'uint16', 'uint32', 'uint64', 'uint128', 'uint256', 'uint512', 'int8', 'int16', 'int32', 'int64',
-              'int128', 'int256', 'int512']:
-        if isArray:
-            r = []
-            for i, _ in enumerate(v):
-                newV = _fixInt(v[i])
-                if newV is not None:
-                    r.append(newV)
-                else:
-                    return None
-            return r
-        else:
-            return _fixInt(v)
+        >>> # an example of basic usage
+        >>> import json
+        >>> from eth_account import Account
+        >>> from eth_account.messages import encode_typed_data
 
-    elif tp in ['bytes1', 'bytes32', 'bytes']:
-        if isArray:
-            r = []
-            for i, _ in enumerate(v):
-                newV = _fixByte(v[i])
-                if newV is not None:
-                    r.append(newV)
-                else:
-                    return None
-            return r
-        else:
-            return _fixByte(v)
-    elif tp == 'address':
-        return v
-    elif tp == 'string':
-        return v
-    else:  # custom type
-        if not (tp in types):
-            return None
-        newTypes = types[tp]
-        if isArray:
-            r = []
-            for i, _ in enumerate(v):
-                newV = {}
-                for tInfo in newTypes:
-                    key = tInfo['name']
-                    tp = tInfo['type']
-                    newV[key] = _fix(v[i][key], tp, types)
-                r.append(newV)
-            return r
-        else:
-            newV = {}
-            for tInfo in newTypes:
-                key = tInfo['name']
-                tp = tInfo['type']
-                newV[key] = _fix(v[key], tp, types)
-            return newV
+        >>> # domain properties are optional
+        >>> domain_data = {
+        ...     "name": "Ether Mail",
+        ...     "version": "1",
+        ...     "chainId": 1,
+        ...     "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+        ...     "salt": "0x000,
+        ... }
+        >>> # custom types
+        >>> message_types = {
+        ...     "Person": [
+        ...         {"name": "name", "type": "string"},
+        ...         {"name": "wallet", "type": "address"},
+        ...     ],
+        ...     "Mail": [
+        ...         {"name": "from", "type": "Person"},
+        ...         {"name": "to", "type": "Person"},
+        ...         {"name": "contents", "type": "string"},
+        ...     ],
+        ... }
+        >>> # the data to be signed
+        >>> message_data = {
+        ...     "from": {
+        ...         "name": "Cow",
+        ...         "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+        ...     },
+        ...     "to": {
+        ...         "name": "Bob",
+        ...         "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+        ...     },
+        ...     "contents": "Hello, Bob!",
+        ... }
+        >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        >>> signable_message = encode_typed_data(domain_data,
+        ...                                      message_types,
+        ...                                      message_data)
+        >>> signed_message_manual = Account.sign_message(signable_msg, key)
+        >>> # will be (TODO: is) equivalent to
+        >>> signed_message_auto = Account.sign_typed_data(domain_data,
+        ...                                               message_types,
+        ...                                               message_data)
+        >>> # check that the two methods produce the same result
+        >>> signed_message_manual.messageHash == signed_message_auto.messageHash
+        True
+        >>> signed_message_manual.messageHash
+        HexBytes('0xbe609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2')
 
-
-def _getPrimaryType(types: dict, values: dict):
-    primaryType = ''
-    for typeKey in types:
-        vTypes = types[typeKey]
-        ok = True
-        for vType in vTypes:
-            if vType['name'] not in values:
-                ok = False
-                break
-        if ok:
-            primaryType = typeKey
-            break
-    if primaryType == '':
-        return None
-    return primaryType
-
-
-def TypedDataConvert(domain: dict, types: dict, values: dict):
-    EIP712DomainMap = {
-        'name': {'name': 'name', 'type': 'string'},
-        'version': {'name': 'version', 'type': 'string'},
-        'chainId': {'name': 'chainId', 'type': 'uint256'},
-        'verifyingContract': {'name': 'verifyingContract', 'type': 'address'},
-        'salt': {'name': 'salt', 'type': 'bytes32'},
-    }
-    primaryType = _getPrimaryType(types, values)
-    newValue = _fix(values.copy(), primaryType, types)
-    EIP712Domain = []
-    for domainKey in domain:
-        EIP712Domain.append(EIP712DomainMap[domainKey])
-    newTypes = types.copy()
-    newTypes['EIP712Domain'] = EIP712Domain
-    newDomain = _fix(domain, 'EIP712Domain', newTypes)
-    completedStruct = {
-        "types": newTypes,
-        "domain": newDomain,
-        "message": newValue,
-        "primaryType": primaryType,
-    }
-    return completedStruct
+    .. _EIP-712: https://eips.ethereum.org/EIPS/eip-712
+    """
+    return SignableMessage(
+        HexBytes(b"\x01"),
+        hash_domain(domain_data),
+        hash_EIP712_message(message_types, message_data),
+    )
