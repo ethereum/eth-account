@@ -764,11 +764,14 @@ def test_hashed_structured_data_with_nested_structs():
 @pytest.mark.parametrize(
     "type, valid",
     (
-        ("unint bytes32", False),
         ("hello\\[]", False),
         ("byte[]uint", False),
         ("byte[7[]uint][]", False),
         ("Person[0]", False),
+        (" messageType", True),
+        ("messageType ", True),
+        ("message type", True),
+        ("unint bytes32", True),
         ("bytes32", True),
         ("Foo[]", True),
         ("bytes1", True),
@@ -809,22 +812,18 @@ def test_type_regex_for_redos():
     assert done < 1
 
 
-def test_structured_data_invalid_identifier_filtered_by_regex():
-    invalid_structured_data_string = open(
-        "tests/fixtures/invalid_struct_identifier_message.json"
+def test_structured_data_allows_spaces_in_names_and_types():
+    valid_structured_data_string = open(
+        "tests/fixtures/valid_message_spaces_in_names_and_types.json"
     ).read()
-    with pytest.raises(ValidationError) as e:
-        load_and_validate_structured_message(invalid_structured_data_string)
-    assert str(e.value) == "Invalid Identifier `hello wallet` in `Person`"
 
-
-def test_structured_data_invalid_type_filtered_by_regex():
-    invalid_structured_data_string = open(
-        "tests/fixtures/invalid_struct_type_message.json"
-    ).read()
-    with pytest.raises(ValidationError) as e:
-        load_and_validate_structured_message(invalid_structured_data_string)
-    assert str(e.value) == "Invalid Type `Hello Person` in `Mail`"
+    loaded_and_valid = load_and_validate_structured_message(
+        valid_structured_data_string
+    )
+    expected = "5b0abead24c3e84345ac1c692d17bf521c9a223f9e974b41f498df08e2eb6ed0"
+    assert (
+        _hash_eip191_message(encode_structured_data(loaded_and_valid)).hex() == expected
+    )
 
 
 def test_invalid_structured_data_value_type_mismatch_in_type():

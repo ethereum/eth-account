@@ -10,10 +10,14 @@
 			{"name": "name", "type": "string"},
 			{"name": "hello wallet", "type": "address"}
 		],
+		"Hello Person": [
+			{"name": "name", "type": "string"},
+			{"name": "hello wallet", "type": "address"}
+		],
 		"Mail": [
-			{"name": "from", "type": "Person"},
-			{"name": "to", "type": "Person"},
-			{"name": "contents", "type": "string"}
+			{"name": "  from", "type": "Hello Person"},
+			{"name": "to  ", "type": "Person"},
+			{"name": "contents  ", "type": "string"}
 		]
 	},
 	"primaryType": "Mail",
@@ -24,14 +28,14 @@
 		"verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
 	},
 	"message": {
-		"from": {
+		"  from": {
 			"name": "Cow",
-			"wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+			"hello wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
 		},
-		"to": {
+		"to  ": {
 			"name": "Bob",
-			"wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+			"hello wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
 		},
-		"contents": "Hello, Bob!"
+		"contents  ": "Hello, Bob!"
 	}
 }
