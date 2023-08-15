@@ -3,6 +3,7 @@ from typing import (
     Dict,
     List,
     Tuple,
+    Union,
 )
 
 from eth_abi import (
@@ -12,46 +13,26 @@ from eth_utils import (
     is_hexstr,
     keccak,
     to_bytes,
+    to_int,
+)
+
+from eth_account._utils.encode_typed_data.helpers import (
+    EIP712_SOLIDITY_TYPES,
+    coerce_bool,
+    is_array_type,
+    parse_core_array_type,
+    parse_parent_array_type,
 )
 
 
-def _get_EIP712_solidity_types():
-    types = ["bool", "address", "string", "bytes"]
-    ints = [f"int{(x + 1) * 8}" for x in range(32)]
-    uints = [f"uint{(x + 1) * 8}" for x in range(32)]
-    bytes_ = [f"bytes{x + 1}" for x in range(32)]
-    return types + ints + uints + bytes_
-
-
-EIP712_SOLIDITY_TYPES = _get_EIP712_solidity_types()
-
-
-def _is_array_type(type_: str) -> bool:
-    return type_.endswith("]")
-
-
-# strip all brackets: Person[][] -> Person
-def _parse_core_array_type(type_: str) -> str:
-    if _is_array_type(type_):
-        type_ = type_[: type_.index("[")]
-    return type_
-
-
-# strip outermost brackets: Person[][] -> Person[]
-def _parse_inner_array_type(type_: str) -> str:
-    if _is_array_type(type_):
-        type_ = type_[: type_.rindex("[")]
-    return type_
-
-
-def _get_primary_type(types: Dict[str, List[Dict[str, str]]]) -> str:
+def get_primary_type(types: Dict[str, List[Dict[str, str]]]) -> str:
     custom_types = set(types.keys())
     custom_types_that_are_deps = set()
 
     for type in custom_types:
         type_fields = types[type]
         for field in type_fields:
-            parsed_type = _parse_core_array_type(field["type"])
+            parsed_type = parse_core_array_type(field["type"])
             if parsed_type in custom_types and parsed_type != type:
                 custom_types_that_are_deps.add(parsed_type)
 
@@ -67,7 +48,7 @@ def encode_field(
     name: str,
     type_: str,
     value: Any,
-) -> Tuple[str, bytes]:
+) -> Tuple[str, Union[int, bytes]]:
     if type_ in types.keys():
         # type is a custom type
         if value is None:
@@ -91,6 +72,15 @@ def encode_field(
     if value is None:
         raise ValueError(f"missing value for field {name} of type {type_}")
 
+    if is_array_type(type_):
+        type_ = parse_parent_array_type(type_)
+        type_value_pairs = [encode_field(types, name, type_, item) for item in value]
+        data_types, data_hashes = zip(*type_value_pairs)
+        return ("bytes32", keccak(encode(data_types, data_hashes)))
+
+    if type_ == "bool":
+        return (type_, coerce_bool(value))
+
     if type_ == "bytes":
         if is_hexstr(value):
             value = to_bytes(hexstr=value)
@@ -105,11 +95,12 @@ def encode_field(
             value = to_bytes(text=value)
         return ("bytes32", keccak(value))
 
-    if _is_array_type(type_):
-        type_ = _parse_inner_array_type(type_)
-        type_value_pairs = [encode_field(types, name, type_, item) for item in value]
-        data_types, data_hashes = zip(*type_value_pairs)
-        return ("bytes32", keccak(encode(data_types, data_hashes)))
+    # allow string values for int and uint types
+    if type(value) == str and type_.startswith(("int", "uint")):
+        if value[:2] == "0x":
+            return (type_, to_int(hexstr=value))
+        else:
+            return (type_, to_int(text=value))
 
     return (type_, value)
 
@@ -125,7 +116,7 @@ def find_type_dependencies(type_, types, results=None):
             f"{type_} of type {type(type_)}"
         )
     # get core type if it's an array type
-    type_ = _parse_core_array_type(type_)
+    type_ = parse_core_array_type(type_)
 
     # don't look for dependencies of solidity types
     if type_ in EIP712_SOLIDITY_TYPES:
@@ -174,8 +165,8 @@ def encode_data(
     types: Dict[str, List[Dict[str, str]]],
     data: Dict[str, Any],
 ) -> bytes:
-    encoded_types = ["bytes32"]
-    encoded_values = [hash_type(type_, types)]
+    encoded_types: List[str] = ["bytes32"]
+    encoded_values: List[Union[bytes, int]] = [hash_type(type_, types)]
 
     for field in types[type_]:
         type, value = encode_field(
@@ -196,8 +187,16 @@ def hash_struct(
     data: Dict[str, Any],
 ) -> bytes:
     encoded = encode_data(type_, types, data)
-    hashed = keccak(encoded)
-    return hashed
+    return keccak(encoded)
+
+
+def hash_EIP712_message(
+    # returns the same hash as `hash_struct`, but automatically determines primary type
+    message_types: Dict[str, List[Dict[str, str]]],
+    message_data: Dict[str, Any],
+) -> bytes:
+    primary_type = get_primary_type(message_types)
+    return keccak(encode_data(primary_type, message_types, message_data))
 
 
 def hash_domain(domain_data: Dict[str, Any]) -> bytes:
@@ -220,107 +219,3 @@ def hash_domain(domain_data: Dict[str, Any]) -> bytes:
     }
 
     return hash_struct("EIP712Domain", domain_types, domain_data)
-
-
-def hash_EIP712_message(
-    message_types: Dict[str, List[Dict[str, str]]],
-    message_data: Dict[str, Any],
-) -> bytes:
-    primary_type = _get_primary_type(message_types)
-    return keccak(encode_data(primary_type, message_types, message_data))
-
-
-"""
-
-def _fixInt(v):
-    if type(v) == str:
-        base = 16 if "0x" in v else 10
-        return int(v, base)
-    elif type(v) == int:
-        return v
-    return None
-
-
-def _fixByte(v):
-    if type(v) == str and len(v) % 2 == 0:
-        newValue = v
-        if "0x" in v:
-            newValue = newValue.replace("0x", "")
-        return bytes.fromhex(newValue)
-    elif type(v) == list:
-        testList = [0 <= _v <= 255 for _v in v]
-        if all(testList):
-            return bytes(v)
-    return None
-
-
-def _fix(v, tp, types):
-    isArray = "[" in tp and "]" in tp
-    if isArray:
-        tp = tp[: tp.index("[")]
-    if tp in [
-        "uint8",
-        "uint16",
-        "uint32",
-        "uint64",
-        "uint128",
-        "uint256",
-        "uint512",
-        "int8",
-        "int16",
-        "int32",
-        "int64",
-        "int128",
-        "int256",
-        "int512",
-    ]:
-        if isArray:
-            r = []
-            for i, _ in enumerate(v):
-                newV = _fixInt(v[i])
-                if newV is not None:
-                    r.append(newV)
-                else:
-                    return None
-            return r
-        else:
-            return _fixInt(v)
-
-    elif tp in ["bytes1", "bytes32", "bytes"]:
-        if isArray:
-            r = []
-            for i, _ in enumerate(v):
-                newV = _fixByte(v[i])
-                if newV is not None:
-                    r.append(newV)
-                else:
-                    return None
-            return r
-        else:
-            return _fixByte(v)
-    elif tp == "address":
-        return v
-    elif tp == "string":
-        return v
-    else:  # custom type
-        if not (tp in types):
-            return None
-        newTypes = types[tp]
-        if isArray:
-            r = []
-            for i, _ in enumerate(v):
-                newV = {}
-                for tInfo in newTypes:
-                    key = tInfo["name"]
-                    tp = tInfo["type"]
-                    newV[key] = _fix(v[i][key], tp, types)
-                r.append(newV)
-            return r
-        else:
-            newV = {}
-            for tInfo in newTypes:
-                key = tInfo["name"]
-                tp = tInfo["type"]
-                newV[key] = _fix(v[key], tp, types)
-            return newV
-"""
