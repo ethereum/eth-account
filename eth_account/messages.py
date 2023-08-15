@@ -7,6 +7,7 @@ from typing import (
     NamedTuple,
     Union,
 )
+import warnings
 
 from eth_typing import (
     Address,
@@ -24,7 +25,7 @@ from hexbytes import (
     HexBytes,
 )
 
-from eth_account._utils.encode_typed_data import (
+from eth_account._utils.encode_typed_data.encoding_and_hashing import (
     hash_domain,
     hash_EIP712_message,
 )
@@ -131,6 +132,33 @@ def encode_structured_data(
     text: str = None,
 ) -> SignableMessage:
     r"""
+
+    .. WARNING:: This method is deprecated. Use :meth:`encode_typed_data` instead.
+
+    Encode an EIP-712_ message.
+
+    See :meth:`encode_structured_data_legacy` for usage.
+
+    """
+    warnings.warn(
+        "`encode_structured_data` is deprecated and will be removed in a"
+        " future release. Use encode_typed_data instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+    return encode_structured_data_legacy(primitive, hexstr=hexstr, text=text)
+
+
+def encode_structured_data_legacy(
+    primitive: Union[bytes, int, Mapping] = None,
+    *,
+    hexstr: str = None,
+    text: str = None,
+) -> SignableMessage:
+    r"""
+
+    .. WARNING:: This method is deprecated. Use :meth:`encode_typed_data` instead.
+
     Encode an EIP-712_ message.
 
     EIP-712 is the "structured data" approach (ie~ version 1 of an EIP-191 message).
@@ -340,33 +368,43 @@ def encode_typed_data(
     message_data: Dict,
 ) -> SignableMessage:
     r"""
-    Encode an EIP-712_ message in a manner compatible with `signTypedData`.
-    TODO: add link to signTypedData
+    Encode an EIP-712_ message in a manner compatible with other implementations
+    in use, such as the Metamask and Ethers ``signTypedData`` functions.
 
     Supply the message as exactly three arguments:
 
-        - domain_data, a dict of the EIP-712 domain data
-        - message_types, a dict of custom types
-        - message_value, a dict of the data to be signed
+        - ``domain_data``, a dict of the EIP-712 domain data
+        - ``message_types``, a dict of custom types
+        - ``message_data``, a dict of the data to be signed
 
     .. WARNING:: Note that this code has not gone through an external audit, and
         the test cases are incomplete.
 
     Usage Notes:
-        -
+        - ``message_types`` should not include the ``EIP712Domain`` key. It will be
+            derived from ``domain_data``.
 
-    Differences from Metamask's signTypedData:
+    Type Coercion:
+        - For fixed-size bytes types, smaller values will be padded to fit in larger
+          types, but values larger than the type will raise ``ValueOutOfBounds``.
+          e.g., an 8-byte value will be padded to fit a ``bytes16`` type, but 16-byte
+          value provided for a ``bytes8`` type will raise an error.
+        - ``bool`` types will also accept ``int``s 0 and 1, ``bytes`` objects
+          ``b"\x00"`` and ``b"\x01"``, and strings such as ``"0"`` or ``"1"``, ``"OxO"``
+          or ``"0x1"``, ``"true"`` or ``"false"``, and ``True`` or ``False``.
+        - ``int`` and ``uint`` types will also accept strings. If prefixed with ``"0x"``
+          , the string will be interpreted as hex. Otherwise, it will be interpreted as
+          decimal.
+
+    Differences from ``signTypedData``:
         - Custom types that are not alphanumeric will encode differently.
         - Custom types that are used but not defined in ``types`` will not encode.
 
-    :param domain: EIP712 domain data
-    :param types: custom types used by the `value` data
-    :param value: data to be signed
-    :returns: an encoded message ready to be signed
+    :param domain_data: EIP712 domain data
+    :param message_types: custom types used by the `value` data
+    :param message_data: data to be signed
+    :returns: a ``SignableMessage``, an encoded message ready to be signed
 
-
-    Usage Notes:
-        -
 
     .. doctest:: python
 
@@ -375,16 +413,16 @@ def encode_typed_data(
         >>> from eth_account import Account
         >>> from eth_account.messages import encode_typed_data
 
-        >>> # domain properties are optional
+        >>> # all domain properties are optional
         >>> domain_data = {
         ...     "name": "Ether Mail",
         ...     "version": "1",
         ...     "chainId": 1,
         ...     "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
-        ...     "salt": "0x000,
+        ...     "salt": b"decafbeef",
         ... }
         >>> # custom types
-        >>> message_types = {
+        >>> msg_types = {
         ...     "Person": [
         ...         {"name": "name", "type": "string"},
         ...         {"name": "wallet", "type": "address"},
@@ -396,7 +434,7 @@ def encode_typed_data(
         ...     ],
         ... }
         >>> # the data to be signed
-        >>> message_data = {
+        >>> msg_data = {
         ...     "from": {
         ...         "name": "Cow",
         ...         "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
@@ -408,20 +446,10 @@ def encode_typed_data(
         ...     "contents": "Hello, Bob!",
         ... }
         >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        >>> signable_message = encode_typed_data(domain_data,
-        ...                                      message_types,
-        ...                                      message_data)
-        >>> signed_message_manual = Account.sign_message(signable_msg, key)
-        >>> # will be (TODO: is) equivalent to
-        >>> signed_message_auto = Account.sign_typed_data(domain_data,
-        ...                                               message_types,
-        ...                                               message_data)
-        >>> # check that the two methods produce the same result
-        >>> signed_message_manual.messageHash == signed_message_auto.messageHash
-        True
-        >>> signed_message_manual.messageHash
-        HexBytes('0xbe609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2')
-
+        >>> signable_msg = encode_typed_data(domain_data, msg_types, msg_data)
+        >>> signed_msg = Account.sign_message(signable_msg, key)
+        >>> signed_msg.messageHash
+        HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
     .. _EIP-712: https://eips.ethereum.org/EIPS/eip-712
     """
     return SignableMessage(
