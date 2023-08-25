@@ -10,7 +10,6 @@ from eth_abi import (
     encode,
 )
 from eth_utils import (
-    is_hexstr,
     keccak,
     to_bytes,
     to_int,
@@ -18,7 +17,7 @@ from eth_utils import (
 
 from eth_account._utils.encode_typed_data.helpers import (
     EIP712_SOLIDITY_TYPES,
-    coerce_bool,
+    is_0x_prefixed_hexstr,
     is_array_type,
     parse_core_array_type,
     parse_parent_array_type,
@@ -29,11 +28,11 @@ def get_primary_type(types: Dict[str, List[Dict[str, str]]]) -> str:
     custom_types = set(types.keys())
     custom_types_that_are_deps = set()
 
-    for type in custom_types:
-        type_fields = types[type]
+    for type_ in custom_types:
+        type_fields = types[type_]
         for field in type_fields:
             parsed_type = parse_core_array_type(field["type"])
-            if parsed_type in custom_types and parsed_type != type:
+            if parsed_type in custom_types and parsed_type != type_:
                 custom_types_that_are_deps.add(parsed_type)
 
     primary_type = list(custom_types.difference(custom_types_that_are_deps))
@@ -52,43 +51,48 @@ def encode_field(
     if type_ in types.keys():
         # type is a custom type
         if value is None:
-            return (
-                "bytes32",
-                b"\x00" * 32,
-            )
+            return ("bytes32", b"\x00" * 32)
         else:
-            return (
-                "bytes32",
-                keccak(encode_data(type_, types, value)),
-            )
+            return ("bytes32", keccak(encode_data(type_, types, value)))
 
-    if type_ in ["string", "bytes"] and value is None:
-        return (
-            "bytes32",
-            b"",
-        )
+    elif type_ in ["string", "bytes"] and value is None:
+        return ("bytes32", b"")
 
     # None is allowed only for custom and dynamic types
-    if value is None:
-        raise ValueError(f"missing value for field {name} of type {type_}")
+    elif value is None:
+        raise ValueError(f"Missing value for field `{name}` of type `{type_}`")
 
-    if is_array_type(type_):
+    elif is_array_type(type_):
         type_ = parse_parent_array_type(type_)
         type_value_pairs = [encode_field(types, name, type_, item) for item in value]
         data_types, data_hashes = zip(*type_value_pairs)
         return ("bytes32", keccak(encode(data_types, data_hashes)))
 
-    if type_ == "bool":
-        return (type_, coerce_bool(value))
+    elif type_ == "bool":
+        return (type_, bool(value))
 
-    if type_ == "bytes":
-        if is_hexstr(value):
-            value = to_bytes(hexstr=value)
-        else:
-            value = to_bytes(value)
-        return ("bytes32", keccak(value))
+    # all bytes types allow hexstr and str values
+    elif type_.startswith("bytes"):
+        if not isinstance(value, bytes):
+            if is_0x_prefixed_hexstr(value):
+                value = to_bytes(hexstr=value)
+            elif isinstance(value, str):
+                value = to_bytes(text=value)
+            else:
+                if isinstance(value, int) and value < 0:
+                    value = 0
 
-    if type_ == "string":
+                value = to_bytes(value)
+
+        return (
+            # keccak hash if dynamic `bytes` type
+            ("bytes32", keccak(value))
+            if type_ == "bytes"
+            # if fixed bytesXX type, do not hash
+            else (type_, value)
+        )
+
+    elif type_ == "string":
         if isinstance(value, int):
             value = to_bytes(value)
         else:
@@ -96,8 +100,8 @@ def encode_field(
         return ("bytes32", keccak(value))
 
     # allow string values for int and uint types
-    if type(value) == str and type_.startswith(("int", "uint")):
-        if value[:2] == "0x":
+    elif type(value) == str and type_.startswith(("int", "uint")):
+        if is_0x_prefixed_hexstr(value):
             return (type_, to_int(hexstr=value))
         else:
             return (type_, to_int(text=value))
@@ -113,22 +117,22 @@ def find_type_dependencies(type_, types, results=None):
     if not isinstance(type_, str):
         raise ValueError(
             "Invalid find_type_dependencies input: expected string, got "
-            f"{type_} of type {type(type_)}"
+            f"`{type_}` of type `{type(type_)}`"
         )
     # get core type if it's an array type
     type_ = parse_core_array_type(type_)
 
-    # don't look for dependencies of solidity types
-    if type_ in EIP712_SOLIDITY_TYPES:
+    if (
+        # don't look for dependencies of solidity types
+        type_ in EIP712_SOLIDITY_TYPES
+        # found a type that's already been added
+        or type_ in results
+    ):
         return results
 
     # found a type that isn't defined
-    if type_ not in types:
-        raise ValueError(f"No definition of type {type_}")
-
-    # found a type that's already been added
-    if type_ in results:
-        return results
+    elif type_ not in types:
+        raise ValueError(f"No definition of type `{type_}`")
 
     results.add(type_)
 
@@ -170,10 +174,7 @@ def encode_data(
 
     for field in types[type_]:
         type, value = encode_field(
-            types,
-            field["name"],
-            field["type"],
-            data.get(field["name"]),
+            types, field["name"], field["type"], data.get(field["name"])
         )
         encoded_types.append(type)
         encoded_values.append(value)
@@ -190,7 +191,7 @@ def hash_struct(
     return keccak(encoded)
 
 
-def hash_EIP712_message(
+def hash_eip712_message(
     # returns the same hash as `hash_struct`, but automatically determines primary type
     message_types: Dict[str, List[Dict[str, str]]],
     message_data: Dict[str, Any],
@@ -200,7 +201,7 @@ def hash_EIP712_message(
 
 
 def hash_domain(domain_data: Dict[str, Any]) -> bytes:
-    EIP712_domain_map = {
+    eip712_domain_map = {
         "name": {"name": "name", "type": "string"},
         "version": {"name": "version", "type": "string"},
         "chainId": {"name": "chainId", "type": "uint256"},
@@ -209,12 +210,12 @@ def hash_domain(domain_data: Dict[str, Any]) -> bytes:
     }
 
     for k in domain_data.keys():
-        if k not in EIP712_domain_map.keys():
-            raise ValueError(f"Invalid domain key: {k}")
+        if k not in eip712_domain_map.keys():
+            raise ValueError(f"Invalid domain key: `{k}`")
 
     domain_types = {
         "EIP712Domain": [
-            EIP712_domain_map[k] for k in domain_data.keys() if k in domain_data
+            eip712_domain_map[k] for k in domain_data.keys() if k in domain_data
         ]
     }
 
