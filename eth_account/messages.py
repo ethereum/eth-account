@@ -27,11 +27,11 @@ from hexbytes import (
 
 from eth_account._utils.encode_typed_data.encoding_and_hashing import (
     hash_domain,
-    hash_EIP712_message,
+    hash_eip712_message,
 )
 from eth_account._utils.structured_data.hashing import (
-    hash_domain as hash_eip712_domain,
-    hash_message as hash_eip712_message,
+    hash_domain as hash_eip712_domain_legacy,
+    hash_message as hash_eip712_message_legacy,
     load_and_validate_structured_message,
 )
 from eth_account._utils.structured_data.validation import (
@@ -126,30 +126,6 @@ def encode_intended_validator(
 
 
 def encode_structured_data(
-    primitive: Union[bytes, int, Mapping] = None,
-    *,
-    hexstr: str = None,
-    text: str = None,
-) -> SignableMessage:
-    r"""
-
-    .. WARNING:: This method is deprecated. Use :meth:`encode_typed_data` instead.
-
-    Encode an EIP-712_ message.
-
-    See :meth:`encode_structured_data_legacy` for usage.
-
-    """
-    warnings.warn(
-        "`encode_structured_data` is deprecated and will be removed in a"
-        " future release. Use encode_typed_data instead.",
-        DeprecationWarning,
-        stacklevel=2,
-    )
-    return encode_structured_data_legacy(primitive, hexstr=hexstr, text=text)
-
-
-def encode_structured_data_legacy(
     primitive: Union[bytes, int, Mapping] = None,
     *,
     hexstr: str = None,
@@ -256,6 +232,13 @@ def encode_structured_data_legacy(
 
     .. _EIP-712: https://eips.ethereum.org/EIPS/eip-712
     """
+    warnings.warn(
+        "`encode_structured_data` is deprecated and will be removed in a"
+        " future release. Use encode_typed_data instead.",
+        DeprecationWarning,
+        stacklevel=2,
+    )
+
     if isinstance(primitive, Mapping):
         validate_structured_data(primitive)
         structured_data = primitive
@@ -264,8 +247,8 @@ def encode_structured_data_legacy(
         structured_data = load_and_validate_structured_message(message_string)
     return SignableMessage(
         HexBytes(b"\x01"),
-        hash_eip712_domain(structured_data),
-        hash_eip712_message(structured_data),
+        hash_eip712_domain_legacy(structured_data),
+        hash_eip712_message_legacy(structured_data),
     )
 
 
@@ -389,14 +372,13 @@ def encode_typed_data(
           types, but values larger than the type will raise ``ValueOutOfBounds``.
           e.g., an 8-byte value will be padded to fit a ``bytes16`` type, but 16-byte
           value provided for a ``bytes8`` type will raise an error.
-        - ``bool`` types will also accept ``int``s 0 and 1, ``bytes`` objects
-          ``b"\x00"`` and ``b"\x01"``, and strings such as ``"0"`` or ``"1"``, ``"OxO"``
-          or ``"0x1"``, ``"true"`` or ``"false"``, and ``True`` or ``False``.
+        - Fixed-size and dynamic ``bytes`` types will accept ``int``s. Any negative
+          values will be converted to ``0`` before being converted to ``bytes``
         - ``int`` and ``uint`` types will also accept strings. If prefixed with ``"0x"``
           , the string will be interpreted as hex. Otherwise, it will be interpreted as
           decimal.
 
-    Differences from ``signTypedData``:
+    Noteable differences from ``signTypedData``:
         - Custom types that are not alphanumeric will encode differently.
         - Custom types that are used but not defined in ``types`` will not encode.
 
@@ -455,5 +437,5 @@ def encode_typed_data(
     return SignableMessage(
         HexBytes(b"\x01"),
         hash_domain(domain_data),
-        hash_EIP712_message(message_types, message_data),
+        hash_eip712_message(message_types, message_data),
     )

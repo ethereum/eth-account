@@ -13,7 +13,7 @@ from eth_account._utils.encode_typed_data.encoding_and_hashing import (
     find_type_dependencies,
     get_primary_type,
     hash_domain,
-    hash_EIP712_message,
+    hash_eip712_message,
     hash_struct,
     hash_type,
 )
@@ -153,10 +153,37 @@ def test_get_primary_type_fail(types, expected):
         (
             "some_bytes",
             "bytes",
+            "27",
+            (
+                "bytes32",
+                b"X\xa2\x80\xf7OW\xbf\x05\x1c@\xf0`\x13\x9d\xc7G\xe0\x15\xbeR\xf6\x8cW\xe2\xc4\xab.K\xd4\x14oC",  # noqa: E501
+            ),
+        ),
+        (
+            "some_bytes",
+            "bytes",
             27,
             (
                 "bytes32",
                 b"$\xd6\xd74\x14_\x07\x1a\xa6\xa2v?\xdd\xcaX\x10\xbd\x12#l->X\x9d*z\xdf\\\xa6\x9c\xc9\xc6",  # noqa: E501
+            ),
+        ),
+        (
+            "some_bytes",
+            "bytes8",
+            -27,
+            (
+                "bytes8",
+                b"\x00",
+            ),
+        ),
+        (
+            "some_bytes",
+            "bytes",
+            -27,
+            (
+                "bytes32",
+                b"\xbc6x\x9ez\x1e(\x146FB)\x82\x8f\x81}f\x12\xf7\xb4w\xd6e\x91\xff\x96\xa9\xe0d\xbc\xc9\x8a",  # noqa: E501
             ),
         ),
         (
@@ -216,6 +243,15 @@ def test_get_primary_type_fail(types, expected):
         (
             "a_bool",
             "bool",
+            False,
+            (
+                "bool",
+                False,
+            ),
+        ),
+        (
+            "a_bool",
+            "bool",
             True,
             (
                 "bool",
@@ -234,7 +270,43 @@ def test_get_primary_type_fail(types, expected):
         (
             "a_bool",
             "bool",
+            1,
+            (
+                "bool",
+                True,
+            ),
+        ),
+        (
+            "a_bool",
+            "bool",
+            32768,
+            (
+                "bool",
+                True,
+            ),
+        ),
+        (
+            "a_bool",
+            "bool",
+            -1,
+            (
+                "bool",
+                True,
+            ),
+        ),
+        (
+            "a_bool",
+            "bool",
             b"\x01",
+            (
+                "bool",
+                True,
+            ),
+        ),
+        (
+            "a_bool",
+            "bool",
+            b"\x00",
             (
                 "bool",
                 True,
@@ -252,10 +324,28 @@ def test_get_primary_type_fail(types, expected):
         (
             "a_bool",
             "bool",
+            "false",
+            (
+                "bool",
+                True,
+            ),
+        ),
+        (
+            "a_bool",
+            "bool",
+            "1",
+            (
+                "bool",
+                True,
+            ),
+        ),
+        (
+            "a_bool",
+            "bool",
             "0",
             (
                 "bool",
-                False,
+                True,
             ),
         ),
         (
@@ -344,31 +434,61 @@ def test_get_primary_type_fail(types, expected):
                 412,
             ),
         ),
+        (
+            "some_int",
+            "int",
+            3735928559,
+            (
+                "int",
+                3735928559,
+            ),
+        ),
+        (
+            "some_uint",
+            "uint",
+            412,
+            (
+                "uint",
+                412,
+            ),
+        ),
     ),
     ids=[
         "None value for custom type",
         "None value for string type",
         "None value for bytes type",
+        "string that is int-parseable value for bytes type",
         "int value for bytes type",
+        "negative int value for bytes8 type coerces to 0 bytes8 value",
+        "negative int value for bytes type coerces keccak(0) output",
         "hexstr value for bytes type",
         "bytes value for bytes type",
         "int value for string type",
         "string value for string type",
         "string[] value for string[] type",
         "string[][] value for string[][] type",
-        "bool value for bool type",
-        "int value for bool type",
-        "bytes value for bool type",
-        "word str value for bool type",
-        "int str value for bool type",
+        "bool value False for bool type returns False",
+        "bool value True for bool type returns True",
+        "int value 0 for bool type returns False",
+        "int value 1 for bool type returns True",
+        "int value 37268 for bool type returns True",
+        "int value -1 for bool type returns True",
+        "bytes value b'\x01' for bool type returns True",
+        "bytes value b'\x00' for bool type returns True",
+        "string 'true' value for bool type returns True",
+        "string 'false' value for bool type returns True",
+        "string '1' value for bool type returns True",
+        "string '0' value for bool type returns True",
         "address value for address type",
         "int16 value for int16 type",
         "uint256 value for uint256 type",
         "empty string value for string type",
         "expected value for custom type",
         "expected value for custom type array",
-        "hexstr value for int type",
-        "str value for int type",
+        "hexstr value for int256 type",
+        "str value for int16 type",
+        "int value for int type",
+        "int value for uint type",
     ],
 )
 def test_encode_field_pass(name, type_, value, expected):
@@ -392,7 +512,7 @@ def test_encode_field_pass(name, type_, value, expected):
             None,
             {
                 "expected_exception": ValueError,
-                "match": "missing value for field atomic_type of type address",
+                "match": "Missing value for field `atomic_type` of type `address`",
             },
         ),
         (
@@ -413,7 +533,7 @@ def test_encode_field_pass(name, type_, value, expected):
             {
                 "expected_exception": ValueError,
                 "match": re.escape(
-                    "invalid literal for int() with base 16: '0xi am not an int'"
+                    "invalid literal for int() with base 10: '0xi am not an int'"
                 ),
             },
         ),
@@ -430,7 +550,6 @@ def test_encode_field_fail(name, type_, value, expected):
             {"name": "name", "type": "string"},
         ]
     }
-
     with pytest.raises(**expected):
         encode_field(types, name, type_, value)
 
@@ -538,7 +657,7 @@ def test_find_type_dependencies_pass(primary_type, types, expected):
             {
                 "expected_exception": ValueError,
                 "match": "Invalid find_type_dependencies input: expected string, "
-                "got 27 of type <class 'int'>",
+                "got `27` of type `<class 'int'>`",
             },
         ),
         (
@@ -554,7 +673,7 @@ def test_find_type_dependencies_pass(primary_type, types, expected):
             },
             {
                 "expected_exception": ValueError,
-                "match": "No definition of type Animal",
+                "match": "No definition of type `Animal`",
             },
         ),
         (
@@ -571,7 +690,7 @@ def test_find_type_dependencies_pass(primary_type, types, expected):
             },
             {
                 "expected_exception": ValueError,
-                "match": "No definition of type Attachment",
+                "match": "No definition of type `Attachment`",
             },
         ),
     ),
@@ -698,7 +817,7 @@ def test_encode_type_pass_and_hash_type(
             },
             {
                 "expected_exception": ValueError,
-                "match": "No definition of type Attachment",
+                "match": "No definition of type `Attachment`",
             },
         ),
     ),
@@ -724,12 +843,53 @@ def test_encode_type_fail(primary_type, types, expected):
             "f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f",
         ),
         (
+            {
+                "name": "Ether Mail",
+                "version": "1",
+                "chainId": "1",
+                "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+            },
+            "f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f",
+        ),
+        (
+            {
+                "name": "Ether Mail",
+                "version": 1,
+                "chainId": 1,
+                "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+            },
+            "902f609607aa38e1c768f260a84a1be97f3a9d65726d3e842fa5e36c6da393cb",
+        ),
+        (
+            {
+                "name": "Ether Mail",
+                "version": "1",
+                "chainId": 1,
+                "verifyingContract": "0xcccccccccccccccccccccccccccccccccccccccc",
+            },
+            "f2cee375fa42b42143804025fc449deafd50cc031ca257e0b194a650a912090f",
+        ),
+        (
+            {
+                "name": "Ether Mail",
+                "version": "1",
+                "chainId": 1,
+                "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+                "salt": "0xa9f4c8b7e576dc96308c361b46d32c04a00a0e5c2b0962d9f42be6891a95d139",  # noqa: E501
+            },
+            "53d039704f24ce448de9dc98c5952dd85b7e7c22446a0b1cb47b43b901d00972",
+        ),
+        (
             {},
             "6192106f129ce05c9075d319c1fa6ea9b3ae37cbd0c1ef92e2be7137bb07baa1",
         ),
     ),
     ids=[
         "EIP712 example domain data",
+        "chainId as string",
+        "version as int",
+        "verifying contract not checksummed",
+        "salt present but empty bytes",
         "empty domain data",
     ],
 )
@@ -749,12 +909,25 @@ def test_hash_domain_pass(domain_data, expected):
             },
             {
                 "expected_exception": ValueError,
-                "match": "Invalid domain key: classification",
+                "match": "Invalid domain key: `classification`",
+            },
+        ),
+        (
+            {
+                "name": "Ether Mail",
+                "version": "1",
+                "chainId": 1,
+                "verifyingContract": "0xCcCCccccCCCC",
+            },
+            {
+                "expected_exception": EncodingTypeError,
+                "match": "Value `'0xCcCCccccCCCC'` of type <class 'str'> cannot be encoded by AddressEncoder",  # noqa: E501
             },
         ),
     ),
     ids=[
         "key in domain_data not in EIP712 domain fields",
+        "invalid address for verifyingContract",
     ],
 )
 def test_hash_domain_fail(domain_data, expected):
@@ -928,7 +1101,7 @@ def test_hash_domain_fail(domain_data, expected):
         "bytes8 value for bytes16 type",
     ],
 )
-def test_encode_data_pass_and_hash_struct_and_hash_EIP712_message(
+def test_encode_data_pass_and_hash_struct_and_hash_eip712_message(
     type_,
     message,
     types,
@@ -937,12 +1110,29 @@ def test_encode_data_pass_and_hash_struct_and_hash_EIP712_message(
 ):
     assert encode_data(type_, types, message).hex() == encode_data_expected
     assert hash_struct(type_, types, message).hex() == hash_struct_expected
-    assert hash_EIP712_message(types, message).hex() == hash_struct_expected
+    assert hash_eip712_message(types, message).hex() == hash_struct_expected
 
 
 @pytest.mark.parametrize(
     "type_,message, types, expected_error",
     (
+        (
+            "Things",
+            {
+                "what": -327,
+            },
+            {
+                "Things": [
+                    {"name": "what", "type": "uint"},
+                ],
+            },
+            {
+                "expected_exception": ValueOutOfBounds,
+                "match": re.escape(
+                    "Value `-327` of type <class 'int'> cannot be encoded by UnsignedIntegerEncoder: Cannot be encoded in 256 bits.  Must be bounded between [0, 115792089237316195423570985008687907853269984665640564039457584007913129639935]."  # noqa: E501
+                ),
+            },
+        ),
         (
             "Things",
             {
@@ -1013,17 +1203,13 @@ def test_encode_data_pass_and_hash_struct_and_hash_EIP712_message(
         ),
     ),
     ids=[
+        "negative value -327 for uint type",
         "bytes16 value for bytes8 type",
         "int value too large for int16 type",
         "hexstring too short to be an address",
         "hexstring must have 0x prefix be parsed as int",
     ],
 )
-def test_encode_data_fail(
-    type_,
-    message,
-    types,
-    expected_error,
-):
+def test_encode_data_fail(type_, message, types, expected_error):
     with pytest.raises(**expected_error):
         encode_data(type_, types, message)
