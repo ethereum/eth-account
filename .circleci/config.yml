@@ -88,7 +88,7 @@ integration: &integration
           python -m pip install tox
     - run:
         name: install dependencies (node)
-        command: sudo -E bash tests/integration/ethers-cli/setup_node_v18.sh && sudo apt-get install -y nodejs
+        command: sudo -E bash tests/integration/ethers-cli/setup_node_v20.sh && sudo apt-get install -y nodejs
     - run:
         name: Build ethers-cli
         command: cd tests/integration/ethers-cli && sudo npm install && sudo npm install -g . && cd ../../../
