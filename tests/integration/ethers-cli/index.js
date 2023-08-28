@@ -60,8 +60,9 @@ switch(options.language) {
 // If specified, use the given path, else default to Ethereum
 const path = options.path ? options.path : "m/44'/60'/0'/0/0";
 
-const account = ethers.Wallet.fromMnemonic(
+const account = ethers.HDNodeWallet.fromPhrase(
     options.mnemonic.join(" "),
+    undefined, // an optional password arg that we don't use
     path,
     wordlist,
 );
