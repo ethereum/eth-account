@@ -63,8 +63,24 @@ def encode_field(
         raise ValueError(f"Missing value for field `{name}` of type `{type_}`")
 
     elif is_array_type(type_):
-        type_ = parse_parent_array_type(type_)
-        type_value_pairs = [encode_field(types, name, type_, item) for item in value]
+        # handle array type with non-array value
+        if not isinstance(value, list):
+            raise ValueError(
+                f"Invalid value for field `{name}` of type `{type_}`: "
+                f"expected array, got `{value}` of type `{type(value)}`"
+            )
+
+        parsed_type = parse_parent_array_type(type_)
+        type_value_pairs = [
+            encode_field(types, name, parsed_type, item) for item in value
+        ]
+        if not type_value_pairs:
+            # the keccak hash of `encode((), ())`
+            return (
+                "bytes32",
+                b"\xc5\xd2F\x01\x86\xf7#<\x92~}\xb2\xdc\xc7\x03\xc0\xe5\x00\xb6S\xca\x82';{\xfa\xd8\x04]\x85\xa4p",  # noqa: E501
+            )
+
         data_types, data_hashes = zip(*type_value_pairs)
         return ("bytes32", keccak(encode(data_types, data_hashes)))
 
