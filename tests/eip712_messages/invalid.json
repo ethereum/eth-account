@@ -1,0 +1,547 @@
+{
+    "invalid_data_field_name_does_not_match_type_field_name": {
+        "types": {
+            "EIP712Domain": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "version",
+                    "type": "string"
+                },
+                {
+                    "name": "chainId",
+                    "type": "uint256"
+                },
+                {
+                    "name": "verifyingContract",
+                    "type": "address"
+                }
+            ],
+            "Person": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "hello wallet",
+                    "type": "address"
+                }
+            ],
+            "Mail": [
+                {
+                    "name": "from",
+                    "type": "Person"
+                },
+                {
+                    "name": "to",
+                    "type": "Person"
+                },
+                {
+                    "name": "contents",
+                    "type": "string"
+                }
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            },
+            "to": {
+                "name": "Bob",
+                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+            },
+            "contents": "Hello, Bob!"
+        }
+    },
+    "invalid_char_string_invalid_for_int_type": {
+        "types": {
+            "EIP712Domain": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "version",
+                    "type": "string"
+                },
+                {
+                    "name": "chainId",
+                    "type": "uint256"
+                },
+                {
+                    "name": "verifyingContract",
+                    "type": "address"
+                }
+            ],
+            "Person": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "balance",
+                    "type": "uint256"
+                }
+            ],
+            "Mail": [
+                {
+                    "name": "from",
+                    "type": "Person"
+                },
+                {
+                    "name": "to",
+                    "type": "Person"
+                },
+                {
+                    "name": "contents",
+                    "type": "string"
+                }
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "balance": 1234
+            },
+            "to": {
+                "name": "Bob",
+                "balance": "how do you do?"
+            },
+            "contents": "Hello Bob!"
+        }
+    },
+    "invalid_single_array_value_for_nested_array_type": {
+        "types": {
+            "EIP712Domain": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "version",
+                    "type": "string"
+                },
+                {
+                    "name": "chainId",
+                    "type": "uint256"
+                },
+                {
+                    "name": "verifyingContract",
+                    "type": "address"
+                }
+            ],
+            "person": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "wallet",
+                    "type": "address"
+                }
+            ],
+            "Mail": [
+                {
+                    "name": "from",
+                    "type": "person"
+                },
+                {
+                    "name": "to",
+                    "type": "person[2][][4]"
+                },
+                {
+                    "name": "contents",
+                    "type": "string"
+                }
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            },
+            "to": [
+                {
+                    "name": "Bob",
+                    "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+                }
+            ],
+            "contents": "Hello, Bob!"
+        }
+    },
+    "invalid_bad_uint_field_type_in_types_passed_an_int": {
+        "types": {
+            "EIP712Domain": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "version",
+                    "type": "string"
+                },
+                {
+                    "name": "chainId",
+                    "type": "uint256"
+                },
+                {
+                    "name": "verifyingContract",
+                    "type": "address"
+                }
+            ],
+            "Person": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "balance",
+                    "type": "uint25689"
+                }
+            ],
+            "Mail": [
+                {
+                    "name": "from",
+                    "type": "Person"
+                },
+                {
+                    "name": "to",
+                    "type": "Person"
+                },
+                {
+                    "name": "contents",
+                    "type": "string"
+                }
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "balance": 123
+            },
+            "to": {
+                "name": "Bob",
+                "balance": 1234
+            },
+            "contents": "Hello Bob!"
+        }
+    },
+    "invalid_undefined_field_type_in_types": {
+        "types": {
+            "EIP712Domain": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "version",
+                    "type": "string"
+                },
+                {
+                    "name": "chainId",
+                    "type": "uint256"
+                },
+                {
+                    "name": "verifyingContract",
+                    "type": "address"
+                }
+            ],
+            "Person": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "wallet",
+                    "type": "address"
+                }
+            ],
+            "Mail": [
+                {
+                    "name": "from",
+                    "type": "Hello Person"
+                },
+                {
+                    "name": "to",
+                    "type": "Person"
+                },
+                {
+                    "name": "contents",
+                    "type": "string"
+                }
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            },
+            "to": {
+                "name": "Bob",
+                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+            },
+            "contents": "Hello, Bob!"
+        }
+    },
+    "invalid_bad_uint_field_type_in_types_passed_a_string": {
+        "types": {
+            "EIP712Domain": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "version",
+                    "type": "string"
+                },
+                {
+                    "name": "chainId",
+                    "type": "uint256"
+                },
+                {
+                    "name": "verifyingContract",
+                    "type": "address"
+                }
+            ],
+            "Person": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "balance",
+                    "type": "uint25689"
+                }
+            ],
+            "Mail": [
+                {
+                    "name": "from",
+                    "type": "Person"
+                },
+                {
+                    "name": "to",
+                    "type": "Person"
+                },
+                {
+                    "name": "contents",
+                    "type": "string"
+                }
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "balance": "123"
+            },
+            "to": {
+                "name": "Bob",
+                "balance": "0x1234"
+            },
+            "contents": "Hello Bob!"
+        }
+    },
+    "invalid_custom_typed_used_but_not_defined": {
+        "types": {
+            "EIP712Domain": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "version",
+                    "type": "string"
+                },
+                {
+                    "name": "chainId",
+                    "type": "uint256"
+                },
+                {
+                    "name": "verifyingContract",
+                    "type": "address"
+                }
+            ],
+            "Person": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "wallet",
+                    "type": "address"
+                }
+            ],
+            "Mail": [
+                {
+                    "name": "from",
+                    "type": "Person"
+                },
+                {
+                    "name": "to",
+                    "type": "Person"
+                },
+                {
+                    "name": "cc",
+                    "type": "Person[]"
+                },
+                {
+                    "name": "contents",
+                    "type": "string"
+                },
+                {
+                    "name": "attachments",
+                    "type": "Attachment[]"
+                }
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            },
+            "to": {
+                "name": "Bob",
+                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+            },
+            "cc": [
+                {
+                    "name": "Alice",
+                    "wallet": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+                },
+                {
+                    "name": "Dot",
+                    "wallet": "0xdddddddddddddddddddddddddddddddddddddddd"
+                }
+            ],
+            "contents": "Hello, Bob!",
+            "attachments": []
+        }
+    },
+    "invalid_string_array_value_for_nested_string_array_type": {
+        "types": {
+            "EIP712Domain": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "version",
+                    "type": "string"
+                },
+                {
+                    "name": "chainId",
+                    "type": "uint256"
+                },
+                {
+                    "name": "verifyingContract",
+                    "type": "address"
+                }
+            ],
+            "Person": [
+                {
+                    "name": "name",
+                    "type": "string"
+                },
+                {
+                    "name": "wallet",
+                    "type": "address"
+                },
+                {
+                    "name": "nicknames",
+                    "type": "string[][]"
+                }
+            ],
+            "Mail": [
+                {
+                    "name": "from",
+                    "type": "Person"
+                },
+                {
+                    "name": "to",
+                    "type": "Person"
+                },
+                {
+                    "name": "contents",
+                    "type": "string"
+                }
+            ]
+        },
+        "primaryType": "Mail",
+        "domain": {
+            "name": "Ether Mail",
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC"
+        },
+        "message": {
+            "from": {
+                "name": "Cow",
+                "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+                "nicknames": [
+                    "bovine",
+                    "Bessie",
+                    "Daisy"
+                ]
+            },
+            "to": {
+                "name": "Bob",
+                "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+                "nicknames": [
+                    []
+                ]
+            },
+            "contents": "Hello, Bob!"
+        }
+    }
+}

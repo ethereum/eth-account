@@ -225,19 +225,19 @@ def test_get_primary_type_fail(types, expected):
         (
             "names",
             "string[]",
-            "['Bob', 'Jim']",
+            ["Bob", "Jim"],
             (
                 "bytes32",
-                b"\xd3\xd6\xa8?%\x9eN{\xe2\xffP\xa5\xb3\xac\xa7.i\xa6\x92^\x0eq\x8c,\x12[\xeaR\xb1\xc6\x19\x1b",  # noqa: E501
+                b"@u,V\x9a<\x1a0\x1d\xf0b\xda\xc4\x98\x10/\xfb\xcf\x06\xba\x96pDC/\n\xb5\xe9\x9dB\t!",  # noqa: E501
             ),
         ),
         (
             "names",
             "string[][]",
-            "[['Bob', 'Jim'],['Amy', 'Sal']]",
+            [["Bob", "Jim"], ["Amy", "Sal"]],
             (
                 "bytes32",
-                b"$\\\x93)\x01\x91\x1a\xd7Z\x0f\x12\xd9\x93\xe6\xd9\xb1\x02\xb2\xfe\xf1\x97\xaa\xd7\x8a\xf6p\xe1\x7f\xc7\xe9v\x83",  # noqa: E501
+                b"\xcd\x13is\x93\xf4\xf8^\xa7\x9bi\xec\x8cE\xfc\xfe\xab\xcc9p\x0c\xa8\xecR$\xbc]\xc6[\x10-1",  # noqa: E501
             ),
         ),
         (
@@ -452,6 +452,24 @@ def test_get_primary_type_fail(types, expected):
                 412,
             ),
         ),
+        (
+            "a_string_array",
+            "string[]",
+            [],
+            (
+                "bytes32",
+                b"\xc5\xd2F\x01\x86\xf7#<\x92~}\xb2\xdc\xc7\x03\xc0\xe5\x00\xb6S\xca\x82';{\xfa\xd8\x04]\x85\xa4p",  # noqa: E501
+            ),
+        ),
+        (
+            "custom_type",
+            "Samples",
+            {"name": "bob", "samples": []},
+            (
+                "bytes32",
+                b"(^\x89e\x13 \xa6\x16\xdf\r3\x1bOC\ngW\xb6\\\xb7\x1fn\x10\x8eh\xdc\x06\xa5\xd5\\\xc2\xb3",  # noqa: E501
+            ),
+        ),
     ),
     ids=[
         "None value for custom type",
@@ -489,6 +507,8 @@ def test_get_primary_type_fail(types, expected):
         "str value for int16 type",
         "int value for int type",
         "int value for uint type",
+        "empty array value for string[] type",
+        "empty array value for custom[] type",
     ],
 )
 def test_encode_field_pass(name, type_, value, expected):
@@ -537,11 +557,35 @@ def test_encode_field_pass(name, type_, value, expected):
                 ),
             },
         ),
+        (
+            "a_string",
+            "string",
+            [],
+            {
+                "expected_exception": TypeError,
+                "match": re.escape(
+                    "Arguments passed as hexstr or text must be of text type. Instead, value was: '[]'"  # noqa: E501
+                ),
+            },
+        ),
+        (
+            "missing_inner_array",
+            "string[][]",
+            ["a", "b", "c"],
+            {
+                "expected_exception": ValueError,
+                "match": re.escape(
+                    "Invalid value for field `missing_inner_array` of type `string[]`: expected array, got `a` of type `<class 'str'>`"  # noqa: E501
+                ),
+            },
+        ),
     ),
     ids=[
         "None value for atomic type",
         "string value that is not convertible to int for int type",
         "string starting with 0x that is not convertible to int for int type",
+        "empty array value for string type",
+        "string[] value for string[][] type",
     ],
 )
 def test_encode_field_fail(name, type_, value, expected):
