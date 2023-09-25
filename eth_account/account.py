@@ -149,7 +149,7 @@ class Account:
             ... 'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
             ... 'crypto': {'cipher': 'aes-128-ctr',
             ...  'cipherparams': {'iv': '482ef54775b0cc59f25717711286f5c8'},
-            ...  'ciphertext': 'cb636716a9fd46adbb31832d964df2082536edd5399a3393327dc89b0193a2be',  # noqa: E501
+            ...  'ciphertext': 'cb636716a9fd46adbb31832d964df2082536edd5399a3393327dc89b0193a2be',
             ...  'kdf': 'scrypt',
             ...  'kdfparams': {},
             ...  'kdfparams': {'dklen': 32,
@@ -157,13 +157,13 @@ class Account:
             ...                'p': 8,
             ...                'r': 1,
             ...                'salt': 'd3c9a9945000fcb6c9df0f854266d573'},
-            ...  'mac': '4f626ec5e7fea391b2229348a65bfef532c2a4e8372c0a6a814505a350a7689d'},  # noqa: E501
+            ...  'mac': '4f626ec5e7fea391b2229348a65bfef532c2a4e8372c0a6a814505a350a7689d'},
             ... 'id': 'b812f3f9-78cc-462a-9e89-74418aa27cb0',
             ... 'version': 3}
             >>> Account.decrypt(encrypted, 'password')
             HexBytes('0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364')
 
-        """
+        """  # noqa: E501
         if isinstance(keyfile_json, str):
             keyfile = json.loads(keyfile_json)
         elif is_dict(keyfile_json):
@@ -442,23 +442,23 @@ class Account:
 
             >>> vrs = (
             ...   b'\x1c',
-            ...   b'\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3',  # noqa: E501
-            ...   b'>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce')  # noqa: E501
+            ...   b'\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3',
+            ...   b'>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce')
             >>> Account.recover_message(message, vrs=vrs)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
 
             # variations on signature
-            >>> signature = '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'  # noqa: E501
+            >>> signature = '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'
             >>> Account.recover_message(message, signature=signature)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
-            >>> signature = b'\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce\x1c'  # noqa: E501
+            >>> signature = b'\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce\x1c'
             >>> Account.recover_message(message, signature=signature)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> # Caution about this approach: likely problems if there are leading 0s
-            >>> signature = 0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c  # noqa: E501
+            >>> signature = 0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c
             >>> Account.recover_message(message, signature=signature)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
-        """
+        """  # noqa: E501
         message_hash = _hash_eip191_message(signable_message)
         return cast(ChecksumAddress, self._recover_hash(message_hash, vrs, signature))
 
@@ -499,10 +499,10 @@ class Account:
 
         .. doctest:: python
 
-            >>> raw_transaction = '0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'  # noqa: E501
+            >>> raw_transaction = '0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'
             >>> Account.recover_transaction(raw_transaction)
             '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
-        """
+        """  # noqa: E501
         txn_bytes = HexBytes(serialized_transaction)
         if len(txn_bytes) > 0 and txn_bytes[0] <= 0x7F:
             # We are dealing with a typed transaction.
@@ -562,7 +562,7 @@ class Account:
             SignableMessage(version=b'E',
              header=b'thereum Signed Message:\n6',
              body=b'I\xe2\x99\xa5SF')
-            >>> # If you're curious about the internal fields of SignableMessage, take a look at EIP-191, linked above  # noqa: E501
+            >>> # If you're curious about the internal fields of SignableMessage, take a look at EIP-191, linked above
             >>> key = "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
             >>> Account.sign_message(msghash, key)
             SignedMessage(messageHash=HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),
@@ -574,7 +574,7 @@ class Account:
 
 
         .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
-        """
+        """  # noqa: E501
         message_hash = _hash_eip191_message(signable_message)
         return cast(SignedMessage, self._sign_hash(message_hash, private_key))
 
@@ -657,9 +657,9 @@ class Account:
 
         .. code-block:: python
 
-            >>> # EIP-1559 dynamic fee transaction (more efficient and preferred over legacy txn)  # noqa: E501
+            >>> # EIP-1559 dynamic fee transaction (more efficient and preferred over legacy txn)
             >>> dynamic_fee_transaction = {
-                    "type": 2,  # optional - can be implicitly determined based on max fee params  # noqa: E501
+                    "type": 2,  # optional - can be implicitly determined based on max fee params
                     "gas": 100000,
                     "maxFeePerGas": 2000000000,
                     "maxPriorityFeePerGas": 2000000000,
@@ -671,7 +671,7 @@ class Account:
                         {
                             "address": "0x0000000000000000000000000000000000000001",
                             "storageKeys": (
-                                "0x0100000000000000000000000000000000000000000000000000000000000000",  # noqa: E501
+                                "0x0100000000000000000000000000000000000000000000000000000000000000",
                             )
                         },
                     ),
@@ -712,7 +712,7 @@ class Account:
         .. code-block:: python
 
             >>> access_list_transaction = {
-                    "type": 1,  # optional - can be implicitly determined based on 'accessList' and 'gasPrice' params  # noqa: E501
+                    "type": 1,  # optional - can be implicitly determined based on 'accessList' and 'gasPrice' params
                     "gas": 100000,
                     "gasPrice": 1000000000,
                     "data": "0x616263646566",
@@ -723,7 +723,7 @@ class Account:
                         {
                             "address": "0x0000000000000000000000000000000000000001",
                             "storageKeys": (
-                                "0x0100000000000000000000000000000000000000000000000000000000000000",  # noqa: E501
+                                "0x0100000000000000000000000000000000000000000000000000000000000000",
                             )
                         },
                     ),
@@ -733,11 +733,11 @@ class Account:
             >>> signed = Account.sign_transaction(access_list_transaction, key)
             {'hash': HexBytes('0x2864ca20a74ca5e044067ad4139a22ff5a0853434f5f1dc00108f24ef5f1f783'),
              'r': 105940705063391628472351883894091935317142890114440570831409400676736873197702,
-             'rawTransaction': HexBytes('0x01f8ad82076c22843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000080a0ea38506c4afe4bb402e030877fbe1011fa1da47aabcf215db8da8fee5d3af086a051e9af653b8eb98e74e894a766cf88904dbdb10b0bc1fbd12f18f661fa2797a4'),  # noqa: E501
+             'rawTransaction': HexBytes('0x01f8ad82076c22843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000080a0ea38506c4afe4bb402e030877fbe1011fa1da47aabcf215db8da8fee5d3af086a051e9af653b8eb98e74e894a766cf88904dbdb10b0bc1fbd12f18f661fa2797a4'),
              's': 37050226636175381535892585331727388340134760347943439553552848647212419749796,
              'v': 0}
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
-        """
+        """  # noqa: E501
         if not isinstance(transaction_dict, Mapping):
             raise TypeError(
                 "transaction_dict must be dict-like, got %r" % transaction_dict
