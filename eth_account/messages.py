@@ -356,6 +356,8 @@ def encode_typed_data(
     Encode an EIP-712_ message in a manner compatible with other implementations
     in use, such as the Metamask and Ethers ``signTypedData`` functions.
 
+    See the `EIP-712 spec <https://eips.ethereum.org/EIPS/eip-712>`_ for more information.
+
     You may supply the information to be encoded in one of two ways:
 
     As exactly three arguments:
@@ -401,7 +403,6 @@ def encode_typed_data(
     .. doctest:: python
 
         >>> # examples of basic usage
-        >>> import json
         >>> from eth_account import Account
         >>> from eth_account.messages import encode_typed_data
         >>> # 3-argument usage
@@ -415,7 +416,7 @@ def encode_typed_data(
         ...     "salt": b"decafbeef",
         ... }
         >>> # custom types
-        >>> msg_types = {
+        >>> message_types = {
         ...     "Person": [
         ...         {"name": "name", "type": "string"},
         ...         {"name": "wallet", "type": "address"},
@@ -427,7 +428,7 @@ def encode_typed_data(
         ...     ],
         ... }
         >>> # the data to be signed
-        >>> msg_data = {
+        >>> message_data = {
         ...     "from": {
         ...         "name": "Cow",
         ...         "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
@@ -439,10 +440,14 @@ def encode_typed_data(
         ...     "contents": "Hello, Bob!",
         ... }
         >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        >>> signable_msg = encode_typed_data(domain_data, msg_types, msg_data)
-        >>> signed_msg = Account.sign_message(signable_msg, key)
-        >>> signed_msg.messageHash
+        >>> signable_message = encode_typed_data(domain_data, message_types, message_data)
+        >>> signed_message = Account.sign_message(signable_message, key)
+        >>> signed_message.messageHash
         HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
+        >>> # the message can be signed in one step using Account.sign_typed_data
+        >>> signed_typed_data = Account.sign_typed_data(key, domain_data, message_types, message_data)
+        >>> signed_typed_data == signed_message
+        True
 
         >>> # 1-argument usage
 
@@ -486,14 +491,19 @@ def encode_typed_data(
         ...         "contents": "Hello, Bob!",
         ...     },
         ... }
-        >>> signable_msg_2 = encode_typed_data(full_message=full_message)
-        >>> signed_msg_2 = Account.sign_message(signable_msg_2, key)
-        >>> signed_msg_2.messageHash
+        >>> signable_message_2 = encode_typed_data(full_message=full_message)
+        >>> signed_message_2 = Account.sign_message(signable_message_2, key)
+        >>> signed_message_2.messageHash
         HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
-        >>> signed_msg_2 == signed_msg
+        >>> signed_message_2 == signed_message
         True
+        >>> # the full_message can be signed in one step using Account.sign_typed_data
+        >>> signed_typed_data_2 = Account.sign_typed_data(key, domain_data, message_types, message_data)
+        >>> signed_typed_data_2 == signed_message_2
+        True
+
     .. _EIP-712: https://eips.ethereum.org/EIPS/eip-712
-    """
+    """  # noqa: E501
     if full_message is not None:
         if (
             domain_data is not None

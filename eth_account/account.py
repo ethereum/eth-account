@@ -4,6 +4,8 @@ from collections.abc import (
 import json
 import os
 from typing import (
+    Any,
+    Dict,
     Optional,
     Tuple,
     TypeVar,
@@ -71,6 +73,7 @@ from eth_account.hdaccount import (
 from eth_account.messages import (
     SignableMessage,
     _hash_eip191_message,
+    encode_typed_data,
 )
 from eth_account.signers.local import (
     LocalAccount,
@@ -801,3 +804,155 @@ class Account:
                 "The private key must be exactly 32 bytes long, instead of "
                 "%d bytes." % len(key)
             ) from original_exception
+
+    @combomethod
+    def sign_typed_data(
+        self,
+        private_key: Union[bytes, HexStr, int, keys.PrivateKey],
+        domain_data: Dict[str, Any] = None,
+        message_types: Dict[str, Any] = None,
+        message_data: Dict[str, Any] = None,
+        full_message: Dict[str, Any] = None,
+    ) -> SignedMessage:
+        r"""
+        Sign the provided EIP-712 message with the provided key.
+
+        :param private_key: the key to sign the message with
+        :param domain_data: EIP712 domain data
+        :param message_types: custom types used by the `value` data
+        :param message_data: data to be signed
+        :param full_message: a dict containing all data and types
+        :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
+        :type domain_data: dict
+        :type message_types: dict
+        :type message_data: dict
+        :type full_message: dict
+        :returns: Various details about the signature - most importantly the
+            fields: v, r, and s
+        :rtype: ~eth_account.datastructures.SignedMessage
+
+        You may supply the information to be encoded in one of two ways:
+
+        As exactly three arguments:
+
+            - ``domain_data``, a dict of the EIP-712 domain data
+            - ``message_types``, a dict of custom types (do not include a ``EIP712Domain``
+              key)
+            - ``message_data``, a dict of the data to be signed
+
+        Or as a single argument:
+
+            - ``full_message``, a dict containing the following keys:
+                - ``types``, a dict of custom types (may include a ``EIP712Domain`` key)
+                - ``primaryType``, (optional) a string of the primary type of the message
+                - ``domain``, a dict of the EIP-712 domain data
+                - ``message``, a dict of the data to be signed
+
+        .. WARNING:: Note that this code has not gone through an external audit, and
+            the test cases are incomplete.
+
+        See documentation for :meth:`~eth_account.messages.encode_typed_data` for usage details
+
+        See the `EIP-712 spec <https://eips.ethereum.org/EIPS/eip-712>`_ for more information.
+
+        .. doctest:: python
+
+            >>> # examples of basic usage
+            >>> from eth_account import Account
+            >>> # 3-argument usage
+
+            >>> # all domain properties are optional
+            >>> domain_data = {
+            ...     "name": "Ether Mail",
+            ...     "version": "1",
+            ...     "chainId": 1,
+            ...     "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+            ...     "salt": b"decafbeef",
+            ... }
+            >>> # custom types
+            >>> message_types = {
+            ...     "Person": [
+            ...         {"name": "name", "type": "string"},
+            ...         {"name": "wallet", "type": "address"},
+            ...     ],
+            ...     "Mail": [
+            ...         {"name": "from", "type": "Person"},
+            ...         {"name": "to", "type": "Person"},
+            ...         {"name": "contents", "type": "string"},
+            ...     ],
+            ... }
+            >>> # the data to be signed
+            >>> message_data = {
+            ...     "from": {
+            ...         "name": "Cow",
+            ...         "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+            ...     },
+            ...     "to": {
+            ...         "name": "Bob",
+            ...         "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+            ...     },
+            ...     "contents": "Hello, Bob!",
+            ... }
+            >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            >>> signed_message = Account.sign_typed_data(key, domain_data, message_types, message_data)
+            >>> signed_message.messageHash
+            HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
+
+            >>> # 1-argument usage
+
+            >>> # all domain properties are optional
+            >>> full_message = {
+            ...     "types": {
+            ...         "EIP712Domain": [
+            ...             {"name": "name", "type": "string"},
+            ...             {"name": "version", "type": "string"},
+            ...             {"name": "chainId", "type": "uint256"},
+            ...             {"name": "verifyingContract", "type": "address"},
+            ...             {"name": "salt", "type": "bytes32"},
+            ...         ],
+            ...         "Person": [
+            ...             {"name": "name", "type": "string"},
+            ...             {"name": "wallet", "type": "address"},
+            ...         ],
+            ...         "Mail": [
+            ...             {"name": "from", "type": "Person"},
+            ...             {"name": "to", "type": "Person"},
+            ...             {"name": "contents", "type": "string"},
+            ...         ],
+            ...     },
+            ...     "primaryType": "Mail",
+            ...     "domain": {
+            ...         "name": "Ether Mail",
+            ...         "version": "1",
+            ...         "chainId": 1,
+            ...         "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+            ...         "salt": b"decafbeef"
+            ...     },
+            ...     "message": {
+            ...         "from": {
+            ...             "name": "Cow",
+            ...             "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            ...         },
+            ...         "to": {
+            ...             "name": "Bob",
+            ...             "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+            ...         },
+            ...         "contents": "Hello, Bob!",
+            ...     },
+            ... }
+            >>> signed_message_2 = Account.sign_typed_data(key, full_message=full_message)
+            >>> signed_message_2.messageHash
+            HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
+            >>> signed_message_2 == signed_message
+            True
+
+        .. _EIP-712: https://eips.ethereum.org/EIPS/eip-712
+        """  # noqa: E501
+        signable_message = encode_typed_data(
+            domain_data,
+            message_types,
+            message_data,
+            full_message,
+        )
+        message_hash = _hash_eip191_message(signable_message)
+        return cast(SignedMessage, self._sign_hash(message_hash, private_key))

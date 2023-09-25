@@ -1,5 +1,6 @@
 # coding=utf-8
 
+import json
 import os
 
 from cytoolz import (
@@ -33,7 +34,11 @@ from eth_account.messages import (
     defunct_hash_message,
     encode_defunct,
     encode_intended_validator,
+    encode_typed_data,
 )
+
+with open("tests/eip712_messages/valid.json") as f:
+    VALID_EIP712_MESSAGES = json.load(f)
 
 # from https://github.com/ethereum/tests/blob/3930ca3a9a377107d5792b3e7202f79c688f1a67/BasicTests/txtest.json # noqa: 501
 ETH_TEST_TRANSACTIONS = [
@@ -818,3 +823,107 @@ def test_eth_account_prepared_encrypt(
 
     assert isinstance(decrypted_key, HexBytes)
     assert decrypted_key == expected_decrypted_key
+
+
+@pytest.mark.parametrize("test_case", VALID_EIP712_MESSAGES)
+def test_sign_typed_data_produces_same_result_as_encode_plus_sign(acct, test_case):
+    test_message = VALID_EIP712_MESSAGES[test_case]
+    encoded = encode_typed_data(full_message=test_message)
+    signed_encoded = acct.sign_message(encoded, PRIVATE_KEY_AS_HEXSTR)
+    assert (
+        acct.sign_typed_data(PRIVATE_KEY_AS_HEXSTR, full_message=test_message)
+        == signed_encoded
+    )
+
+
+@pytest.mark.parametrize(
+    "domain_data, message_types, message_data, expected_sig",
+    (
+        (
+            {
+                "name": "Ether Mail",
+                "version": "1",
+                "chainId": 1,
+                "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+            },
+            {
+                "Person": [
+                    {"name": "name", "type": "string"},
+                    {"name": "wallet", "type": "address"},
+                ],
+                "Mail": [
+                    {"name": "from", "type": "Person"},
+                    {"name": "to", "type": "Person"},
+                    {"name": "contents", "type": "string"},
+                ],
+            },
+            {
+                "from": {
+                    "name": "Cow",
+                    "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+                },
+                "to": {
+                    "name": "Bob",
+                    "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+                },
+                "contents": "Hello, Bob!",
+            },
+            HexBytes(
+                "0x33600224dbc5a598b7c443b0cc9241b4b12ea10441244cc058442b31065b37232258c5d0b55f22362b1fa97d5c7fca4f40bfc1545417d974a22dfd4a8ac2de8b1b"  # noqa: E501
+            ),
+        ),
+        (
+            {
+                "name": "Ether Mail",
+                "version": "1",
+                "chainId": 1,
+                "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
+            },
+            {
+                "Person": [
+                    {"name": "name", "type": "string"},
+                    {"name": "wallet", "type": "address"},
+                ],
+                "Mail": [
+                    {"name": "from", "type": "Person"},
+                    {"name": "to", "type": "Person"},
+                    {"name": "cc", "type": "Person[]"},
+                    {"name": "contents", "type": "string"},
+                ],
+            },
+            {
+                "from": {
+                    "name": "Cow",
+                    "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
+                },
+                "to": {
+                    "name": "Bob",
+                    "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
+                },
+                "cc": [
+                    {
+                        "name": "Alice",
+                        "wallet": "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+                    },
+                    {
+                        "name": "Dot",
+                        "wallet": "0xdddddddddddddddddddddddddddddddddddddddd",
+                    },
+                ],
+                "contents": "Hello, Bob!",
+            },
+            HexBytes(
+                "0xfcd28bfd425a26215d645481af446895f761b16896ac007c86433136ad9bb5c815ccdef9a6947396be54e92955c5c707ce65099d0371b4488143264675f5e18b1c"  # noqa: E501
+            ),
+        ),
+    ),
+)
+def test_sign_typed_data_produces_expected_hash(
+    acct, domain_data, message_types, message_data, expected_sig
+):
+    assert (
+        acct.sign_typed_data(
+            PRIVATE_KEY_AS_HEXSTR, domain_data, message_types, message_data
+        ).signature
+        == expected_sig
+    )
