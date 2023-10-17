@@ -44,8 +44,8 @@ To run the integration test cases, you need to install node and the custom cli t
 
 ```sh
 apt-get install -y nodejs  # As sudo
-./tests/integration/ethers-cli/setup_node_v20.sh  # As sudo
-cd tests/integration/ethers-cli
+./tests/integration/js-integration-test-scripts/setup_node_v20.sh  # As sudo
+cd tests/integration/js-integration-test-scripts
 npm install -g .  # As sudo
 ```
 

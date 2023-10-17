@@ -88,10 +88,10 @@ integration: &integration
           python -m pip install tox
     - run:
         name: install dependencies (node)
-        command: sudo -E bash tests/integration/ethers-cli/setup_node_v20.sh && sudo apt-get install -y nodejs
+        command: sudo -E bash tests/integration/js-integration-test-scripts/setup_node_v20.sh && sudo apt-get install -y nodejs
     - run:
-        name: Build ethers-cli
-        command: cd tests/integration/ethers-cli && sudo npm install && sudo npm install -g . && cd ../../../
+        name: Build js-integration-test-scripts
+        command: cd tests/integration/js-integration-test-scripts && sudo npm install && sudo npm install -g . && cd ../../../
     - run:
         name: run tox
         command: python -m tox run -r
@@ -102,7 +102,7 @@ integration: &integration
           - ~/.cache/pip
           - ~/.local
           - ./eggs
-          - tests/integration/ethers-cli/node_modules
+          - tests/integration/js-integration-test-scripts/node_modules
         key: cache-v1-{{ arch }}-{{ .Environment.CIRCLE_JOB }}-{{ checksum "setup.py" }}-{{ checksum "tox.ini" }}
 
 jobs:
