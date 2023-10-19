@@ -231,7 +231,7 @@ def hash_domain(domain_data: Dict[str, Any]) -> bytes:
 
     domain_types = {
         "EIP712Domain": [
-            eip712_domain_map[k] for k in domain_data.keys() if k in domain_data
+            eip712_domain_map[k] for k in eip712_domain_map.keys() if k in domain_data
         ]
     }
 

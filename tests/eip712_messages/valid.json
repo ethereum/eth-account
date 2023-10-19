@@ -466,10 +466,10 @@
     },
     "valid_issue_201_with_array": {
         "domain": {
-            "chainId": 1,
             "name": "Test",
-            "verifyingContract": "0x0000000000000000000000000000000000000000",
-            "version": "1"
+            "version": "1",
+            "chainId": 1,
+            "verifyingContract": "0x0000000000000000000000000000000000000000"
         },
         "message": {
             "name": [
@@ -1033,10 +1033,10 @@
     },
     "valid_issue_201_no_array": {
         "domain": {
-            "chainId": 1,
             "name": "Test",
+            "version": "1",
             "verifyingContract": "0x0000000000000000000000000000000000000000",
-            "version": "1"
+            "chainId": 1
         },
         "message": {
             "name": "0xAb8483F64d9C6d1EcF9b849Ae677dD3315835cb2"
