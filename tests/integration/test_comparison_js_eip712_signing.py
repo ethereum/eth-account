@@ -7,24 +7,38 @@ from eth_account import (
     Account,
 )
 from eth_account.messages import (
-    encode_structured_data,
     encode_typed_data,
 )
 
 TEST_KEY = "756e69636f726e73756e69636f726e73756e69636f726e73756e69636f726e73"
+py_account = Account.from_key(TEST_KEY)
 
-with open("tests/eip712_messages/valid.json") as f:
+with open("tests/eip712_messages/valid_for_all.json") as f:
     valid_messages = json.load(f)
 
 
+with open("tests/eip712_messages/valid_py_and_ethers.json") as f:
+    valid_py_and_ethers = json.load(f)
+
+
+with open("tests/eip712_messages/valid_py_and_metamask.json") as f:
+    valid_py_and_metamask = json.load(f)
+
+
+def convert_to_3_arg(message):
+    domain_data = message["domain"]
+    message_types = message["types"]
+    message_types.pop("EIP712Domain", None)
+    message_data = message["message"]
+    return domain_data, message_types, message_data
 
 
 @pytest.mark.compatibility
 @pytest.mark.parametrize("message_title", valid_messages)
-def test_js_eip712_message_signing_matches_eth_account_sign_typed_data(message_title):
+def test_messages_where_all_3_sigs_match(message_title):
     message = valid_messages[message_title]
-
     message_stringify = json.dumps(message)
+
     # get ethers signature
     ethers_sig = subprocess.run(
         [
@@ -37,7 +51,54 @@ def test_js_eip712_message_signing_matches_eth_account_sign_typed_data(message_t
     )
     ethers_sig = ethers_sig.stdout.decode("utf-8").strip()
 
-    # breakpoint()
+    # get metamask signature
+    metamask_sig = subprocess.run(
+        [
+            "node",
+            "tests/integration/js-integration-test-scripts/sign-eip712-with-metamask",
+            message_stringify,
+            TEST_KEY,
+        ],
+        capture_output=True,
+    )
+    metamask_sig = metamask_sig.stdout.decode("utf-8").strip()
+
+    try:
+        signable_1 = encode_typed_data(full_message=message)
+        py_signed_1 = py_account.sign_message(signable_1)
+        py_one_arg = py_signed_1.signature.hex()
+    except Exception as e:
+        print(e)
+        py_one_arg = "py_one_arg signing failed"
+
+    try:
+        signable_3 = encode_typed_data(*convert_to_3_arg(message))
+        py_signed_3 = py_account.sign_message(signable_3)
+        py_three_arg = py_signed_3.signature.hex()
+    except Exception as e:
+        print(e)
+        py_three_arg = "py_three_arg signing failed"
+
+    assert py_one_arg == py_three_arg == ethers_sig == metamask_sig
+
+
+@pytest.mark.compatibility
+@pytest.mark.parametrize("message_title", valid_py_and_ethers)
+def test_messages_where_eth_account_matches_ethers_but_not_metamask(message_title):
+    message = valid_py_and_ethers[message_title]
+    message_stringify = json.dumps(message)
+
+    # get ethers signature
+    ethers_sig = subprocess.run(
+        [
+            "node",
+            "tests/integration/js-integration-test-scripts/sign-eip712-with-ethers",
+            message_stringify,
+            TEST_KEY,
+        ],
+        capture_output=True,
+    )
+    ethers_sig = ethers_sig.stdout.decode("utf-8").strip()
 
     # get metamask signature
     metamask_sig = subprocess.run(
@@ -50,61 +111,72 @@ def test_js_eip712_message_signing_matches_eth_account_sign_typed_data(message_t
         capture_output=True,
     )
     metamask_sig = metamask_sig.stdout.decode("utf-8").strip()
-    
-    
-    fresh_account = Account.from_key(TEST_KEY)
 
     try:
-        signable_1 = encode_structured_data(message)
-        py_signed_1 = fresh_account.sign_message(signable_1)
-        py_old_sig = py_signed_1.signature.hex()
+        signable_1 = encode_typed_data(full_message=message)
+        py_signed_1 = py_account.sign_message(signable_1)
+        py_one_arg = py_signed_1.signature.hex()
     except Exception as e:
         print(e)
-        py_old_sig = "web3py_old signing failed"
+        py_one_arg = "py_one_arg signing failed"
 
-    fresh_account = Account.from_key(TEST_KEY)
-    try:
-        signable_2 = encode_typed_data(full_message=message)
-        py_signed_2 = fresh_account.sign_message(signable_2)
-        py_new_one_arg = py_signed_2.signature.hex()
-    except Exception as e:
-        print(e)
-        py_new_one_arg = "web3py_new_one_arg signing failed"
-
-    def convert_to_3_arg(message):
-        domain_data = message["domain"]
-        message_types = message["types"]
-        message_types.pop("EIP712Domain")
-        message_data = message["message"]
-        return domain_data, message_types, message_data
-
-    fresh_account = Account.from_key(TEST_KEY)
     try:
         signable_3 = encode_typed_data(*convert_to_3_arg(message))
-        py_signed_3 = fresh_account.sign_message(signable_3)
-        py_new_three_arg = py_signed_3.signature.hex()
+        py_signed_3 = py_account.sign_message(signable_3)
+        py_three_arg = py_signed_3.signature.hex()
     except Exception as e:
         print(e)
-        py_new_three_arg = "web3py_new_three_arg signing failed"
-        
-    # if message_title == "valid_issue_201_with_array":
-    #     breakpoint()
+        py_three_arg = "py_three_arg signing failed"
 
-    assert py_new_one_arg == py_new_three_arg == ethers_sig == metamask_sig
+    assert py_one_arg == py_three_arg == ethers_sig
+    assert py_one_arg != metamask_sig
 
-    # if (
-    #     py_old_sig
-    #     == ethers_sig
-    #     == metamask_sig
-    #     == py_new_one_arg
-    #     == py_new_three_arg
-    # ):
-    #     print(py_old_sig)
-    #     print("all sigs match")
-    # else:
-    #     print("sigs do not match")
-    #     print(f"web3py_old: {py_old_sig}")
-    #     print(f"web3py_new_one_arg: {py_new_one_arg}")
-    #     print(f"web3py_new_three_arg: {py_new_three_arg}")
-    #     print(f"ethers: {ethers_sig}")
-    #     print(f"metamask: {metamask_sig}")
+
+@pytest.mark.compatibility
+@pytest.mark.parametrize("message_title", valid_py_and_metamask)
+def test_messages_where_eth_account_matches_metamask_but_not_ethers(message_title):
+    message = valid_py_and_metamask[message_title]
+    message_stringify = json.dumps(message)
+
+    # get ethers signature
+    ethers_sig = subprocess.run(
+        [
+            "node",
+            "tests/integration/js-integration-test-scripts/sign-eip712-with-ethers",
+            message_stringify,
+            TEST_KEY,
+        ],
+        capture_output=True,
+    )
+    ethers_sig = ethers_sig.stdout.decode("utf-8").strip()
+
+    # get metamask signature
+    metamask_sig = subprocess.run(
+        [
+            "node",
+            "tests/integration/js-integration-test-scripts/sign-eip712-with-metamask",
+            message_stringify,
+            TEST_KEY,
+        ],
+        capture_output=True,
+    )
+    metamask_sig = metamask_sig.stdout.decode("utf-8").strip()
+
+    try:
+        signable_1 = encode_typed_data(full_message=message)
+        py_signed_1 = py_account.sign_message(signable_1)
+        py_one_arg = py_signed_1.signature.hex()
+    except Exception as e:
+        print(e)
+        py_one_arg = "py_one_arg signing failed"
+
+    try:
+        signable_3 = encode_typed_data(*convert_to_3_arg(message))
+        py_signed_3 = py_account.sign_message(signable_3)
+        py_three_arg = py_signed_3.signature.hex()
+    except Exception as e:
+        print(e)
+        py_three_arg = "py_three_arg signing failed"
+
+    assert py_one_arg == py_three_arg == metamask_sig
+    assert py_one_arg != ethers_sig

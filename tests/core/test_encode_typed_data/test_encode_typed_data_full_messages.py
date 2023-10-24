@@ -17,6 +17,7 @@ def load_file(file_name):
 
 
 valid = load_file("valid.json")
+valid_py_and_ethers = load_file("valid_py_and_ethers.json")
 invalid = load_file("invalid.json")
 one_arg_invalid = load_file("one_arg_invalid.json")
 
@@ -40,6 +41,13 @@ def test_valid_messages(message):
     assert encode_typed_data(full_message=valid[message]) == encode_typed_data(
         *convert_to_3_arg(valid[message])
     )
+
+
+@pytest.mark.parametrize("message", valid_py_and_ethers)
+def test_valid_py_and_ethers_messages(message):
+    assert encode_typed_data(
+        full_message=valid_py_and_ethers[message]
+    ) == encode_typed_data(*convert_to_3_arg(valid_py_and_ethers[message]))
 
 
 @pytest.mark.parametrize("message", invalid)
