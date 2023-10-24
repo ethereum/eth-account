@@ -16,7 +16,17 @@ def load_file(file_name):
         return json.load(f)
 
 
-valid = load_file("valid.json")
+def merge_dicts(*dict_args):
+    result = {}
+    for dictionary in dict_args:
+        result.update(dictionary)
+    return result
+
+
+valid_for_all = load_file("valid_for_all.json")
+valid_py_and_ethers = load_file("valid_py_and_ethers.json")
+valid_py_and_metamask = load_file("valid_py_and_metamask.json")
+valid = merge_dicts(valid_for_all, valid_py_and_ethers, valid_py_and_metamask)
 valid_py_and_ethers = load_file("valid_py_and_ethers.json")
 invalid = load_file("invalid.json")
 one_arg_invalid = load_file("one_arg_invalid.json")
