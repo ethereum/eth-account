@@ -39,7 +39,6 @@ def test_messages_where_all_3_sigs_match(message_title):
     message = valid_messages[message_title]
     message_stringify = json.dumps(message)
 
-    # get ethers signature
     ethers_sig = subprocess.run(
         [
             "node",
@@ -51,7 +50,6 @@ def test_messages_where_all_3_sigs_match(message_title):
     )
     ethers_sig = ethers_sig.stdout.decode("utf-8").strip()
 
-    # get metamask signature
     metamask_sig = subprocess.run(
         [
             "node",
@@ -88,7 +86,6 @@ def test_messages_where_eth_account_matches_ethers_but_not_metamask(message_titl
     message = valid_py_and_ethers[message_title]
     message_stringify = json.dumps(message)
 
-    # get ethers signature
     ethers_sig = subprocess.run(
         [
             "node",
@@ -100,7 +97,6 @@ def test_messages_where_eth_account_matches_ethers_but_not_metamask(message_titl
     )
     ethers_sig = ethers_sig.stdout.decode("utf-8").strip()
 
-    # get metamask signature
     metamask_sig = subprocess.run(
         [
             "node",
@@ -138,7 +134,6 @@ def test_messages_where_eth_account_matches_metamask_but_not_ethers(message_titl
     message = valid_py_and_metamask[message_title]
     message_stringify = json.dumps(message)
 
-    # get ethers signature
     ethers_sig = subprocess.run(
         [
             "node",
@@ -150,7 +145,6 @@ def test_messages_where_eth_account_matches_metamask_but_not_ethers(message_titl
     )
     ethers_sig = ethers_sig.stdout.decode("utf-8").strip()
 
-    # get metamask signature
     metamask_sig = subprocess.run(
         [
             "node",

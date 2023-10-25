@@ -38,25 +38,20 @@ from eth_account.messages import (
 )
 
 
-def merge_dicts(*dict_args):
-    result = {}
-    for dictionary in dict_args:
-        result.update(dictionary)
-    return result
+def load_file(file_name):
+    with open(os.path.join("tests/eip712_messages", file_name), "r") as f:
+        return json.load(f)
 
 
-with open("tests/eip712_messages/valid_for_all.json") as f:
-    valid_for_all = json.load(f)
+valid_for_all = load_file("valid_for_all.json")
+valid_py_and_ethers = load_file("valid_py_and_ethers.json")
+valid_py_and_metamask = load_file("valid_py_and_metamask.json")
 
-with open("tests/eip712_messages/valid_py_and_ethers.json") as f:
-    valid_py_and_ethers = json.load(f)
-
-with open("tests/eip712_messages/valid_py_and_metamask.json") as f:
-    valid_py_and_metamask = json.load(f)
-
-VALID_EIP712_MESSAGES = merge_dicts(
-    valid_for_all, valid_py_and_ethers, valid_py_and_metamask
-)
+VALID_EIP712_MESSAGES = {
+    **valid_for_all,
+    **valid_py_and_ethers,
+    **valid_py_and_metamask,
+}
 
 # from https://github.com/ethereum/tests/blob/3930ca3a9a377107d5792b3e7202f79c688f1a67/BasicTests/txtest.json # noqa: 501
 ETH_TEST_TRANSACTIONS = [
