@@ -63,7 +63,7 @@
             "contents": "Hello, Bob!"
         }
     },
-    "valid_missing_eip712_type_metamask_encodes_differently": {
+    "valid_missing_eip712_type_metamask_ignores_domain_data_if_domain_types_not_present": {
         "types": {
             "Person": [
                 {

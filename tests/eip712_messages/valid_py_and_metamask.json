@@ -1,5 +1,5 @@
 {
-    "valid_int_value_for_string_type_ethers_encodes_differently": {
+    "valid_int_value_for_string_type_ethers_handles_mismatched_type_and_value_differently": {
         "types": {
             "EIP712Domain": [
                 {
