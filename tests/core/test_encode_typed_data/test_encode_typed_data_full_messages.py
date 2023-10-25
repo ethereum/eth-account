@@ -1,5 +1,4 @@
 import json
-import os
 
 from eth_utils import (
     ValidationError,
@@ -9,41 +8,27 @@ import pytest
 from eth_account.messages import (
     encode_typed_data,
 )
+from tests.eip712_messages import (
+    ALL_VALID_EIP712_MESSAGES,
+    INVALID,
+    ONE_ARG_INVALID,
+    convert_to_3_arg,
+)
 
 
-def load_file(file_name):
-    with open(os.path.join("tests/eip712_messages", file_name), "r") as f:
-        return json.load(f)
-
-
-valid_for_all = load_file("valid_for_all.json")
-valid_py_and_ethers = load_file("valid_py_and_ethers.json")
-valid_py_and_metamask = load_file("valid_py_and_metamask.json")
-
-VALID = {**valid_for_all, **valid_py_and_ethers, **valid_py_and_metamask}
-INVALID = load_file("invalid.json")
-ONE_ARG_INVALID = load_file("one_arg_invalid.json")
-
-
-def convert_to_3_arg(message):
-    domain_data = message["domain"]
-    message_types = message["types"]
-    message_types.pop("EIP712Domain", None)
-    message_data = message["message"]
-    return domain_data, message_types, message_data
-
-
-@pytest.mark.parametrize("test_cases", (VALID, INVALID, ONE_ARG_INVALID))
+@pytest.mark.parametrize(
+    "test_cases", (ALL_VALID_EIP712_MESSAGES, INVALID, ONE_ARG_INVALID)
+)
 def test_there_are_no_duplicate_test_cases(test_cases):
     string_test_cases = [json.dumps(msg, sort_keys=True) for msg in test_cases.values()]
     assert len(string_test_cases) == len(set(string_test_cases))
 
 
-@pytest.mark.parametrize("message", VALID)
+@pytest.mark.parametrize("message", ALL_VALID_EIP712_MESSAGES)
 def test_valid_messages(message):
-    assert encode_typed_data(full_message=VALID[message]) == encode_typed_data(
-        *convert_to_3_arg(VALID[message])
-    )
+    assert encode_typed_data(
+        full_message=ALL_VALID_EIP712_MESSAGES[message]
+    ) == encode_typed_data(*convert_to_3_arg(ALL_VALID_EIP712_MESSAGES[message]))
 
 
 @pytest.mark.parametrize("message", INVALID)
