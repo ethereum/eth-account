@@ -1,6 +1,5 @@
 # coding=utf-8
 
-import json
 import os
 
 from cytoolz import (
@@ -36,9 +35,9 @@ from eth_account.messages import (
     encode_intended_validator,
     encode_typed_data,
 )
-
-with open("tests/eip712_messages/valid.json") as f:
-    VALID_EIP712_MESSAGES = json.load(f)
+from tests.eip712_messages import (
+    ALL_VALID_EIP712_MESSAGES,
+)
 
 # from https://github.com/ethereum/tests/blob/3930ca3a9a377107d5792b3e7202f79c688f1a67/BasicTests/txtest.json # noqa: 501
 ETH_TEST_TRANSACTIONS = [
@@ -825,9 +824,9 @@ def test_eth_account_prepared_encrypt(
     assert decrypted_key == expected_decrypted_key
 
 
-@pytest.mark.parametrize("test_case", VALID_EIP712_MESSAGES)
+@pytest.mark.parametrize("test_case", ALL_VALID_EIP712_MESSAGES)
 def test_sign_typed_data_produces_same_result_as_encode_plus_sign(acct, test_case):
-    test_message = VALID_EIP712_MESSAGES[test_case]
+    test_message = ALL_VALID_EIP712_MESSAGES[test_case]
     encoded = encode_typed_data(full_message=test_message)
     signed_encoded = acct.sign_message(encoded, PRIVATE_KEY_AS_HEXSTR)
     assert (

@@ -1,0 +1,20 @@
+{
+  "name": "js-scripts",
+  "version": "1.0.0",
+  "description": "",
+  "bin": {
+    "ethers-mnemonic-fuzzing": "./ethers-mnemonic-fuzzing.js",
+    "sign-eip712-with-metamask": "./sign-eip712-with-metamask.js",
+    "sign-eip712-with-ethers": "./sign-eip712-with-ethers.js"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@metamask/eth-sig-util": "^7.0.0",
+    "ethers": "^6.8.0",
+    "yargs": "^17.7.2"
+  }
+}
