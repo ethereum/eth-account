@@ -20,33 +20,27 @@ TEST_KEY = "756e69636f726e73756e69636f726e73756e69636f726e73756e69636f726e73"
 py_account = Account.from_key(TEST_KEY)
 
 
+def get_js_sig(message, library):
+    message_stringify = json.dumps(message)
+    sig = subprocess.run(
+        [
+            "node",
+            f"tests/integration/js-scripts/sign-eip712-with-{library}",
+            message_stringify,
+            TEST_KEY,
+        ],
+        capture_output=True,
+    )
+    return sig.stdout.decode("utf-8").strip()
+
+
 @pytest.mark.compatibility
 @pytest.mark.parametrize("message_title", VALID_FOR_ALL)
 def test_messages_where_all_3_sigs_match(message_title):
     message = VALID_FOR_ALL[message_title]
-    message_stringify = json.dumps(message)
 
-    ethers_sig = subprocess.run(
-        [
-            "node",
-            "tests/integration/js-integration-test-scripts/sign-eip712-with-ethers",
-            message_stringify,
-            TEST_KEY,
-        ],
-        capture_output=True,
-    )
-    ethers_sig = ethers_sig.stdout.decode("utf-8").strip()
-
-    metamask_sig = subprocess.run(
-        [
-            "node",
-            "tests/integration/js-integration-test-scripts/sign-eip712-with-metamask",
-            message_stringify,
-            TEST_KEY,
-        ],
-        capture_output=True,
-    )
-    metamask_sig = metamask_sig.stdout.decode("utf-8").strip()
+    ethers_sig = get_js_sig(message, "ethers")
+    metamask_sig = get_js_sig(message, "metamask")
 
     try:
         signable_1 = encode_typed_data(full_message=message)
@@ -69,29 +63,9 @@ def test_messages_where_all_3_sigs_match(message_title):
 @pytest.mark.parametrize("message_title", VALID_FOR_PY_AND_ETHERS)
 def test_messages_where_eth_account_matches_ethers_but_not_metamask(message_title):
     message = VALID_FOR_PY_AND_ETHERS[message_title]
-    message_stringify = json.dumps(message)
 
-    ethers_sig = subprocess.run(
-        [
-            "node",
-            "tests/integration/js-integration-test-scripts/sign-eip712-with-ethers",
-            message_stringify,
-            TEST_KEY,
-        ],
-        capture_output=True,
-    )
-    ethers_sig = ethers_sig.stdout.decode("utf-8").strip()
-
-    metamask_sig = subprocess.run(
-        [
-            "node",
-            "tests/integration/js-integration-test-scripts/sign-eip712-with-metamask",
-            message_stringify,
-            TEST_KEY,
-        ],
-        capture_output=True,
-    )
-    metamask_sig = metamask_sig.stdout.decode("utf-8").strip()
+    ethers_sig = get_js_sig(message, "ethers")
+    metamask_sig = get_js_sig(message, "metamask")
 
     try:
         signable_1 = encode_typed_data(full_message=message)
@@ -115,29 +89,9 @@ def test_messages_where_eth_account_matches_ethers_but_not_metamask(message_titl
 @pytest.mark.parametrize("message_title", VALID_FOR_PY_AND_METAMASK)
 def test_messages_where_eth_account_matches_metamask_but_not_ethers(message_title):
     message = VALID_FOR_PY_AND_METAMASK[message_title]
-    message_stringify = json.dumps(message)
 
-    ethers_sig = subprocess.run(
-        [
-            "node",
-            "tests/integration/js-integration-test-scripts/sign-eip712-with-ethers",
-            message_stringify,
-            TEST_KEY,
-        ],
-        capture_output=True,
-    )
-    ethers_sig = ethers_sig.stdout.decode("utf-8").strip()
-
-    metamask_sig = subprocess.run(
-        [
-            "node",
-            "tests/integration/js-integration-test-scripts/sign-eip712-with-metamask",
-            message_stringify,
-            TEST_KEY,
-        ],
-        capture_output=True,
-    )
-    metamask_sig = metamask_sig.stdout.decode("utf-8").strip()
+    ethers_sig = get_js_sig(message, "ethers")
+    metamask_sig = get_js_sig(message, "metamask")
 
     try:
         signable_1 = encode_typed_data(full_message=message)

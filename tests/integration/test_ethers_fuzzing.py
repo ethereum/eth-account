@@ -39,11 +39,11 @@ path_st = (
 def test_compatibility(seed, language, account_path):
     mnemonic = Mnemonic(language).to_mnemonic(seed)
     acct = Account.from_mnemonic(mnemonic, account_path=account_path)
-    # NOTE Must do `cd tests/integration/js-integration-test-scripts && npm install -g .
+    # NOTE Must do `cd tests/integration/js-scripts && npm install -g .
     ethers_cli = subprocess.run(
         [
             "node",
-            "tests/integration/js-integration-test-scripts/ethers-mnemonic-fuzzing",
+            "tests/integration/js-scripts/ethers-mnemonic-fuzzing",
             "-m",
             mnemonic,
             "-l",
