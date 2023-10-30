@@ -1,1 +1,0 @@
-Add ``sign_typed_data`` as a method of the ``Account`` class

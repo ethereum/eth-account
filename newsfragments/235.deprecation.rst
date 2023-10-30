@@ -1,1 +1,0 @@
-Deprecate ``encode_structured_data`` in favor of new ``encode_typed_data``

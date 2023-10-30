@@ -1,1 +1,0 @@
-Add new ``encode_typed_data`` to better handle EIP712 message signing

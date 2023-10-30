@@ -1,1 +1,0 @@
-Added option to call ``encode_typed_data`` with a single dict arg in addition to the existing 3-dict style

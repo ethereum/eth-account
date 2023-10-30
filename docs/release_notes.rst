@@ -3,6 +3,39 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.10.0 (2023-10-30)
+--------------------------------
+
+Deprecations
+~~~~~~~~~~~~
+
+- Deprecate ``encode_structured_data`` in favor of new ``encode_typed_data`` (`#235 <https://github.com/ethereum/eth-account/issues/235>`__)
+
+
+Improved Documentation
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Added usage notes and example for ``encode_structured_data`` (`#233 <https://github.com/ethereum/eth-account/issues/233>`__)
+
+
+Features
+~~~~~~~~
+
+- Add new ``encode_typed_data`` to better handle EIP712 message signing (`#235 <https://github.com/ethereum/eth-account/issues/235>`__)
+- Added option to call ``encode_typed_data`` with a single dict arg in addition to the existing 3-dict style (`#238 <https://github.com/ethereum/eth-account/issues/238>`__)
+- Add ``sign_typed_data`` as a method of the ``Account`` class (`#239 <https://github.com/ethereum/eth-account/issues/239>`__)
+
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Added tests for ``encode_structured_data`` for easier comparison with Metamask's SignTypedData (`#233 <https://github.com/ethereum/eth-account/issues/233>`__)
+- Bump version for node and ethers.js in integration tests, update ethers usage to match (`#236 <https://github.com/ethereum/eth-account/issues/236>`__)
+- Add ``build.os`` to readthedocs settings (`#237 <https://github.com/ethereum/eth-account/issues/237>`__)
+- Add upper pin to ``hexbytes`` dependency to due incoming breaking change (`#240 <https://github.com/ethereum/eth-account/issues/240>`__)
+- Add tests comparing output of signed EIP712 messages with metamask and ethers (`#241 <https://github.com/ethereum/eth-account/issues/241>`__)
+
+
 eth-account v0.9.0 (2023-06-07)
 -------------------------------
 

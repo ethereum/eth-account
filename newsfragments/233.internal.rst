@@ -1,1 +1,0 @@
-Added tests for ``encode_structured_data`` for easier comparison with Metamask's SignTypedData
