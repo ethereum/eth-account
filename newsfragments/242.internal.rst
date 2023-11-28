@@ -1,0 +1,1 @@
+Set dependency ``hexbytes>=1.0.0`` due to breaking change there

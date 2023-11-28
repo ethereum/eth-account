@@ -66,7 +66,7 @@ setup(
         "eth-keys>=0.4.0",
         "eth-rlp>=0.3.0",
         "eth-utils>=2.0.0",
-        "hexbytes>=0.1.0,<0.4.0",
+        "hexbytes>=1.0.0",
         "rlp>=1.0.0",
     ],
     python_requires=">=3.7, <4",
