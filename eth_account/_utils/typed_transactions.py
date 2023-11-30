@@ -131,10 +131,10 @@ class TypedTransaction:
         """Should not be called directly. Use instead the 'from_dict' method."""
         if not isinstance(transaction, _TypedTransactionImplementation):
             raise TypeError(
-                "expected _TypedTransactionImplementation, got %s" % type(transaction)
+                f"expected _TypedTransactionImplementation, got {type(transaction)}"
             )
         if not isinstance(transaction_type, int):
-            raise TypeError("expected int, got %s" % type(transaction_type))
+            raise TypeError(f"expected int, got {type(transaction_type)}")
         self.transaction_type = transaction_type
         self.transaction = transaction
 
@@ -155,7 +155,7 @@ class TypedTransaction:
         elif transaction_type == DynamicFeeTransaction.transaction_type:
             transaction = DynamicFeeTransaction
         else:
-            raise TypeError("Unknown Transaction type: %s" % transaction_type)
+            raise TypeError(f"Unknown Transaction type: {transaction_type}")
         return cls(
             transaction_type=transaction_type,
             transaction=transaction.from_dict(dictionary),
@@ -165,7 +165,7 @@ class TypedTransaction:
     def from_bytes(cls, encoded_transaction: HexBytes) -> "TypedTransaction":
         """Builds a TypedTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
-            raise TypeError("expected Hexbytes, got %s" % type(encoded_transaction))
+            raise TypeError(f"expected Hexbytes, got {type(encoded_transaction)}")
         if not (len(encoded_transaction) > 0 and encoded_transaction[0] <= 0x7F):
             raise ValueError("unexpected input")
         transaction: Union["DynamicFeeTransaction", "AccessListTransaction"]
@@ -178,7 +178,7 @@ class TypedTransaction:
         else:
             # The only known transaction types should be explicit if/elif branches.
             raise TypeError(
-                "typed transaction has unknown type: %s" % encoded_transaction[0]
+                f"typed transaction has unknown type: {encoded_transaction[0]}"
             )
         return cls(
             transaction_type=transaction_type,
@@ -294,7 +294,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
             invalid = {
                 key: dictionary[key] for key, valid in valid_fields.items() if not valid
             }
-            raise TypeError("Transaction had invalid fields: %r" % invalid)
+            raise TypeError(f"Transaction had invalid fields: {repr(invalid)}")
 
     @classmethod
     def from_dict(cls, dictionary: Dict[str, Any]) -> "AccessListTransaction":
@@ -316,8 +316,8 @@ class AccessListTransaction(_TypedTransactionImplementation):
         transaction_type = sanitized_dictionary.pop("type")
         if transaction_type != cls.transaction_type:
             raise ValueError(
-                "expected transaction type %s, got %s"
-                % (cls.transaction_type, transaction_type),
+                f"expected transaction type {cls.transaction_type}, "
+                f"got {transaction_type}"
             )
         return cls(
             dictionary=sanitized_dictionary,
@@ -327,9 +327,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
     def from_bytes(cls, encoded_transaction: HexBytes) -> "AccessListTransaction":
         """Builds an AccesslistTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
-            raise TypeError(
-                "expected Hexbytes, got type: %s" % type(encoded_transaction)
-            )
+            raise TypeError(f"expected Hexbytes, got type: {type(encoded_transaction)}")
         if not (
             len(encoded_transaction) > 0
             and encoded_transaction[0] == cls.transaction_type
@@ -480,7 +478,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
             invalid = {
                 key: dictionary[key] for key, valid in valid_fields.items() if not valid
             }
-            raise TypeError("Transaction had invalid fields: %r" % invalid)
+            raise TypeError(f"Transaction had invalid fields: {repr(invalid)}")
 
     @classmethod
     def from_dict(cls, dictionary: Dict[str, Any]) -> "DynamicFeeTransaction":
@@ -502,8 +500,8 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         transaction_type = sanitized_dictionary.pop("type")
         if transaction_type != cls.transaction_type:
             raise ValueError(
-                "expected transaction type %s, got %s"
-                % (cls.transaction_type, transaction_type),
+                f"expected transaction type {cls.transaction_type}, "
+                f"got {transaction_type}"
             )
         return cls(
             dictionary=sanitized_dictionary,
@@ -513,9 +511,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
     def from_bytes(cls, encoded_transaction: HexBytes) -> "DynamicFeeTransaction":
         """Builds a DynamicFeeTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
-            raise TypeError(
-                "expected Hexbytes, got type: %s" % type(encoded_transaction)
-            )
+            raise TypeError(f"expected Hexbytes, got type: {type(encoded_transaction)}")
         if not (
             len(encoded_transaction) > 0
             and encoded_transaction[0] == cls.transaction_type

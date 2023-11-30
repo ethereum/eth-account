@@ -770,7 +770,7 @@ def test_eth_account_encrypt(
         assert encrypted["crypto"]["kdfparams"]["n"] == expected_iterations
     else:
         raise Exception(
-            "test must be upgraded to confirm iterations with kdf %s" % expected_kdf
+            f"test must be upgraded to confirm iterations with kdf {expected_kdf}"
         )
 
     decrypted_key = acct.decrypt(encrypted, password)
@@ -815,7 +815,7 @@ def test_eth_account_prepared_encrypt(
         assert encrypted["crypto"]["kdfparams"]["n"] == expected_iterations
     else:
         raise Exception(
-            "test must be upgraded to confirm iterations with kdf %s" % expected_kdf
+            f"test must be upgraded to confirm iterations with kdf {expected_kdf}"
         )
 
     decrypted_key = acct.decrypt(encrypted, password)
