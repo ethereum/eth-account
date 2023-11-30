@@ -1,0 +1,1 @@
+Remove deprecated ``signTransaction``, it has been replaced by ``sign_transaction``

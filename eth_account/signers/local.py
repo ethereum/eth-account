@@ -1,5 +1,3 @@
-import warnings
-
 from eth_account.signers.base import (
     BaseAccount,
 )
@@ -81,14 +79,6 @@ class LocalAccount(BaseAccount):
         private key argument.
         """
         return self._publicapi.sign_message(signable_message, private_key=self.key)
-
-    def signTransaction(self, transaction_dict):
-        warnings.warn(
-            "signTransaction is deprecated in favor of sign_transaction",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
-        return self.sign_transaction(transaction_dict)
 
     def sign_transaction(self, transaction_dict):
         return self._publicapi.sign_transaction(transaction_dict, self.key)
