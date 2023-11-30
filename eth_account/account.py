@@ -743,7 +743,7 @@ class Account:
         """  # noqa: E501
         if not isinstance(transaction_dict, Mapping):
             raise TypeError(
-                "transaction_dict must be dict-like, got %r" % transaction_dict
+                f"transaction_dict must be dict-like, got {repr(transaction_dict)}"
             )
 
         account = self.from_key(private_key)
@@ -754,11 +754,8 @@ class Account:
                 sanitized_transaction = dissoc(transaction_dict, "from")
             else:
                 raise TypeError(
-                    "from field must match key's %s, but it was %s"
-                    % (
-                        account.address,
-                        transaction_dict["from"],
-                    )
+                    f"from field must match key's {account.address}, but it was "
+                    f"{transaction_dict['from']}"
                 )
         else:
             sanitized_transaction = transaction_dict
@@ -802,7 +799,7 @@ class Account:
         except ValidationError as original_exception:
             raise ValueError(
                 "The private key must be exactly 32 bytes long, instead of "
-                "%d bytes." % len(key)
+                f"{len(key)} bytes."
             ) from original_exception
 
     @combomethod

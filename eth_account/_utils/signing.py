@@ -48,7 +48,7 @@ def sign_transaction_dict(eth_key, transaction_dict):
         (v, r, s) = eth_key.sign_msg_hash(transaction_hash).vrs
     else:
         # Cannot happen, but better for code to be defensive + self-documenting.
-        raise TypeError("unknown Transaction object: %s" % type(unsigned_transaction))
+        raise TypeError(f"unknown Transaction object: {type(unsigned_transaction)}")
 
     # serialize transaction with rlp
     encoded_transaction = encode_transaction(unsigned_transaction, vrs=(v, r, s))

@@ -98,13 +98,14 @@ def assert_valid_fields(transaction_dict):
     # check if any keys are missing
     missing_keys = REQUIRED_TRANSACTION_KEYS.difference(transaction_dict.keys())
     if missing_keys:
-        raise TypeError("Transaction must include these fields: %r" % missing_keys)
+        raise TypeError(f"Transaction must include these fields: {repr(missing_keys)}")
 
     # check if any extra keys were specified
     superfluous_keys = set(transaction_dict.keys()).difference(ALLOWED_TRANSACTION_KEYS)
     if superfluous_keys:
         raise TypeError(
-            "Transaction must not include unrecognized fields: %r" % superfluous_keys
+            "Transaction must not include unrecognized fields: "
+            f"{repr(superfluous_keys)}"
         )
 
     # check for valid types in each field
@@ -118,7 +119,7 @@ def assert_valid_fields(transaction_dict):
             for key, valid in valid_fields.items()
             if not valid
         }
-        raise TypeError("Transaction had invalid fields: %r" % invalid)
+        raise TypeError(f"Transaction had invalid fields: {repr(invalid)}")
 
 
 def chain_id_to_v(transaction_dict):

@@ -69,14 +69,11 @@ def field_identifier(field):
     Given a ``field`` of the format {'name': NAME, 'type': TYPE},
     this function converts it to ``TYPE NAME``
     """
-    return "{0} {1}".format(field["type"], field["name"])
+    return f"{field['type']} {field['name']}"
 
 
 def encode_struct(struct_name, struct_field_types):
-    return "{0}({1})".format(
-        struct_name,
-        ",".join(map(field_identifier, struct_field_types)),
-    )
+    return f"{struct_name}({','.join(map(field_identifier, struct_field_types))})"
 
 
 def encode_type(primary_type, types):
