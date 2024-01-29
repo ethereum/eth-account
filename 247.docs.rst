@@ -1,0 +1,1 @@
+Add ``encode_typed_data`` to list of functions that return a ``SignableMessage``
