@@ -1,5 +1,3 @@
-# coding=utf-8
-
 import os
 
 from cytoolz import (
@@ -755,7 +753,7 @@ def test_eth_account_encrypt(
     else:
         encrypted = acct.encrypt(private_key, password, kdf=kdf, iterations=iterations)
 
-    assert encrypted["address"] == "2c7536e3605d9c16a7a3d7b1898e529396a65c23"
+    assert encrypted["address"] == "2c7536E3605D9C16a7a3D7b1898e529396a65c23"
     assert encrypted["version"] == 3
     assert encrypted["crypto"]["kdf"] == expected_kdf
 
@@ -800,7 +798,7 @@ def test_eth_account_prepared_encrypt(
     else:
         encrypted = account.encrypt(password, kdf=kdf, iterations=iterations)
 
-    assert encrypted["address"] == "2c7536e3605d9c16a7a3d7b1898e529396a65c23"
+    assert encrypted["address"] == "2c7536E3605D9C16a7a3D7b1898e529396a65c23"
     assert encrypted["version"] == 3
     assert encrypted["crypto"]["kdf"] == expected_kdf
 

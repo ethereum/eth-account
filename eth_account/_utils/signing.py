@@ -93,7 +93,9 @@ def extract_chain_id(raw_v):
         elif raw_v in {27, 28}:
             return (None, raw_v)
         else:
-            raise ValueError("v %r is invalid, must be one of: 0, 1, 27, 28, 35+")
+            raise ValueError(
+                f"v {repr(raw_v)} is invalid, must be one of: 0, 1, 27, 28, 35+"
+            )
     else:
         (chain_id, v_bit) = divmod(above_id_offset, 2)
         return (chain_id, v_bit + V_OFFSET)

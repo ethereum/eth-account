@@ -149,7 +149,7 @@ class Account:
         .. doctest:: python
 
             >>> encrypted = {
-            ... 'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
+            ... 'address': '5ce9454909639D2D17A3F753ce7d93fa0b9aB12E',
             ... 'crypto': {'cipher': 'aes-128-ctr',
             ...  'cipherparams': {'iv': '482ef54775b0cc59f25717711286f5c8'},
             ...  'ciphertext': 'cb636716a9fd46adbb31832d964df2082536edd5399a3393327dc89b0193a2be',
@@ -208,15 +208,15 @@ class Account:
             ...     'password'
             ... )
             >>> pprint(encrypted)
-            {'address': '5ce9454909639d2d17a3f753ce7d93fa0b9ab12e',
+            {'address': '5ce9454909639D2D17A3F753ce7d93fa0b9aB12E',
              'crypto': {'cipher': 'aes-128-ctr',
                         'cipherparams': {'iv': '...'},
                         'ciphertext': '...',
                         'kdf': 'scrypt',
                         'kdfparams': {'dklen': 32,
                                       'n': 262144,
-                                      'p': 8,
-                                      'r': 1,
+                                      'p': 1,
+                                      'r': 8,
                                       'salt': '...'},
                         'mac': '...'},
              'id': '...',

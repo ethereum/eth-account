@@ -31,6 +31,8 @@ lint:
 	)
 
 test:
+	coverage run -m pytest tests
+	coverage report
 	pytest tests
 
 build-docs:

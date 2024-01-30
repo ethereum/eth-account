@@ -564,7 +564,7 @@ def test_encode_field_pass(name, type_, value, expected):
             {
                 "expected_exception": TypeError,
                 "match": re.escape(
-                    "Arguments passed as hexstr or text must be of text type. Instead, value was: '[]'"  # noqa: E501
+                    "Arguments passed as hexstr or text must be of text type. Instead, value was: []"  # noqa: E501
                 ),
             },
         ),
@@ -1173,7 +1173,7 @@ def test_encode_data_pass_and_hash_struct_and_hash_eip712_message(
             {
                 "expected_exception": ValueOutOfBounds,
                 "match": re.escape(
-                    "Value `-327` of type <class 'int'> cannot be encoded by UnsignedIntegerEncoder: Cannot be encoded in 256 bits.  Must be bounded between [0, 115792089237316195423570985008687907853269984665640564039457584007913129639935]."  # noqa: E501
+                    "Value `-327` of type <class 'int'> cannot be encoded by UnsignedIntegerEncoder: Cannot be encoded in 256 bits. Must be bounded between [0, 115792089237316195423570985008687907853269984665640564039457584007913129639935]."  # noqa: E501
                 ),
             },
         ),
@@ -1207,7 +1207,7 @@ def test_encode_data_pass_and_hash_struct_and_hash_eip712_message(
             {
                 "expected_exception": ValueOutOfBounds,
                 "match": re.escape(
-                    "Value `4294967295` of type <class 'int'> cannot be encoded by SignedIntegerEncoder: Cannot be encoded in 16 bits.  Must be bounded between [-32768, 32767]."  # noqa: E501
+                    "Value `4294967295` of type <class 'int'> cannot be encoded by SignedIntegerEncoder: Cannot be encoded in 16 bits. Must be bounded between [-32768, 32767]."  # noqa: E501
                 ),
             },
         ),

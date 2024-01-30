@@ -59,7 +59,7 @@ _cached_wordlists: Dict[str, List[str]] = dict()
 def get_wordlist(language):
     if language in _cached_wordlists.keys():
         return _cached_wordlists[language]
-    with open(WORDLIST_DIR / f"{language}.txt", "r", encoding="utf-8") as f:
+    with open(WORDLIST_DIR / f"{language}.txt", encoding="utf-8") as f:
         wordlist = [w.strip() for w in f.readlines()]
     if len(wordlist) != WORDLIST_LEN:
         raise ValidationError(

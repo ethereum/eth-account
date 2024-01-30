@@ -94,7 +94,7 @@ node_deprecation_warning() {
           "X${NODENAME}" == "XNode.js 8.x LTS Carbon" ||
           "X${NODENAME}" == "XNode.js 9.x" ||
           "X${NODENAME}" == "XNode.js 10.x" ||
-          "X${NODENAME}" == "XNode.js 11.x" || 
+          "X${NODENAME}" == "XNode.js 11.x" ||
           "X${NODENAME}" == "XNode.js 12.x" ||
           "X${NODENAME}" == "XNode.js 13.x" ||
           "X${NODENAME}" == "XNode.js 15.x" ||

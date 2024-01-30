@@ -6,7 +6,6 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/eth-account.svg)](https://pypi.python.org/pypi/eth-account)
 [![Docs build](https://readthedocs.org/projects/eth-account/badge/?version=latest)](https://eth-account.readthedocs.io/en/latest/?badge=latest)
 
-
 Sign Ethereum transactions and messages with local private keys
 
 Read more in the [documentation on ReadTheDocs](https://eth-account.readthedocs.io/). [View the change log](https://eth-account.readthedocs.io/en/latest/release_notes.html).

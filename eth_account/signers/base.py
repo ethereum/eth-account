@@ -28,7 +28,6 @@ class BaseAccount(ABC):
             "0xF0109fC8DF283027b6285cc889F5aA624EaC1F55"
 
         """
-        pass
 
     @abstractmethod
     def sign_message(self, signable_message: SignableMessage) -> SignedMessage:
@@ -43,7 +42,6 @@ class BaseAccount(ABC):
 
         .. _EIP-191: https://eips.ethereum.org/EIPS/eip-191
         """
-        pass
 
     @abstractmethod
     def signHash(self, message_hash):
@@ -60,7 +58,6 @@ class BaseAccount(ABC):
 
         :param bytes message_hash: 32 byte hash of the message to sign
         """
-        pass
 
     @abstractmethod
     def sign_transaction(self, transaction_dict):
@@ -73,7 +70,6 @@ class BaseAccount(ABC):
 
         :param dict transaction_dict: transaction with all fields specified
         """
-        pass
 
     def __eq__(self, other):
         """
@@ -82,7 +78,7 @@ class BaseAccount(ABC):
         Two accounts are considered the same if they are exactly the same type,
         and can sign for the same address.
         """
-        return type(self) == type(other) and self.address == other.address
+        return type(self) is type(other) and self.address == other.address
 
     def __hash__(self):
         return hash((type(self), self.address))
