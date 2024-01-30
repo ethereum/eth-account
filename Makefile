@@ -5,8 +5,7 @@ CURRENT_SIGN_SETTING := $(shell git config commit.gpgSign)
 help:
 	@echo "clean-build - remove build artifacts"
 	@echo "clean-pyc - remove Python file artifacts"
-	@echo "lint - check style with flake8"
-	@echo "lint-roll - automatically fix problems with isort, flake8, etc"
+	@echo "lint - fix linting issues with pre-commit"
 	@echo "test - run tests quickly with the default Python"
 	@echo "docs - generate docs and open in browser (linux-docs for version on linux)"
 	@echo "notes - consume towncrier newsfragments/ and update release notes in docs/"
@@ -18,7 +17,6 @@ clean: clean-build clean-pyc
 clean-build:
 	rm -fr build/
 	rm -fr dist/
-	rm -fr *.egg-info
 
 clean-pyc:
 	find . -name '*.pyc' -exec rm -f {} +
@@ -27,16 +25,13 @@ clean-pyc:
 	find . -name '__pycache__' -exec rm -rf {} +
 
 lint:
-	tox run -e lint
-
-lint-roll:
-	isort eth_account tests
-	black eth_account tests setup.py
-	$(MAKE) lint
+	@pre-commit run --all-files --show-diff-on-failure || ( \
+		echo "\n\n\n * pre-commit should have fixed the errors above. Running again to make sure everything is good..." \
+		&& pre-commit run --all-files --show-diff-on-failure \
+	)
 
 test:
-	coverage run -m pytest tests
-	coverage report
+	pytest tests
 
 build-docs:
 	sphinx-apidoc -o docs/ . setup.py "*conftest*"
@@ -68,11 +63,11 @@ notes: check-bump
 	towncrier build --yes --version $(UPCOMING_VERSION)
 	# Before we bump the version, make sure that the towncrier-generated docs will build
 	make build-docs
-	git commit -m "Compile release notes"
+	git commit -m "Compile release notes for v$(UPCOMING_VERSION)"
 
 release: check-bump clean
-	# require that you be on a branch that's linked to upstream/master
-	git status -s -b | head -1 | grep "\.\.upstream/master"
+	# require that upstream is configured for ethereum/eth-account
+	@git remote -v | grep -E "upstream\tgit@github.com:ethereum/eth-account.git \(push\)|upstream\thttps://(www.)?github.com/ethereum/eth-account \(push\)"
 	# verify that docs build correctly
 	./newsfragments/validate_files.py is-empty
 	make build-docs
