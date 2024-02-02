@@ -23,7 +23,7 @@ def is_array_type(type_: str) -> bool:
 
 
 def is_0x_prefixed_hexstr(value: Any) -> bool:
-    return is_hexstr(value) and value.startswith("0x")
+    return bool(is_hexstr(value) and value.startswith("0x"))
 
 
 # strip all brackets: Person[][] -> Person

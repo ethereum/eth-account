@@ -51,10 +51,9 @@ def test_compatibility(seed, language, account_path):
             "-p",
             account_path,
         ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        capture_output=True,
     )
     if ethers_cli.stderr:
-        raise IOError(ethers_cli.stderr.decode("utf-8"))
+        raise OSError(ethers_cli.stderr.decode("utf-8"))
     ethers_address = ethers_cli.stdout.decode("utf-8").strip()
     assert acct.address == ethers_address

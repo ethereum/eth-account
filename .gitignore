@@ -8,6 +8,7 @@
 *.egg-info
 dist
 build
+.build
 eggs
 .eggs
 parts
@@ -20,6 +21,7 @@ lib
 lib64
 pip-wheel-metadata
 venv*
+.venv*
 
 # Installer logs
 pip-log.txt
@@ -51,12 +53,15 @@ docs/*._utils.*
 # Blockchain
 chains
 
-# Hypothese Property base testing
+# Hypothesis Property base testing
 .hypothesis
 
 # tox/pytest cache
 .cache
 .pytest_cache
+
+# pycache
+__pycache__/
 
 # Test output logs
 logs
@@ -72,6 +77,9 @@ logs
 
 # pyenv
 .python-version
+
+# vs-code
+.vscode
 
 # Covers JetBrains IDEs: IntelliJ, RubyMine, PhpStorm, AppCode, PyCharm, CLion, Android Studio and Webstorm
 # For a more precise, explicit template, see:

@@ -116,7 +116,7 @@ def encode_field(
         return ("bytes32", keccak(value))
 
     # allow string values for int and uint types
-    elif type(value) == str and type_.startswith(("int", "uint")):
+    elif isinstance(value, str) and type_.startswith(("int", "uint")):
         if is_0x_prefixed_hexstr(value):
             return (type_, to_int(hexstr=value))
         else:
@@ -177,7 +177,7 @@ def encode_type(type_: str, types: Dict[str, List[Dict[str, str]]]) -> str:
 
 
 def hash_type(type_: str, types: Dict[str, List[Dict[str, str]]]) -> bytes:
-    return keccak(text=encode_type(type_, types))
+    return bytes(keccak(text=encode_type(type_, types)))
 
 
 def encode_data(
@@ -195,7 +195,7 @@ def encode_data(
         encoded_types.append(type)
         encoded_values.append(value)
 
-    return encode(encoded_types, encoded_values)
+    return bytes(encode(encoded_types, encoded_values))
 
 
 def hash_struct(
@@ -204,7 +204,7 @@ def hash_struct(
     data: Dict[str, Any],
 ) -> bytes:
     encoded = encode_data(type_, types, data)
-    return keccak(encoded)
+    return bytes(keccak(encoded))
 
 
 def hash_eip712_message(
@@ -213,7 +213,7 @@ def hash_eip712_message(
     message_data: Dict[str, Any],
 ) -> bytes:
     primary_type = get_primary_type(message_types)
-    return keccak(encode_data(primary_type, message_types, message_data))
+    return bytes(keccak(encode_data(primary_type, message_types, message_data)))
 
 
 def hash_domain(domain_data: Dict[str, Any]) -> bytes:

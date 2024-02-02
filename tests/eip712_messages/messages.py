@@ -3,7 +3,7 @@ import os
 
 
 def load_eip712_json(file_name):
-    with open(os.path.join("tests/eip712_messages", file_name), "r") as f:
+    with open(os.path.join("tests/eip712_messages", file_name)) as f:
         return json.load(f)
 
 

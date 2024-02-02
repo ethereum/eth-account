@@ -39,7 +39,7 @@ from eth_account.messages import (
 
 @pytest.fixture
 def eip712_example_json_string():
-    return open("tests/fixtures/valid_eip712_example.json", "r").read()
+    return open("tests/fixtures/valid_eip712_example.json").read()
 
 
 @pytest.fixture
@@ -81,7 +81,7 @@ def eip712_message_encodings(request, eip712_example_json_string):
 
 @pytest.fixture
 def eip712_example_with_array_json_string():
-    return open("tests/fixtures/valid_eip712_example_with_array.json", "r").read()
+    return open("tests/fixtures/valid_eip712_example_with_array.json").read()
 
 
 @pytest.fixture
@@ -123,7 +123,7 @@ def eip712_with_array_message_encodings(request, eip712_example_with_array_json_
 
 @pytest.fixture
 def eip712_example_with_multi_array_json_string():
-    return open("tests/fixtures/valid_eip712_example_with_multi_array.json", "r").read()
+    return open("tests/fixtures/valid_eip712_example_with_multi_array.json").read()
 
 
 @pytest.fixture
@@ -748,7 +748,7 @@ def test_hashed_structured_data_with_bytes32(eip712_example_with_array_json_stri
 
 def test_hashed_structured_data_with_nested_structs():
     nested_structs_valid_data_json_string = open(
-        "tests/fixtures/valid_message_nested_structs.json", "r"
+        "tests/fixtures/valid_message_nested_structs.json"
     ).read()
 
     structured_data = json.loads(nested_structs_valid_data_json_string)
