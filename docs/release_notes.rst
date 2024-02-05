@@ -3,6 +3,28 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.11.0 (2024-02-05)
+--------------------------------
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+
+- Drop support for python 3.7 (`#248 <https://github.com/ethereum/eth-account/issues/248>`__)
+
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Change older ``%`` and ``.format`` strings to use ``f-strings`` (`#245 <https://github.com/ethereum/eth-account/issues/245>`__)
+- Merge template updates, notably use ``pre-commit`` for linting and change the name of the ``master`` branch to ``main`` (`#248 <https://github.com/ethereum/eth-account/issues/248>`__)
+
+
+Removals
+~~~~~~~~
+
+- Remove deprecated ``signTransaction``, it has been replaced by ``sign_transaction`` (`#244 <https://github.com/ethereum/eth-account/issues/244>`__)
+
+
 eth-account v0.10.0 (2023-10-30)
 --------------------------------
 
