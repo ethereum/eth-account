@@ -3,18 +3,18 @@ from typing import (
     Dict,
 )
 
-from cytoolz import (
-    curry,
-    dissoc,
-    merge,
-    partial,
-    pipe,
-)
 from eth_rlp import (
     HashableRLP,
 )
 from eth_utils.curried import (
     apply_formatters_to_dict,
+)
+from eth_utils.toolz import (
+    curry,
+    dissoc,
+    merge,
+    partial,
+    pipe,
 )
 import rlp
 from rlp.sedes import (

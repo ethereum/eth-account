@@ -1,9 +1,9 @@
-from cytoolz import (
-    assoc,
-    dissoc,
-)
 from eth_abi.exceptions import (
     ABITypeError,
+)
+from eth_utils.toolz import (
+    assoc,
+    dissoc,
 )
 import pytest
 

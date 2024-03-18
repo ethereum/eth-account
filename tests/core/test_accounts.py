@@ -1,8 +1,5 @@
 import os
 
-from cytoolz import (
-    dissoc,
-)
 from eth_keyfile.keyfile import (
     get_default_work_factor_for_kdf,
 )
@@ -14,6 +11,9 @@ from eth_utils import (
     to_bytes,
     to_hex,
     to_int,
+)
+from eth_utils.toolz import (
+    dissoc,
 )
 from hexbytes import (
     HexBytes,
