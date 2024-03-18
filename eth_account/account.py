@@ -14,9 +14,6 @@ from typing import (
 )
 import warnings
 
-from cytoolz import (
-    dissoc,
-)
 from eth_keyfile import (
     create_keyfile_json,
     decode_keyfile_json,
@@ -41,6 +38,9 @@ from eth_utils.curried import (
     text_if_str,
     to_bytes,
     to_int,
+)
+from eth_utils.toolz import (
+    dissoc,
 )
 from hexbytes import (
     HexBytes,

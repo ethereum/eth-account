@@ -10,13 +10,6 @@ from typing import (
     cast,
 )
 
-from cytoolz import (
-    dissoc,
-    identity,
-    merge,
-    partial,
-    pipe,
-)
 from eth_rlp import (
     HashableRLP,
 )
@@ -32,6 +25,13 @@ from eth_utils.curried import (
     is_string,
     to_bytes,
     to_int,
+)
+from eth_utils.toolz import (
+    dissoc,
+    identity,
+    merge,
+    partial,
+    pipe,
 )
 from hexbytes import (
     HexBytes,

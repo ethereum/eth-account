@@ -1,9 +1,9 @@
-from cytoolz import (
-    pipe,
-)
 from eth_utils import (
     to_bytes,
     to_int,
+)
+from eth_utils.toolz import (
+    pipe,
 )
 
 from eth_account._utils.legacy_transactions import (

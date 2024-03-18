@@ -1,6 +1,3 @@
-from cytoolz import (
-    identity,
-)
 from eth_utils import (
     is_binary_address,
     is_checksum_address,
@@ -17,6 +14,9 @@ from eth_utils.curried import (
     is_string,
     to_bytes,
     to_int,
+)
+from eth_utils.toolz import (
+    identity,
 )
 
 VALID_EMPTY_ADDRESSES = {None, b"", ""}
