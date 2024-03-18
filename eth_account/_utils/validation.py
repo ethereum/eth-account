@@ -1,7 +1,13 @@
+from typing import (
+    Any,
+    Optional,
+)
+
 from eth_utils import (
     is_binary_address,
     is_checksum_address,
     is_dict,
+    is_hexstr,
 )
 from eth_utils.curried import (
     apply_one_of_formatters,
@@ -16,7 +22,11 @@ from eth_utils.curried import (
     to_int,
 )
 from eth_utils.toolz import (
+    curry,
     identity,
+)
+from hexbytes import (
+    HexBytes,
 )
 
 VALID_EMPTY_ADDRESSES = {None, b"", ""}
@@ -84,6 +94,30 @@ def is_rlp_structured_access_list(val):
         for storage_key in storage_keys:
             if not is_int_or_prefixed_hexstr(storage_key):
                 return False
+    return True
+
+
+@curry
+def is_sequence_of_bytes_or_hexstr(
+    value: Any, item_bytes_size: Optional[int] = None, can_be_empty: bool = False
+) -> bool:
+    if not is_list_like(value):
+        return False
+
+    if not can_be_empty and len(value) == 0:
+        return False
+
+    if not all(is_bytes(item) or is_hexstr(item) for item in value):
+        return False
+
+    if item_bytes_size is not None:
+        if all(isinstance(item, bytes) for item in value):
+            if not all(len(item) == item_bytes_size for item in value):
+                return False
+        elif all(isinstance(item, str) for item in value):
+            if not all(len(HexBytes(item)) == item_bytes_size for item in value):
+                return False
+
     return True
 
 
