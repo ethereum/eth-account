@@ -225,7 +225,7 @@ def test_hash(test_case):
     expected = test_case["expected_hash"]
     transaction = TypedTransaction.from_dict(test_case["transaction"])
     hash = transaction.hash()
-    actual = HexBytes(hash).hex()
+    actual = HexBytes(hash).to_0x_hex()
     assert actual == expected
 
 
@@ -247,7 +247,7 @@ def test_encode(test_case):
     expected = test_case["expected_raw_transaction"]
     transaction = TypedTransaction.from_dict(test_case["transaction"])
     raw_transaction = transaction.encode()
-    actual = HexBytes(raw_transaction).hex()
+    actual = HexBytes(raw_transaction).to_0x_hex()
     assert actual == expected
 
 
