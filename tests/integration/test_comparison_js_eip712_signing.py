@@ -45,14 +45,14 @@ def test_messages_where_all_3_sigs_match(message_title):
     try:
         signable_1 = encode_typed_data(full_message=message)
         py_signed_1 = py_account.sign_message(signable_1)
-        py_one_arg = py_signed_1.signature.hex()
+        py_one_arg = py_signed_1.signature.to_0x_hex()
     except Exception:
         py_one_arg = "py_one_arg signing failed"
 
     try:
         signable_3 = encode_typed_data(*convert_to_3_arg(message))
         py_signed_3 = py_account.sign_message(signable_3)
-        py_three_arg = py_signed_3.signature.hex()
+        py_three_arg = py_signed_3.signature.to_0x_hex()
     except Exception:
         py_three_arg = "py_three_arg signing failed"
 
@@ -70,14 +70,14 @@ def test_messages_where_eth_account_matches_ethers_but_not_metamask(message_titl
     try:
         signable_1 = encode_typed_data(full_message=message)
         py_signed_1 = py_account.sign_message(signable_1)
-        py_one_arg = py_signed_1.signature.hex()
+        py_one_arg = py_signed_1.signature.to_0x_hex()
     except Exception:
         py_one_arg = "py_one_arg signing failed"
 
     try:
         signable_3 = encode_typed_data(*convert_to_3_arg(message))
         py_signed_3 = py_account.sign_message(signable_3)
-        py_three_arg = py_signed_3.signature.hex()
+        py_three_arg = py_signed_3.signature.to_0x_hex()
     except Exception:
         py_three_arg = "py_three_arg signing failed"
 
@@ -96,14 +96,14 @@ def test_messages_where_eth_account_matches_metamask_but_not_ethers(message_titl
     try:
         signable_1 = encode_typed_data(full_message=message)
         py_signed_1 = py_account.sign_message(signable_1)
-        py_one_arg = py_signed_1.signature.hex()
+        py_one_arg = py_signed_1.signature.to_0x_hex()
     except Exception:
         py_one_arg = "py_one_arg signing failed"
 
     try:
         signable_3 = encode_typed_data(*convert_to_3_arg(message))
         py_signed_3 = py_account.sign_message(signable_3)
-        py_three_arg = py_signed_3.signature.hex()
+        py_three_arg = py_signed_3.signature.to_0x_hex()
     except Exception:
         py_three_arg = "py_three_arg signing failed"
 

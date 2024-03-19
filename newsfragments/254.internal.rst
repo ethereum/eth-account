@@ -1,0 +1,1 @@
+Bump deps to ``hexbytes>=1.2.0`` and ``eth-rlp>=2.1.0``
