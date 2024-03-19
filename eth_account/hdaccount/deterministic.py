@@ -139,7 +139,7 @@ def derive_child_key(
     node: Node,
 ) -> Tuple[bytes, bytes]:
     """
-    Compute a derivitive key from the parent key.
+    Compute a derivative key from the parent key.
 
     From BIP32:
 
@@ -163,7 +163,7 @@ def derive_child_key(
     assert len(parent_chain_code) == 32
     if isinstance(node, HardNode):
         # NOTE Empty byte is added to align to SoftNode case
-        assert len(parent_key) == 32  # Should be guaranteed here in return statment
+        assert len(parent_key) == 32  # Should be guaranteed here in return statement
         child = hmac_sha512(parent_chain_code, b"\x00" + parent_key + node.serialize())
 
     elif isinstance(node, SoftNode):
@@ -238,7 +238,7 @@ class HDPath:
 
     def derive(self, seed: bytes) -> bytes:
         """
-        Perform the BIP32 Heirarchical Derivation recursive loop with the given Path.
+        Perform the BIP32 Hierarchical Derivation recursive loop with the given Path.
 
         Note that the key and chain_code are initialized with the master seed, and that
         the key that is returned is the child key at the end of derivation process (and
