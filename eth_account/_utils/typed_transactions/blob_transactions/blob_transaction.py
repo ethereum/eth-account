@@ -1,7 +1,10 @@
 from typing import (
     Any,
     Dict,
+    List,
+    Optional,
     Tuple,
+    Union,
     cast,
 )
 
@@ -9,6 +12,7 @@ from eth_rlp import (
     HashableRLP,
 )
 from eth_utils import (
+    ValidationError,
     keccak,
 )
 from eth_utils.curried import (
@@ -31,31 +35,34 @@ from rlp.sedes import (
     binary,
 )
 
-from ..transaction_utils import (
+from eth_account._utils.transaction_utils import (
     transaction_rlp_to_rpc_structure,
     transaction_rpc_to_rlp_structure,
 )
-from ..validation import (
+from eth_account._utils.typed_transactions.access_list_transaction import (
+    access_list_sede_type,
+)
+from eth_account._utils.typed_transactions.base import (
+    TYPED_TRANSACTION_FORMATTERS,
+    Blob,
+    BlobPooledTransactionData,
+    _TypedTransactionImplementation,
+)
+from eth_account._utils.validation import (
     LEGACY_TRANSACTION_VALID_VALUES,
     is_int_or_prefixed_hexstr,
     is_rpc_structured_access_list,
     is_sequence_of_bytes_or_hexstr,
 )
-from .access_list_transaction import (
-    access_list_sede_type,
-)
-from .base import (
-    TYPED_TRANSACTION_FORMATTERS,
-    _TypedTransactionImplementation,
-)
 
 
 class BlobTransaction(_TypedTransactionImplementation):
     """
-    Represents a dynamic fee transaction access per EIP-1559.
+    Represents a blob transaction as per EIP-4844.
     """
 
     transaction_type = 3  # '0x03'
+    blob_data: Optional[BlobPooledTransactionData] = None
 
     unsigned_transaction_fields = (
         ("chainId", big_endian_int),
@@ -105,11 +112,48 @@ class BlobTransaction(_TypedTransactionImplementation):
         },
     )
 
-    def __init__(self, dictionary: Dict[str, Any]):
+    _signed_pooled_transaction_serializer = type(
+        "_signed_pooled_transaction_serializer",
+        (HashableRLP,),
+        {
+            "fields": (
+                ("tx_payload_body", _signed_transaction_serializer),
+                (
+                    "blobs",
+                    CountableList(binary.fixed_length(4096 * 32)),
+                ),
+                (
+                    "commitments",
+                    CountableList(binary.fixed_length(48)),
+                ),
+                ("proofs", CountableList(binary.fixed_length(48))),
+            ),
+        },
+    )
+
+    def __init__(
+        self,
+        dictionary: Dict[str, Any],
+        blobs: List[Union[bytes, HexBytes]] = None,
+    ):
         self.dictionary = dictionary
 
+        if blobs is not None:
+            self.blob_data = BlobPooledTransactionData(
+                blobs=[Blob(data=HexBytes(blob_data)) for blob_data in blobs]
+            )
+            if "blobVersionedHashes" in dictionary:
+                self._validate_versioned_hashes_against_blob_data(
+                    dictionary["blobVersionedHashes"],
+                    self.blob_data,
+                )
+
     @classmethod
-    def assert_valid_fields(cls, dictionary: Dict[str, Any]) -> None:
+    def assert_valid_fields(
+        cls,
+        dictionary: Dict[str, Any],
+        has_blobs: bool = False,
+    ) -> None:
         transaction_valid_values = merge(
             LEGACY_TRANSACTION_VALID_VALUES,
             {
@@ -118,11 +162,12 @@ class BlobTransaction(_TypedTransactionImplementation):
                 "maxFeePerGas": is_int_or_prefixed_hexstr,
                 "accessList": is_rpc_structured_access_list,
                 "maxFeePerBlobGas": is_int_or_prefixed_hexstr,
-                "blobVersionedHashes": is_sequence_of_bytes_or_hexstr(
-                    item_bytes_size=32, can_be_empty=False
-                ),
             },
         )
+        if not has_blobs:
+            transaction_valid_values[
+                "blobVersionedHashes"
+            ] = is_sequence_of_bytes_or_hexstr(item_bytes_size=32, can_be_empty=False)
 
         if "v" in dictionary and dictionary["v"] == 0:
             dictionary["v"] = "0x0"
@@ -137,13 +182,32 @@ class BlobTransaction(_TypedTransactionImplementation):
             raise TypeError(f"Transaction had invalid fields: {repr(invalid)}")
 
     @classmethod
-    def from_dict(cls, dictionary: Dict[str, Any]) -> "BlobTransaction":
+    def from_dict(
+        cls,
+        dictionary: Dict[str, Any],
+        blobs: List[Union[bytes, HexBytes]] = None,
+    ) -> "BlobTransaction":
         """
         Builds a BlobTransaction from a dictionary.
-        Verifies that the dictionary is well formed.
+        Verifies that the dictionary is well-formed.
         """
+        has_blobs = blobs is not None
+
+        if "tx_payload_body" in dictionary:
+            dictionary = dict(
+                zip(
+                    (
+                        entry[0]
+                        for entry in cls.unsigned_transaction_fields
+                        + cls.signature_fields
+                    ),
+                    dictionary["tx_payload_body"],
+                )
+            )
+            dictionary["type"] = cls.transaction_type
+
         # Validate fields.
-        cls.assert_valid_fields(dictionary)
+        cls.assert_valid_fields(dictionary, has_blobs=has_blobs)
         sanitized_dictionary = pipe(
             dictionary,
             dict,
@@ -161,11 +225,14 @@ class BlobTransaction(_TypedTransactionImplementation):
             )
         return cls(
             dictionary=sanitized_dictionary,
+            blobs=blobs,
         )
 
     @classmethod
     def from_bytes(cls, encoded_transaction: HexBytes) -> "BlobTransaction":
-        """Builds a BlobTransaction from a signed encoded transaction."""
+        """
+        Builds a BlobTransaction from a signed encoded transaction.
+        """
         if not isinstance(encoded_transaction, HexBytes):
             raise TypeError(f"expected Hexbytes, got type: {type(encoded_transaction)}")
         if not (
@@ -173,22 +240,47 @@ class BlobTransaction(_TypedTransactionImplementation):
             and encoded_transaction[0] == cls.transaction_type
         ):
             raise ValueError("unexpected input")
+
         # Format is (0x03 || TransactionPayload)
         # We strip the prefix, and RLP unmarshal the payload into our
         # signed transaction serializer.
         transaction_payload = encoded_transaction[1:]
-        rlp_serializer = cls._signed_transaction_serializer
-        dictionary = rlp_serializer.from_bytes(  # type: ignore
-            transaction_payload
-        ).as_dict()
+        try:
+            # Attempt to deserialize as a `PooledTransaction`, as defined in EIP-4844.
+            dictionary = cls._signed_pooled_transaction_serializer.from_bytes(  # type: ignore  # noqa: E501
+                transaction_payload
+            ).as_dict()
+        except rlp.exceptions.ObjectDeserializationError:
+            # If the deserialization fails, we attempt to deserialize as a
+            # `TransactionPayloadBody`, as defined in EIP-4844.
+            dictionary = cls._signed_transaction_serializer.from_bytes(  # type: ignore  # noqa: E501
+                transaction_payload
+            ).as_dict()
+
         rpc_structured_dict = transaction_rlp_to_rpc_structure(dictionary)
         rpc_structured_dict["type"] = cls.transaction_type
-        return cls.from_dict(rpc_structured_dict)
+        blobs = dictionary.get("blobs")
+        return cls.from_dict(rpc_structured_dict, blobs=blobs)
 
     def as_dict(self) -> Dict[str, Any]:
         """Returns this transaction as a dictionary."""
         dictionary = self.dictionary.copy()
         dictionary["type"] = self.__class__.transaction_type
+
+        if self.blob_data is not None:
+            if "blobVersionedHashes" in dictionary:
+                # we validate our versioned hashes calculation internally so this is a
+                # safer way to ensure we're returning correct data.
+                self._validate_versioned_hashes_against_blob_data(
+                    dictionary["blobVersionedHashes"], self.blob_data
+                )
+            else:
+                # If versioned hashes are not provided, we compute them.
+                dictionary["blobVersionedHashes"] = [
+                    versioned_hash.data
+                    for versioned_hash in self.blob_data.versioned_hashes
+                ]
+
         return dictionary
 
     def hash(self) -> bytes:
@@ -207,15 +299,31 @@ class BlobTransaction(_TypedTransactionImplementation):
         rlp_structured_txn_without_sig_fields = transaction_rpc_to_rlp_structure(
             transaction_without_signature_fields
         )
+
+        if self.blob_data is not None:
+            if rlp_structured_txn_without_sig_fields.get("blobVersionedHashes") is None:
+                # If the versioned hashes are not provided, we compute them.
+                rlp_structured_txn_without_sig_fields["blobVersionedHashes"] = [
+                    versioned_hash.data
+                    for versioned_hash in self.blob_data.versioned_hashes
+                ]
+            else:
+                # Validate that the versioned hashes match the computed versioned
+                # hashes.
+                self._validate_versioned_hashes_against_blob_data(
+                    rlp_structured_txn_without_sig_fields["blobVersionedHashes"],
+                    self.blob_data,
+                )
+
         rlp_serializer = self.__class__._unsigned_transaction_serializer
-        hash = pipe(
+        hash_ = pipe(
             rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore  # noqa: E501
             lambda val: rlp.encode(val),  # rlp([...])
             lambda val: bytes([self.__class__.transaction_type])
             + val,  # (0x03 || rlp([...]))
             keccak,  # keccak256(0x03 || rlp([...]))
         )
-        return cast(bytes, hash)
+        return cast(bytes, hash_)
 
     def payload(self) -> bytes:
         """
@@ -228,11 +336,32 @@ class BlobTransaction(_TypedTransactionImplementation):
         """
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")
-        rlp_serializer = self.__class__._signed_transaction_serializer
+
         rlp_structured_dict = transaction_rpc_to_rlp_structure(self.dictionary)
-        payload = rlp.encode(
-            rlp_serializer.from_dict(rlp_structured_dict)  # type: ignore
-        )
+        if self.blob_data is None:
+            # `TransactionPayload` as defined in EIP-4844
+            # rlp([tx_payload_body])
+            rlp_serializer = self.__class__._signed_transaction_serializer
+            payload = rlp.encode(rlp_serializer.from_dict(rlp_structured_dict))  # type: ignore # noqa: E501
+        else:
+            # `PooledTransaction` as defined in EIP-4844
+            # rlp([tx_payload_body, blobs, commitments, proofs])
+            rlp_serializer = self.__class__._signed_pooled_transaction_serializer
+            pooled_txn_as_dict = {
+                "tx_payload_body": tuple(
+                    rlp_structured_dict[key]
+                    for key, _val in (
+                        self.unsigned_transaction_fields + self.signature_fields
+                    )
+                ),
+                "blobs": [blob.as_bytes() for blob in self.blob_data.blobs],
+                "commitments": [
+                    commitment.as_bytes() for commitment in self.blob_data.commitments
+                ],
+                "proofs": [proof.as_bytes() for proof in self.blob_data.proofs],
+            }
+            payload = rlp.encode(rlp_serializer.from_dict(pooled_txn_as_dict))  # type: ignore # noqa: E501
+
         return cast(bytes, payload)
 
     def vrs(self) -> Tuple[int, int, int]:
@@ -240,3 +369,16 @@ class BlobTransaction(_TypedTransactionImplementation):
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")
         return (self.dictionary["v"], self.dictionary["r"], self.dictionary["s"])
+
+    @staticmethod
+    def _validate_versioned_hashes_against_blob_data(
+        blob_versioned_hashes: List[bytes],
+        blob_data: BlobPooledTransactionData,
+    ) -> None:
+        diff = set(blob_versioned_hashes).difference(
+            {versioned_hash.data for versioned_hash in blob_data.versioned_hashes}
+        )
+        if diff:
+            raise ValidationError(
+                f"Versioned hashes do not match computed versioned hashes: {diff}"
+            )

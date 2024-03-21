@@ -80,8 +80,8 @@ class LocalAccount(BaseAccount):
         """
         return self._publicapi.sign_message(signable_message, private_key=self.key)
 
-    def sign_transaction(self, transaction_dict):
-        return self._publicapi.sign_transaction(transaction_dict, self.key)
+    def sign_transaction(self, transaction_dict, blobs=None):
+        return self._publicapi.sign_transaction(transaction_dict, self.key, blobs=blobs)
 
     def __bytes__(self):
         return self.key
