@@ -1,6 +1,7 @@
 from typing import (
     Any,
     Dict,
+    List,
     Tuple,
     cast,
 )
@@ -28,7 +29,7 @@ from rlp.sedes import (
     BigEndianInt,
     Binary,
     CountableList,
-    List,
+    List as ListSedesClass,
     big_endian_int,
     binary,
 )
@@ -51,7 +52,7 @@ from .base import (
 # [[{20 bytes}, [{32 bytes}...]]...], where ... means
 # “zero or more of the thing to the left”.
 access_list_sede_type = CountableList(
-    List(
+    ListSedesClass(
         [
             Binary.fixed_length(20, allow_empty=False),
             CountableList(BigEndianInt(32)),
@@ -140,11 +141,16 @@ class AccessListTransaction(_TypedTransactionImplementation):
             raise TypeError(f"Transaction had invalid fields: {repr(invalid)}")
 
     @classmethod
-    def from_dict(cls, dictionary: Dict[str, Any]) -> "AccessListTransaction":
+    def from_dict(
+        cls, dictionary: Dict[str, Any], blobs: List[bytes] = None
+    ) -> "AccessListTransaction":
         """
         Builds an AccessListTransaction from a dictionary.
         Verifies that the dictionary is well formed.
         """
+        if blobs is not None:
+            raise ValueError("Blob data is not supported for `AccessListTransaction`.")
+
         # Validate fields.
         cls.assert_valid_fields(dictionary)
         sanitized_dictionary = pipe(

@@ -1,6 +1,7 @@
 from typing import (
     Any,
     Dict,
+    List,
     Tuple,
     cast,
 )
@@ -131,11 +132,16 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
             raise TypeError(f"Transaction had invalid fields: {repr(invalid)}")
 
     @classmethod
-    def from_dict(cls, dictionary: Dict[str, Any]) -> "DynamicFeeTransaction":
+    def from_dict(
+        cls, dictionary: Dict[str, Any], blobs: List[bytes] = None
+    ) -> "DynamicFeeTransaction":
         """
         Builds a DynamicFeeTransaction from a dictionary.
         Verifies that the dictionary is well formed.
         """
+        if blobs is not None:
+            raise ValueError("Blob data is not supported for `DynamicFeeTransaction`.")
+
         # Validate fields.
         cls.assert_valid_fields(dictionary)
         sanitized_dictionary = pipe(

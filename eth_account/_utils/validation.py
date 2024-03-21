@@ -110,13 +110,10 @@ def is_sequence_of_bytes_or_hexstr(
     if not all(is_bytes(item) or is_hexstr(item) for item in value):
         return False
 
-    if item_bytes_size is not None:
-        if all(isinstance(item, bytes) for item in value):
-            if not all(len(item) == item_bytes_size for item in value):
-                return False
-        elif all(isinstance(item, str) for item in value):
-            if not all(len(HexBytes(item)) == item_bytes_size for item in value):
-                return False
+    if item_bytes_size is not None and not all(
+        len(HexBytes(item)) == item_bytes_size for item in value
+    ):
+        return False
 
     return True
 
