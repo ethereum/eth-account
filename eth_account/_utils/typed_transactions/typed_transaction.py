@@ -1,6 +1,8 @@
 from typing import (
     Any,
     Dict,
+    List,
+    Optional,
     Tuple,
     Union,
 )
@@ -29,7 +31,8 @@ from .access_list_transaction import (
 from .base import (
     _TypedTransactionImplementation,
 )
-from .blob_transaction import (
+from .blob_transactions.blob_transaction import (
+    BlobPooledTransactionData,
     BlobTransaction,
 )
 from .dynamic_fee_transaction import (
@@ -59,8 +62,15 @@ class TypedTransaction:
         self.transaction_type = transaction_type
         self.transaction = transaction
 
+    @property
+    def blob_data(self) -> Optional[BlobPooledTransactionData]:
+        """Returns the blobs associated with this transaction."""
+        return self.transaction.blob_data
+
     @classmethod
-    def from_dict(cls, dictionary: Dict[str, Any]) -> "TypedTransaction":
+    def from_dict(
+        cls, dictionary: Dict[str, Any], blobs: List[bytes] = None
+    ) -> "TypedTransaction":
         """
         Builds a TypedTransaction from a dictionary.
         Verifies the dictionary is well formed.
@@ -81,7 +91,7 @@ class TypedTransaction:
             raise TypeError(f"Unknown Transaction type: {transaction_type}")
         return cls(
             transaction_type=transaction_type,
-            transaction=transaction.from_dict(dictionary),
+            transaction=transaction.from_dict(dictionary, blobs=blobs),
         )
 
     @classmethod
