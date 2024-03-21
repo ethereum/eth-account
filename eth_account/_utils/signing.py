@@ -27,9 +27,11 @@ INTENDED_VALIDATOR_SIGN_VERSION = b"\x00"  # Hex value 0x00
 STRUCTURED_DATA_SIGN_VERSION = b"\x01"  # Hex value 0x01
 
 
-def sign_transaction_dict(eth_key, transaction_dict):
+def sign_transaction_dict(eth_key, transaction_dict, blobs=None):
     # generate RLP-serializable transaction, with defaults filled
-    unsigned_transaction = serializable_unsigned_transaction_from_dict(transaction_dict)
+    unsigned_transaction = serializable_unsigned_transaction_from_dict(
+        transaction_dict, blobs=blobs
+    )
 
     transaction_hash = unsigned_transaction.hash()
 
