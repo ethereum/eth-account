@@ -36,6 +36,7 @@ from rlp.sedes import (
 )
 
 from eth_account._utils.transaction_utils import (
+    set_transaction_type_if_needed,
     transaction_rlp_to_rpc_structure,
     transaction_rpc_to_rlp_structure,
 )
@@ -205,6 +206,8 @@ class BlobTransaction(_TypedTransactionImplementation):
                 )
             )
             dictionary["type"] = cls.transaction_type
+        else:
+            dictionary = set_transaction_type_if_needed(dictionary)
 
         # Validate fields.
         cls.assert_valid_fields(dictionary, has_blobs=has_blobs)
@@ -380,5 +383,6 @@ class BlobTransaction(_TypedTransactionImplementation):
         )
         if diff:
             raise ValidationError(
-                f"Versioned hashes do not match computed versioned hashes: {diff}"
+                "`blobVersionedHashes` value defined in transaction does not match "
+                f"versioned hashes computed from blobs.\n    diff: {diff}"
             )
