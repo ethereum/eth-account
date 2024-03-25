@@ -22,6 +22,7 @@ from eth_typing import (
     HexStr,
 )
 from eth_utils import (
+    ValidationError,
     is_bytes,
     is_string,
     to_bytes,
@@ -105,7 +106,7 @@ class Blob(_BlobDataElement):
     @field_validator("data")
     def validate_data(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
         if len(v) != 4096 * 32:
-            raise ValueError(
+            raise ValidationError(
                 "Invalid Blob size. Blob data must be comprised of 4096 32-byte "
                 "field elements."
             )
@@ -120,7 +121,7 @@ class BlobKZGCommitment(_BlobDataElement):
     @field_validator("data")
     def validate_commitment(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
         if len(v) != 48:
-            raise ValueError("Blob KZG Commitment must be 48 bytes long.")
+            raise ValidationError("Blob KZG Commitment must be 48 bytes long.")
         return v
 
 
@@ -132,7 +133,7 @@ class BlobProof(_BlobDataElement):
     @field_validator("data")
     def validate_proof(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
         if len(v) != 48:
-            raise ValueError("Blob Proof must be 48 bytes long.")
+            raise ValidationError("Blob Proof must be 48 bytes long.")
         return v
 
 
@@ -146,9 +147,9 @@ class BlobVersionedHash(_BlobDataElement):
         cls, v: Union[HexBytes, bytes]
     ) -> Union[HexBytes, bytes]:
         if len(v) != 32:
-            raise ValueError("Blob Versioned Hash must be 32 bytes long.")
+            raise ValidationError("Blob Versioned Hash must be 32 bytes long.")
         if v[:1] != VERSIONED_HASH_VERSION_KZG:
-            raise ValueError(
+            raise ValidationError(
                 "Blob Versioned Hash must start with the KZG version byte."
             )
         return v
@@ -177,7 +178,9 @@ class BlobPooledTransactionData(BaseModel):
     @field_validator("blobs")
     def validate_blobs(cls, v: List[Blob]) -> List[Blob]:
         if len(v) == 0:
-            raise ValueError("Blob transactions must contain at least one blob.")
+            raise ValidationError("Blob transactions must contain at least 1 blob.")
+        elif len(v) > 6:
+            raise ValidationError("Blob transactions cannot contain more than 6 blobs.")
         return v
 
     # type ignored bc mypy does not support decorated properties
