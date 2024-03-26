@@ -1,0 +1,1 @@
+Add support for type ``3``, ``BlobTransaction``, introduced by the Cancun network upgrade.

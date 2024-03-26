@@ -15,17 +15,44 @@ from eth_account._utils.validation import (
 )
 
 
+def normalize_transaction_dict(txn_dict: Dict[str, Any]) -> Dict[str, Any]:
+    """
+    Normalizes a transaction dictionary.
+    """
+    # convert all lists to tuples recursively
+    for key, value in txn_dict.items():
+        if isinstance(value, (list, tuple)):
+            txn_dict[key] = tuple(
+                normalize_transaction_dict(item) if isinstance(item, dict) else item
+                for item in value
+            )
+
+        elif isinstance(value, dict):
+            txn_dict[key] = normalize_transaction_dict(value)
+
+    return txn_dict
+
+
 def set_transaction_type_if_needed(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
     if "type" not in transaction_dict:
-        if "gasPrice" in transaction_dict and "accessList" in transaction_dict:
+        if all(
+            type_1_arg in transaction_dict for type_1_arg in ("gasPrice", "accessList")
+        ):
             # access list txn - type 1
             transaction_dict = assoc(transaction_dict, "type", "0x1")
-        elif (
-            "maxFeePerGas" in transaction_dict
-            and "maxPriorityFeePerGas" in transaction_dict
+        elif all(
+            type_2_arg in transaction_dict
+            for type_2_arg in ("maxFeePerGas", "maxPriorityFeePerGas")
         ):
-            # dynamic fee txn - type 2
-            transaction_dict = assoc(transaction_dict, "type", "0x2")
+            if any(
+                type_3_arg in transaction_dict
+                for type_3_arg in ("maxFeePerBlobGas", "blobVersionedHashes")
+            ):
+                # blob txn - type 3
+                transaction_dict = assoc(transaction_dict, "type", "0x3")
+            else:
+                # dynamic fee txn - type 2
+                transaction_dict = assoc(transaction_dict, "type", "0x2")
     return transaction_dict
 
 
@@ -47,16 +74,15 @@ def _access_list_rpc_to_rlp_structure(access_list: Sequence) -> Sequence:
         raise ValueError(
             "provided object not formatted as JSON-RPC-structured access list"
         )
-    rlp_structured_access_list = []
-    for d in access_list:
-        # flatten each dict into a tuple of its values
-        rlp_structured_access_list.append(
-            (
-                d["address"],  # value of address
-                tuple(_ for _ in d["storageKeys"]),  # tuple of storage key values
-            )
+
+    # flatten each dict into a tuple of its values
+    return tuple(
+        (
+            d["address"],  # value of address
+            tuple(_ for _ in d["storageKeys"]),  # tuple of storage key values
         )
-    return tuple(rlp_structured_access_list)
+        for d in access_list
+    )
 
 
 # rlp to JSON-RPC transaction structure
@@ -69,14 +95,13 @@ def transaction_rlp_to_rpc_structure(dictionary: Dict[str, Any]) -> Dict[str, An
         dictionary = dissoc(dictionary, "accessList")
         rpc_structured_access_list = _access_list_rlp_to_rpc_structure(access_list)
         dictionary = assoc(dictionary, "accessList", rpc_structured_access_list)
+
     return dictionary
 
 
 def _access_list_rlp_to_rpc_structure(access_list: Sequence) -> Sequence:
     if not is_rlp_structured_access_list(access_list):
         raise ValueError("provided object not formatted as rlp-structured access list")
-    rpc_structured_access_list = []
-    for t in access_list:
-        # build a dictionary with appropriate keys for each tuple
-        rpc_structured_access_list.append({"address": t[0], "storageKeys": t[1]})
-    return tuple(rpc_structured_access_list)
+
+    # build a dictionary with appropriate keys for each tuple
+    return tuple({"address": t[0], "storageKeys": t[1]} for t in access_list)

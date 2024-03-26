@@ -35,11 +35,15 @@ from .validation import (
 )
 
 
-def serializable_unsigned_transaction_from_dict(transaction_dict):
+def serializable_unsigned_transaction_from_dict(transaction_dict, blobs=None):
     transaction_dict = set_transaction_type_if_needed(transaction_dict)
     if "type" in transaction_dict:
         # We delegate to TypedTransaction, which will carry out validation & formatting.
-        return TypedTransaction.from_dict(transaction_dict)
+        return TypedTransaction.from_dict(transaction_dict, blobs=blobs)
+
+    if blobs is not None:
+        # sanity check, blobs should never get past typed transactions check above
+        raise TypeError("Blob data is not supported for legacy transactions.")
 
     assert_valid_fields(transaction_dict)
     filled_transaction = pipe(
@@ -65,7 +69,11 @@ def encode_transaction(unsigned_transaction, vrs):
         chain_naive_transaction["v"] = v
         chain_naive_transaction["r"] = r
         chain_naive_transaction["s"] = s
-        signed_typed_transaction = TypedTransaction.from_dict(chain_naive_transaction)
+        blob_data = unsigned_transaction.blob_data
+        signed_typed_transaction = TypedTransaction.from_dict(
+            chain_naive_transaction,
+            blobs=[blob.as_bytes() for blob in blob_data.blobs] if blob_data else None,
+        )
         return signed_typed_transaction.encode()
     signed_transaction = Transaction(v=v, r=r, s=s, **chain_naive_transaction)
     return rlp.encode(signed_transaction)

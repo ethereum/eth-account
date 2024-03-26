@@ -632,7 +632,7 @@ class Account:
         )
 
     @combomethod
-    def sign_transaction(self, transaction_dict, private_key):
+    def sign_transaction(self, transaction_dict, private_key, blobs=None):
         """
         Sign a transaction using a local private key.
 
@@ -654,6 +654,7 @@ class Account:
           type, accessList, maxFeePerGas, and maxPriorityFeePerGas
         :param private_key: the private key to sign the data with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
+        :param blobs: optional list of blobs to sign in addition to the transaction
         :returns: Various details about the signature - most
           importantly the fields: v, r, and s
         :rtype: AttributeDict
@@ -766,7 +767,7 @@ class Account:
             r,
             s,
             encoded_transaction,
-        ) = sign_transaction_dict(account._key_obj, sanitized_transaction)
+        ) = sign_transaction_dict(account._key_obj, sanitized_transaction, blobs=blobs)
         transaction_hash = keccak(encoded_transaction)
 
         return SignedTransaction(
