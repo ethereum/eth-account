@@ -31,8 +31,10 @@ from .access_list_transaction import (
 from .base import (
     _TypedTransactionImplementation,
 )
-from .blob_transactions.blob_transaction import (
+from .blob_data_models import (
     BlobPooledTransactionData,
+)
+from .blob_transactions.blob_transaction import (
     BlobTransaction,
 )
 from .dynamic_fee_transaction import (
