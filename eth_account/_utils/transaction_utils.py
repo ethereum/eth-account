@@ -40,7 +40,7 @@ def set_transaction_type_if_needed(transaction_dict: Dict[str, Any]) -> Dict[str
         ):
             # access list txn - type 1
             transaction_dict = assoc(transaction_dict, "type", "0x1")
-        elif all(
+        elif any(
             type_2_arg in transaction_dict
             for type_2_arg in ("maxFeePerGas", "maxPriorityFeePerGas")
         ):
