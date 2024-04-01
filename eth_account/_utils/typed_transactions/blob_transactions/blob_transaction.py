@@ -45,8 +45,6 @@ from eth_account._utils.typed_transactions.access_list_transaction import (
 )
 from eth_account._utils.typed_transactions.base import (
     TYPED_TRANSACTION_FORMATTERS,
-    Blob,
-    BlobPooledTransactionData,
     _TypedTransactionImplementation,
 )
 from eth_account._utils.validation import (
@@ -54,6 +52,11 @@ from eth_account._utils.validation import (
     is_int_or_prefixed_hexstr,
     is_rpc_structured_access_list,
     is_sequence_of_bytes_or_hexstr,
+)
+
+from ..blob_data_models import (
+    Blob,
+    BlobPooledTransactionData,
 )
 
 
