@@ -633,7 +633,7 @@ class Account:
 
     @combomethod
     def sign_transaction(self, transaction_dict, private_key, blobs=None):
-        """
+        r"""
         Sign a transaction using a local private key.
 
         It produces signature details and the hex-encoded transaction suitable for
@@ -679,17 +679,17 @@ class Account:
                             )
                         },
                     ),
-                    "chainId": 1900,
+                    "chainId": 1337,
                 }
             >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
             >>> signed = Account.sign_transaction(dynamic_fee_transaction, key)
-            {'hash': HexBytes('0x126431f2a7fda003aada7c2ce52b0ce3cbdbb1896230d3333b9eea24f42d15b0'),
-
-             'r': 110093478023675319011132687961420618950720745285952062287904334878381994888509,
-             'rawTransaction': HexBytes('0x02f8b282076c2284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000080a0f366b34a5c206859b9778b4c909207e53443cca9e0b82e0b94bc4b47e6434d3da04a731eda413a944d4ea2d2236671e586e57388d0e9d40db53044ae4089f2aec8'),
-             's': 33674551144139401179914073499472892825822542092106065756005379322302694600392,
-
-             'v': 0}
+            SignedTransaction(
+                rawTransaction=HexBytes('0x02f8b28205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107...'),
+                hash=HexBytes('0x2721b2ac99d878695e410af9e8968859b6f6e94f544840be0eb2935bead7deba'),
+                r=48949965662841329840326477994465373664672499148507933176648302825256944281697,
+                s=1123041608316060268133200864147951676126406077675157976022772782796802590165,
+                v=1
+            )
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
 
         .. code-block:: python
@@ -702,15 +702,17 @@ class Account:
                     'gas': 2000000,
                     'gasPrice': 234567897654321,
                     'nonce': 0,
-                    'chainId': 1
+                    'chainId': 1337
                 }
             >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
             >>> signed = Account.sign_transaction(legacy_transaction, key)
-            {'hash': HexBytes('0x6893a6ee8df79b0f5d64a180cd1ef35d030f3e296a5361cf04d02ce720d32ec5'),
-             'r': 4487286261793418179817841024889747115779324305375823110249149479905075174044,
-             'rawTransaction': HexBytes('0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'),
-             's': 30785525769477805655994251009256770582792548537338581640010273753578382951464,
-             'v': 37}
+            SignedTransaction(
+                rawTransaction=HexBytes('0xf86c8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca0080820a95a01a7...'),
+                hash=HexBytes('0xd0a3e5dc7439f260c64cb0220139ec5dc7e016f82ce272a25a0f0b38fe751673'),
+                r=11971260903864915610009019893820767192081275151191539081612245320300335068143,
+                s=35365272040292958794699923036506252105590820339897221552886630515981233937234,
+                v=2709
+            )
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
 
         .. code-block:: python
@@ -731,16 +733,56 @@ class Account:
                             )
                         },
                     ),
-                    "chainId": 1900,
+                    "chainId": 1337,
                 }
             >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
             >>> signed = Account.sign_transaction(access_list_transaction, key)
-            {'hash': HexBytes('0x2864ca20a74ca5e044067ad4139a22ff5a0853434f5f1dc00108f24ef5f1f783'),
-             'r': 105940705063391628472351883894091935317142890114440570831409400676736873197702,
-             'rawTransaction': HexBytes('0x01f8ad82076c22843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616263646566f838f7940000000000000000000000000000000000000001e1a0010000000000000000000000000000000000000000000000000000000000000080a0ea38506c4afe4bb402e030877fbe1011fa1da47aabcf215db8da8fee5d3af086a051e9af653b8eb98e74e894a766cf88904dbdb10b0bc1fbd12f18f661fa2797a4'),
-             's': 37050226636175381535892585331727388340134760347943439553552848647212419749796,
-             'v': 0}
+            SignedTransaction(
+                rawTransaction=HexBytes('0x01f8ad82053922843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616...'),
+                hash=HexBytes('0xca9af2ef41691e06eb07e02125938fd9bb5a311e8daf330b264e77d6cdf3d17e'),
+                r=107355854401379915513092408112372039746594668141865279802319959599514133709188,
+                s=6729502936685237038651223791038758905953302464070244934323623239104475448298,
+                v=1
+            )
             >>> w3.eth.sendRawTransaction(signed.rawTransaction)
+
+
+        .. code-block:: python
+
+            >>> blob_transaction = {
+                    "type": 3,  # optional - can be implicitly determined based on `maxFeePerBlobGas` param
+                    "gas": 100000,
+                    "maxFeePerGas": 2000000000,
+                    "maxPriorityFeePerGas": 2000000000,
+                    "maxFeePerBlobGas": 2000000000,
+                    "data": "0x616263646566",
+                    "nonce": 34,
+                    "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
+                    "value": "0x5af3107a4000",
+                    "accessList": (  # optional
+                        {
+                            "address": "0x0000000000000000000000000000000000000001",
+                            "storageKeys": (
+                                "0x0100000000000000000000000000000000000000000000000000000000000000",
+                            )
+                        },
+                    ),
+                    "chainId": 1337,
+
+                    # Note: unless you've computed `blobVersionedHashes` yourself and it matches the blob data you are
+                    # sending along with the tx, you should omit the  field since it will be calculated from the blobs
+                    # "blobVersionedHashes": [...]  # optional (but must match the expected value from the blob data)
+                }
+            >>> empty_blob = b"\x00" * 32 * 4096  # 4096 empty 32-byte field elements
+            >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+            >>> signed = Account.sign_transaction(blob_transaction, key, blobs=[empty_blob])
+            SignedTransaction(
+                rawTransaction=HexBytes('0x03fa020147f8d98205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d97766098...'),
+                hash=HexBytes('0xf9dc8867c4324fd7f4506622aa700989562770f01d7d681cef74a1a1deb9fea9'),
+                r=14319949980593194209648175507603206696573324965145502821772573913457715875718,
+                s=9129184742597516615341309773045281461399831333162885393648678700392065987233,
+                v=1
+            )
         """  # noqa: E501
         if not isinstance(transaction_dict, Mapping):
             raise TypeError(
