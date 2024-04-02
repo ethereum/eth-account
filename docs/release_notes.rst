@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.12.1 (2024-04-02)
+--------------------------------
+
+Improved Documentation
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Update documentation to include blob transaction signing example. (`#258 <https://github.com/ethereum/eth-account/issues/258>`__)
+
+
 eth-account v0.12.0 (2024-04-01)
 --------------------------------
 
