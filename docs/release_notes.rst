@@ -3,6 +3,27 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.11.1 (2024-04-02)
+--------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Import cytoolz methods via eth_utils instead of cytoolz directly (`#251 <https://github.com/ethereum/eth-account/issues/251>`__)
+
+
+Improved Documentation
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Update documentation to include blob transaction signing example. (`#257 <https://github.com/ethereum/eth-account/issues/257>`__)
+
+
+Features
+~~~~~~~~
+
+- Add support for type ``3``, ``BlobTransaction``, introduced by the Cancun network upgrade. (`#253 <https://github.com/ethereum/eth-account/issues/253>`__, `#256 <https://github.com/ethereum/eth-account/issues/256>`__)
+
+
 eth-account v0.11.0 (2024-02-05)
 --------------------------------
 
