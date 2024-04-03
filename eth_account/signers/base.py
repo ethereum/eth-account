@@ -44,17 +44,13 @@ class BaseAccount(ABC):
         """
 
     @abstractmethod
-    def signHash(self, message_hash):
+    def unsafe_sign_hash(self, message_hash):
         """
         Sign the hash of a message.
 
         This uses the same structure
-        as in :meth:`~eth_account.account.Account.signHash`
+        as in :meth:`~eth_account.account.Account.unsafe_sign_hash`
         but without specifying the private key.
-
-        .. CAUTION:: Deprecated for
-            :meth:`~eth_account.signers.base.BaseAccount.sign_message`.
-            To be removed in v0.6
 
         :param bytes message_hash: 32 byte hash of the message to sign
         """

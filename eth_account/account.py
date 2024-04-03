@@ -12,7 +12,6 @@ from typing import (
     Union,
     cast,
 )
-import warnings
 
 from eth_keyfile import (
     create_keyfile_json,
@@ -582,7 +581,7 @@ class Account:
         return cast(SignedMessage, self._sign_hash(message_hash, private_key))
 
     @combomethod
-    def signHash(self, message_hash, private_key):
+    def unsafe_sign_hash(self, message_hash, private_key):
         """
         Sign the provided hash.
 
@@ -592,9 +591,6 @@ class Account:
             Instead, prefer :meth:`~eth_account.account.Account.sign_message`,
             which cannot accidentally sign a transaction.
 
-        .. CAUTION:: Deprecated for :meth:`~eth_account.account.Account.sign_message`.
-            This method will be removed in v0.6
-
         :param message_hash: the 32-byte message hash to be signed
         :type message_hash: hex str, bytes or int
         :param private_key: the key to sign the message with
@@ -603,11 +599,6 @@ class Account:
           importantly the fields: v, r, and s
         :rtype: ~eth_account.datastructures.SignedMessage
         """
-        warnings.warn(
-            "signHash is deprecated in favor of sign_message",
-            category=DeprecationWarning,
-            stacklevel=2,
-        )
         return self._sign_hash(message_hash, private_key)
 
     @combomethod

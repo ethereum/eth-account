@@ -402,8 +402,7 @@ def test_eth_account_hash_message_hexstr(acct, message, expected):
 def test_sign_message_against_sign_hash_as_text(keyed_acct, message_text):
     # sign via hash
     msg_hash = defunct_hash_message(text=message_text)
-    with pytest.deprecated_call():
-        signed_via_hash = keyed_acct.signHash(msg_hash)
+    signed_via_hash = keyed_acct.unsafe_sign_hash(msg_hash)
 
     # sign via message
     signable_message = encode_defunct(text=message_text)
@@ -415,8 +414,7 @@ def test_sign_message_against_sign_hash_as_text(keyed_acct, message_text):
 def test_sign_message_against_sign_hash_as_bytes(keyed_acct, message_bytes):
     # sign via hash
     msg_hash = defunct_hash_message(message_bytes)
-    with pytest.deprecated_call():
-        signed_via_hash = keyed_acct.signHash(msg_hash)
+    signed_via_hash = keyed_acct.unsafe_sign_hash(msg_hash)
 
     # sign via message
     signable_message = encode_defunct(message_bytes)
@@ -431,8 +429,7 @@ def test_sign_message_against_sign_hash_as_hex(keyed_acct, message_bytes):
 
     # sign via hash
     msg_hash_hex = defunct_hash_message(hexstr=message_hex)
-    with pytest.deprecated_call():
-        signed_via_hash_hex = keyed_acct.signHash(msg_hash_hex)
+    signed_via_hash_hex = keyed_acct.unsafe_sign_hash(msg_hash_hex)
 
     # sign via message
     signable_message_hex = encode_defunct(hexstr=message_hex)
