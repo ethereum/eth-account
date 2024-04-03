@@ -331,8 +331,9 @@ def defunct_hash_message(
     """
     Convert the provided message into a message hash, to be signed.
 
-    .. CAUTION:: Intended for use with the deprecated
-        :meth:`eth_account.account.Account.signHash`.
+    .. CAUTION:: Intended for use with
+        :meth:`eth_account.account.Account.unsafe_sign_hash`.
+        or the deprecated :meth:`eth_account.account.Account.signHash`.
         This is for backwards compatibility only. All new implementations
         should use :meth:`encode_defunct` instead.
 

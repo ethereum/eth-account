@@ -441,6 +441,46 @@ def test_sign_message_against_sign_hash_as_hex(keyed_acct, message_bytes):
     assert signed_via_hash_hex == signed_via_message_hex
 
 
+@given(st.binary())
+def test_sign_message_against_unsafe_sign_hash_as_bytes(keyed_acct, message_bytes):
+    # sign via hash
+    msg_hash = defunct_hash_message(message_bytes)
+    signed_via_hash = keyed_acct.unsafe_sign_hash(msg_hash)
+
+    # sign via message
+    signable_message = encode_defunct(message_bytes)
+    signed_via_message = keyed_acct.sign_message(signable_message)
+
+    assert signed_via_hash == signed_via_message
+
+
+@given(st.binary())
+def test_sign_message_against_unsafe_sign_hash_as_hex(keyed_acct, message_bytes):
+    message_hex = to_hex(message_bytes)
+
+    # sign via hash
+    msg_hash_hex = defunct_hash_message(hexstr=message_hex)
+    signed_via_hash_hex = keyed_acct.unsafe_sign_hash(msg_hash_hex)
+
+    # sign via message
+    signable_message_hex = encode_defunct(hexstr=message_hex)
+    signed_via_message_hex = keyed_acct.sign_message(signable_message_hex)
+
+    assert signed_via_hash_hex == signed_via_message_hex
+
+
+@given(st.text())
+def test_sign_message_against_unsafe_sign_hash_as_text(keyed_acct, message_text):
+    # sign via hash
+    msg_hash = defunct_hash_message(text=message_text)
+    signed_via_hash = keyed_acct.unsafe_sign_hash(msg_hash)
+
+    # sign via message
+    signable_message = encode_defunct(text=message_text)
+    signed_via_message = keyed_acct.sign_message(signable_message)
+    assert signed_via_hash == signed_via_message
+
+
 @pytest.mark.parametrize(
     "message, key, expected_bytes, expected_hash, v, r, s, signature",
     (
