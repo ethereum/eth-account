@@ -48,6 +48,12 @@ class BaseAccount(ABC):
         """
         Sign the hash of a message.
 
+        .. WARNING:: *Never* sign a hash that you didn't generate,
+            it can be an arbitrary transaction. For example, it might
+            send all of your account's ether to an attacker.
+            Instead, prefer :meth:`~eth_account.account.Account.sign_message`,
+            which cannot accidentally sign a transaction.
+
         This uses the same structure
         as in :meth:`~eth_account.account.Account.unsafe_sign_hash`
         but without specifying the private key.
