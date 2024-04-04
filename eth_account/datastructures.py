@@ -26,7 +26,7 @@ class SignedTransaction(NamedTuple):
 
 
 class SignedMessage(NamedTuple):
-    messageHash: HexBytes
+    message_hash: HexBytes
     r: int
     s: int
     v: int
