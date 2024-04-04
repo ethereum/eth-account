@@ -569,6 +569,7 @@ class Account:
             >>> key = "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
             >>> Account.sign_message(msghash, key)
             SignedMessage(messageHash=HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),
+             message_hash=HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),
              r=104389933075820307925104709181714897380569894203213074526835978196648170704563,
              s=28205917190874851400050446352651915501321657673772411533993420917949420456142,
              v=28,
@@ -625,6 +626,7 @@ class Account:
         (v, r, s, eth_signature_bytes) = sign_message_hash(key, msg_hash_bytes)
         return SignedMessage(
             messageHash=msg_hash_bytes,
+            message_hash=msg_hash_bytes,
             r=r,
             s=s,
             v=v,
@@ -917,7 +919,7 @@ class Account:
             ... }
             >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
             >>> signed_message = Account.sign_typed_data(key, domain_data, message_types, message_data)
-            >>> signed_message.messageHash
+            >>> signed_message.message_hash
             HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
 
             >>> # 1-argument usage
@@ -963,7 +965,7 @@ class Account:
             ...     },
             ... }
             >>> signed_message_2 = Account.sign_typed_data(key, full_message=full_message)
-            >>> signed_message_2.messageHash
+            >>> signed_message_2.message_hash
             HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
             >>> signed_message_2 == signed_message
             True
