@@ -53,8 +53,26 @@ class BaseAccount(ABC):
         but without specifying the private key.
 
         .. CAUTION:: Deprecated for
-            :meth:`~eth_account.signers.base.BaseAccount.sign_message`.
-            To be removed in v0.6
+            :meth:`~eth_account.signers.base.BaseAccount.unsafe_sign_hash`.
+            To be removed in v0.13
+
+        :param bytes message_hash: 32 byte hash of the message to sign
+        """
+
+    @abstractmethod
+    def unsafe_sign_hash(self, message_hash):
+        """
+        Sign the hash of a message.
+
+        .. WARNING:: *Never* sign a hash that you didn't generate,
+            it can be an arbitrary transaction. For example, it might
+            send all of your account's ether to an attacker.
+            Instead, prefer :meth:`~eth_account.account.Account.sign_message`,
+            which cannot accidentally sign a transaction.
+
+        This uses the same structure
+        as in :meth:`~eth_account.account.Account.unsafe_sign_hash`
+        but without specifying the private key.
 
         :param bytes message_hash: 32 byte hash of the message to sign
         """

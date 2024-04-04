@@ -70,6 +70,12 @@ class LocalAccount(BaseAccount):
             private_key=self.key,
         )
 
+    def unsafe_sign_hash(self, message_hash):
+        return self._publicapi.unsafe_sign_hash(
+            message_hash,
+            private_key=self.key,
+        )
+
     def sign_message(self, signable_message):
         """
         Generate a string with the encrypted key.
