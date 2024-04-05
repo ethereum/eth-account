@@ -710,8 +710,13 @@ class Account:
             >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
             >>> signed_df_tx = Account.sign_transaction(dynamic_fee_transaction, key)
             >>> signed_df_tx
-            SignedTransaction(rawTransaction=HexBytes('0x02f8b28205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107...d58b85d5'), hash=HexBytes('0x2721b2ac99d878695e410af9e8968859b6f6e94f544840be0eb2935bead7deba'), r=48949965662841329840326477994465373664672499148507933176648302825256944281697, s=1123041608316060268133200864147951676126406077675157976022772782796802590165, v=1)
-            >>> w3.eth.sendRawTransaction(signed_df_tx.rawTransaction)  # doctest: +SKIP
+            SignedTransaction(rawTransaction=HexBytes('0x02f8b28205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107...d58b85d5'),
+             raw_transaction=HexBytes('0x02f8b28205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107...d58b85d5'),
+             hash=HexBytes('0x2721b2ac99d878695e410af9e8968859b6f6e94f544840be0eb2935bead7deba'),
+             r=48949965662841329840326477994465373664672499148507933176648302825256944281697,
+             s=1123041608316060268133200864147951676126406077675157976022772782796802590165,
+             v=1)
+            >>> w3.eth.sendRawTransaction(signed_df_tx.raw_transaction)  # doctest: +SKIP
 
         .. doctest:: python
 
@@ -729,8 +734,13 @@ class Account:
             >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
             >>> signed_legacy_tx = Account.sign_transaction(legacy_transaction, key)
             >>> signed_legacy_tx
-            SignedTransaction(rawTransaction=HexBytes('0xf86c8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca0080820a95a01a7...c0bfdb52'), hash=HexBytes('0xd0a3e5dc7439f260c64cb0220139ec5dc7e016f82ce272a25a0f0b38fe751673'), r=11971260903864915610009019893820767192081275151191539081612245320300335068143, s=35365272040292958794699923036506252105590820339897221552886630515981233937234, v=2709)
-            >>> w3.eth.sendRawTransaction(signed_legacy_tx.rawTransaction)  # doctest: +SKIP
+            SignedTransaction(rawTransaction=HexBytes('0xf86c8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca0080820a95a01a7...c0bfdb52'),
+             raw_transaction=HexBytes('0xf86c8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca0080820a95a01a7...c0bfdb52'),
+             hash=HexBytes('0xd0a3e5dc7439f260c64cb0220139ec5dc7e016f82ce272a25a0f0b38fe751673'),
+             r=11971260903864915610009019893820767192081275151191539081612245320300335068143,
+             s=35365272040292958794699923036506252105590820339897221552886630515981233937234,
+             v=2709)
+            >>> w3.eth.sendRawTransaction(signed_legacy_tx.raw_transaction)  # doctest: +SKIP
 
         .. doctest:: python
 
@@ -756,8 +766,13 @@ class Account:
             >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
             >>> signed_al_tx = Account.sign_transaction(access_list_transaction, key)
             >>> signed_al_tx
-            SignedTransaction(rawTransaction=HexBytes('0x01f8ad82053922843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616...2b5043ea'), hash=HexBytes('0xca9af2ef41691e06eb07e02125938fd9bb5a311e8daf330b264e77d6cdf3d17e'), r=107355854401379915513092408112372039746594668141865279802319959599514133709188, s=6729502936685237038651223791038758905953302464070244934323623239104475448298, v=1)
-            >>> w3.eth.sendRawTransaction(signed_al_tx.rawTransaction)  # doctest: +SKIP
+            SignedTransaction(rawTransaction=HexBytes('0x01f8ad82053922843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616...2b5043ea'),
+             raw_transaction=HexBytes('0x01f8ad82053922843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616...2b5043ea'),
+             hash=HexBytes('0xca9af2ef41691e06eb07e02125938fd9bb5a311e8daf330b264e77d6cdf3d17e'),
+             r=107355854401379915513092408112372039746594668141865279802319959599514133709188,
+             s=6729502936685237038651223791038758905953302464070244934323623239104475448298,
+             v=1)
+            >>> w3.eth.sendRawTransaction(signed_al_tx.raw_transaction)  # doctest: +SKIP
 
         .. doctest:: python
 
@@ -788,8 +803,13 @@ class Account:
             >>> # The `blobVersionedHashes` transaction field is calculated from the `blobs` kwarg
             >>> signed_blob_tx = Account.sign_transaction(blob_transaction, key, blobs=[empty_blob])
             >>> signed_blob_tx
-            SignedTransaction(rawTransaction=HexBytes('0x03fa020147f8d98205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d97766098...00000000'), hash=HexBytes('0xf9dc8867c4324fd7f4506622aa700989562770f01d7d681cef74a1a1deb9fea9'), r=14319949980593194209648175507603206696573324965145502821772573913457715875718, s=9129184742597516615341309773045281461399831333162885393648678700392065987233, v=1)
-            >>> w3.eth.sendRawTransaction(signed_blob_tx.rawTransaction)  # doctest: +SKIP
+            SignedTransaction(rawTransaction=HexBytes('0x03fa020147f8d98205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d97766098...00000000'),
+             raw_transaction=HexBytes('0x03fa020147f8d98205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d97766098...00000000'),
+             hash=HexBytes('0xf9dc8867c4324fd7f4506622aa700989562770f01d7d681cef74a1a1deb9fea9'),
+             r=14319949980593194209648175507603206696573324965145502821772573913457715875718,
+             s=9129184742597516615341309773045281461399831333162885393648678700392065987233,
+             v=1)
+            >>> w3.eth.sendRawTransaction(signed_blob_tx.raw_transaction)  # doctest: +SKIP
         """  # noqa: E501
         if not isinstance(transaction_dict, Mapping):
             raise TypeError(
@@ -821,6 +841,7 @@ class Account:
 
         return SignedTransaction(
             rawTransaction=HexBytes(encoded_transaction),
+            raw_transaction=HexBytes(encoded_transaction),
             hash=HexBytes(transaction_hash),
             r=r,
             s=s,
