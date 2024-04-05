@@ -502,7 +502,7 @@ def test_eth_account_sign(
 ):
     signable = encode_defunct(text=message)
     signed = acct.sign_message(signable, private_key=key)
-    assert signed.messageHash == signed["messageHash"] == expected_hash
+    assert signed.message_hash == signed["message_hash"] == expected_hash
     assert signed.v == signed["v"] == v
     assert signed.r == signed["r"] == r
     assert signed.s == signed["s"] == s
