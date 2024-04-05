@@ -64,8 +64,8 @@ class LocalAccount(BaseAccount):
             self.key, password, kdf=kdf, iterations=iterations
         )
 
-    def signHash(self, message_hash):
-        return self._publicapi.signHash(
+    def unsafe_sign_hash(self, message_hash):
+        return self._publicapi.unsafe_sign_hash(
             message_hash,
             private_key=self.key,
         )

@@ -1,0 +1,1 @@
+Remove ``signHash`` in favor of ``unsafe_sign_hash``
