@@ -15,7 +15,7 @@ def __getitem__(self, index):
 
 
 class SignedTransaction(NamedTuple):
-    rawTransaction: HexBytes
+    raw_transaction: HexBytes
     hash: HexBytes
     r: int
     s: int

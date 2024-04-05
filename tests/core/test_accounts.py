@@ -668,7 +668,7 @@ def test_eth_account_sign_transaction(
     assert signed.r == signed["r"] == r
     assert signed.s == signed["s"] == s
     assert signed.v == signed["v"] == v
-    assert signed.rawTransaction == signed["rawTransaction"] == expected_raw_tx
+    assert signed.raw_transaction == signed["raw_transaction"] == expected_raw_tx
     assert signed.hash == signed["hash"] == tx_hash
 
     account = acct.from_key(private_key)
@@ -695,7 +695,7 @@ def test_eth_account_sign_transaction_from_eth_test(acct, transaction):
 
     # confirm that signed transaction can be recovered to the sender
     expected_sender = acct.from_key(key).address
-    assert acct.recover_transaction(signed.rawTransaction) == expected_sender
+    assert acct.recover_transaction(signed.raw_transaction) == expected_sender
 
 
 @pytest.mark.parametrize(

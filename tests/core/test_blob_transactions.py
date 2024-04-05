@@ -98,7 +98,7 @@ def test_sign_blob_transaction_with_zero_blob_and_compare_with_tx_from_bytes():
         signed_tx_from_file = to_bytes(hexstr=signed_tx_file.read().strip("\n"))
 
     signed_tx = TEST_ACCT.sign_transaction(BLOB_TX_DICT, blobs=[ZERO_BLOB])
-    assert signed_tx.rawTransaction == HexBytes(signed_tx_from_file)
+    assert signed_tx.raw_transaction == HexBytes(signed_tx_from_file)
 
     # test `from_bytes()` creates `blob_data`
     tx_from_bytes = BlobTransaction.from_bytes(HexBytes(signed_tx_from_file))
@@ -150,7 +150,7 @@ def test_blob_transaction_calculation_with_nonzero_blob():
         blob_data_1_signed = to_bytes(hexstr=blob_data_1_signed_file.read().strip("\n"))
 
     signed = TEST_ACCT.sign_transaction(tx.dictionary, blobs=[blob_data_1])
-    assert blob_data_1_signed == signed.rawTransaction
+    assert blob_data_1_signed == signed.raw_transaction
 
 
 def test_high_and_low_blob_count_limit_validation():
