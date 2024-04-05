@@ -229,7 +229,7 @@ def encode_structured_data(
 
         >>> signed_msg_from_dict == signed_msg_from_str == signed_msg_from_hexstr
         True
-        >>> signed_msg_from_dict.messageHash
+        >>> signed_msg_from_dict.message_hash
         HexBytes('0xbe609aee343fb3c4b28e1df9e632fca64fcfaede20f02e86244efddf30957bd2')
 
     .. _EIP-712: https://eips.ethereum.org/EIPS/eip-712
@@ -444,7 +444,7 @@ def encode_typed_data(
         >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         >>> signable_message = encode_typed_data(domain_data, message_types, message_data)
         >>> signed_message = Account.sign_message(signable_message, key)
-        >>> signed_message.messageHash
+        >>> signed_message.message_hash
         HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
         >>> # the message can be signed in one step using Account.sign_typed_data
         >>> signed_typed_data = Account.sign_typed_data(key, domain_data, message_types, message_data)
@@ -495,7 +495,7 @@ def encode_typed_data(
         ... }
         >>> signable_message_2 = encode_typed_data(full_message=full_message)
         >>> signed_message_2 = Account.sign_message(signable_message_2, key)
-        >>> signed_message_2.messageHash
+        >>> signed_message_2.message_hash
         HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
         >>> signed_message_2 == signed_message
         True
