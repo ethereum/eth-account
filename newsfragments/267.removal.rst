@@ -1,0 +1,1 @@
+Moved private ``_parsePrivateKey`` method to ``_parse_private_key``
