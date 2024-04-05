@@ -15,12 +15,35 @@ def __getitem__(self, index):
         return getattr(self, index)
 
 
-class SignedTransaction(NamedTuple):
+class SignedTransaction(
+    NamedTuple(
+        "SignedTransaction",
+        [
+            ("rawTransaction", HexBytes),
+            ("raw_transaction", HexBytes),
+            ("hash", HexBytes),
+            ("r", int),
+            ("s", int),
+            ("v", int),
+        ],
+    )
+):
     rawTransaction: HexBytes
+    raw_transaction: HexBytes
     hash: HexBytes
     r: int
     s: int
     v: int
+
+    def __getattribute__(cls, name):
+        if name == "rawTransaction":
+            warnings.warn(
+                "The attribute rawTransaction on SignedTransaction is deprecated "
+                "in favor of raw_transaction",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+        return super().__getattribute__(name)
 
     def __getitem__(self, index):
         return __getitem__(self, index)

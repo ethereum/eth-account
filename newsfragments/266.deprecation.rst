@@ -1,0 +1,1 @@
+Deprecate ``SignedTransaction``'s ``rawTransaction`` attribute in favor of ``raw_transaction``
