@@ -20,12 +20,6 @@ from eth_utils import (
 from hexbytes import (
     HexBytes,
 )
-from pydantic import (
-    BaseModel,
-    ConfigDict,
-    computed_field,
-    field_validator,
-)
 
 # import TRUSTED_SETUP from ./kzg_trusted_setup.txt
 TRUSTED_SETUP = os.path.join(
@@ -34,9 +28,8 @@ TRUSTED_SETUP = os.path.join(
 VERSIONED_HASH_VERSION_KZG = b"\x01"
 
 
-class _BlobDataElement(BaseModel):
-    model_config = ConfigDict(arbitrary_types_allowed=True)
-    data: HexBytes
+class _BlobDataElement:
+    data: Union[HexBytes, bytes]
 
     def as_hexbytes(self) -> HexBytes:
         return self.data
@@ -53,14 +46,17 @@ class Blob(_BlobDataElement):
     Represents a Blob.
     """
 
-    @field_validator("data")
-    def validate_data(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
+    def __init__(self, data: Union[HexBytes, bytes]) -> None:
+        self._validate_blob(data)
+        self.data = data
+
+    @staticmethod
+    def _validate_blob(v: Union[HexBytes, bytes]) -> None:
         if len(v) != 4096 * 32:
             raise ValidationError(
                 "Invalid Blob size. Blob data must be comprised of 4096 32-byte "
                 "field elements."
             )
-        return v
 
 
 class BlobKZGCommitment(_BlobDataElement):
@@ -68,11 +64,14 @@ class BlobKZGCommitment(_BlobDataElement):
     Represents a Blob KZG Commitment.
     """
 
-    @field_validator("data")
-    def validate_commitment(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
+    def __init__(self, data: Union[HexBytes, bytes]) -> None:
+        self._validate_commitment(data)
+        self.data = data
+
+    @staticmethod
+    def _validate_commitment(v: Union[HexBytes, bytes]) -> None:
         if len(v) != 48:
             raise ValidationError("Blob KZG Commitment must be 48 bytes long.")
-        return v
 
 
 class BlobProof(_BlobDataElement):
@@ -80,11 +79,14 @@ class BlobProof(_BlobDataElement):
     Represents a Blob Proof.
     """
 
-    @field_validator("data")
-    def validate_proof(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
+    def __init__(self, data: Union[HexBytes, bytes]) -> None:
+        self._validate_proof(data)
+        self.data = data
+
+    @staticmethod
+    def _validate_proof(v: Union[HexBytes, bytes]) -> None:
         if len(v) != 48:
             raise ValidationError("Blob Proof must be 48 bytes long.")
-        return v
 
 
 class BlobVersionedHash(_BlobDataElement):
@@ -92,20 +94,21 @@ class BlobVersionedHash(_BlobDataElement):
     Represents a Blob Versioned Hash.
     """
 
-    @field_validator("data")
-    def validate_versioned_hash(
-        cls, v: Union[HexBytes, bytes]
-    ) -> Union[HexBytes, bytes]:
+    def __init__(self, data: Union[HexBytes, bytes]) -> None:
+        self._validate_versioned_hash(data)
+        self.data = data
+
+    @staticmethod
+    def _validate_versioned_hash(v: Union[HexBytes, bytes]) -> None:
         if len(v) != 32:
             raise ValidationError("Blob Versioned Hash must be 32 bytes long.")
         if v[:1] != VERSIONED_HASH_VERSION_KZG:
             raise ValidationError(
                 "Blob Versioned Hash must start with the KZG version byte."
             )
-        return v
 
 
-class BlobPooledTransactionData(BaseModel):
+class BlobPooledTransactionData:
     """
     Represents the blob data for a type 3 `PooledTransaction` as defined by
     EIP-4844. This class takes blobs as bytes and computes the corresponding
@@ -119,23 +122,23 @@ class BlobPooledTransactionData(BaseModel):
 
     blobs: List[Blob]
 
+    def __init__(self, blobs: List[Blob]) -> None:
+        self._validate_blobs(blobs)
+        self.blobs = blobs
+
     def _kzg_to_versioned_hash(self, kzg_commitment: BlobKZGCommitment) -> bytes:
         return (
             self._versioned_hash_version_kzg
             + hashlib.sha256(kzg_commitment.data).digest()[1:]
         )
 
-    @field_validator("blobs")
-    def validate_blobs(cls, v: List[Blob]) -> List[Blob]:
+    @staticmethod
+    def _validate_blobs(v: List[Blob]) -> None:
         if len(v) == 0:
             raise ValidationError("Blob transactions must contain at least 1 blob.")
         elif len(v) > 6:
             raise ValidationError("Blob transactions cannot contain more than 6 blobs.")
-        return v
 
-    # type ignored bc mypy does not support decorated properties
-    # https://github.com/python/mypy/issues/1362
-    @computed_field  # type: ignore
     @property
     def versioned_hashes(self) -> List[BlobVersionedHash]:
         if self._versioned_hashes is None:
@@ -147,9 +150,6 @@ class BlobPooledTransactionData(BaseModel):
             ]
         return self._versioned_hashes
 
-    # type ignored bc mypy does not support decorated properties
-    # https://github.com/python/mypy/issues/1362
-    @computed_field  # type: ignore
     @property
     def commitments(self) -> List[BlobKZGCommitment]:
         if self._commitments is None:
@@ -165,9 +165,6 @@ class BlobPooledTransactionData(BaseModel):
             ]
         return self._commitments
 
-    # type ignored bc mypy does not support decorated properties
-    # https://github.com/python/mypy/issues/1362
-    @computed_field  # type: ignore
     @property
     def proofs(self) -> List[BlobProof]:
         if self._proofs is None:
