@@ -57,7 +57,6 @@ setup(
         "hexbytes>=0.1.0,<0.4.0",
         "rlp>=1.0.0",
         "ckzg>=0.4.3",
-        "pydantic>=2.4.0",
     ],
     python_requires=">=3.8, <4",
     extras_require=extras_require,
