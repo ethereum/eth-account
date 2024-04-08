@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.11.2 (2024-04-08)
+--------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Revert the introduction of ``pydantic`` as a dependency within the ``0.11.x`` version. (`#272 <https://github.com/ethereum/eth-account/issues/272>`__)
+
+
 eth-account v0.11.1 (2024-04-02)
 --------------------------------
 
