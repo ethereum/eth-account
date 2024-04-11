@@ -66,6 +66,7 @@ addopts = "-v --showlocals --durations 10"
 xfail_strict = true
 log_format = "%(levelname)8s  %(asctime)s  %(filename)20s  %(message)s"
 log_date_format = "%m-%d %H:%M:%S"
+markers = "compatibility"
 
 [tool.towncrier]
 # Read https://github.com/ethereum/eth-account/blob/main/newsfragments/README.md for instructions
