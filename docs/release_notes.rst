@@ -3,6 +3,23 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.12.2 (2024-04-15)
+--------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Expand valid Pydantic versions (`#272 <https://github.com/ethereum/eth-account/issues/272>`__)
+
+
+Deprecations
+~~~~~~~~~~~~
+
+- Provide an upgrade path to remove ``signHash`` (`#263 <https://github.com/ethereum/eth-account/issues/263>`__)
+- Deprecated messageHash in favor of message_hash on SignedMessage (`#264 <https://github.com/ethereum/eth-account/issues/264>`__)
+- Deprecate ``SignedTransaction``'s ``rawTransaction`` attribute in favor of ``raw_transaction`` (`#266 <https://github.com/ethereum/eth-account/issues/266>`__)
+
+
 eth-account v0.12.1 (2024-04-02)
 --------------------------------
 

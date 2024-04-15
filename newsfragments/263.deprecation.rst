@@ -1,1 +1,0 @@
-Provide an upgrade path to remove ``signHash``

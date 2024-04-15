@@ -1,1 +1,0 @@
-Deprecated messageHash in favor of message_hash on SignedMessage
