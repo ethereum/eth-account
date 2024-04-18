@@ -1,9 +1,9 @@
 import json
+import pytest
 
 from eth_utils import (
     ValidationError,
 )
-import pytest
 
 from eth_account.messages import (
     encode_typed_data,

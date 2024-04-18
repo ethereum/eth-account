@@ -1,10 +1,10 @@
+import pytest
 import re
 
 from eth_abi.exceptions import (
     EncodingTypeError,
     ValueOutOfBounds,
 )
-import pytest
 
 from eth_account._utils.encode_typed_data.encoding_and_hashing import (
     encode_data,

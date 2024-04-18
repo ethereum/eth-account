@@ -1,4 +1,5 @@
 import os
+import pytest
 
 from eth_keyfile.keyfile import (
     get_default_work_factor_for_kdf,
@@ -22,7 +23,6 @@ from hypothesis import (
     given,
     strategies as st,
 )
-import pytest
 
 from eth_account import (
     Account,

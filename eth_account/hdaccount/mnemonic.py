@@ -210,7 +210,7 @@ class Mnemonic:
         mnemonic = normalize_string(checked_mnemonic)
         # NOTE: This domain separater ("mnemonic") is added per BIP39 spec
         # to the passphrase
-        # https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed  # noqa: E501
+        # https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed  # blocklint: URL pragma  # noqa: E501
         salt = "mnemonic" + normalize_string(passphrase)
         # From BIP39:
         #   To create a binary seed from the mnemonic, we use the PBKDF2 function with a

@@ -1,7 +1,6 @@
 import json
-import subprocess
-
 import pytest
+import subprocess
 
 from eth_account import (
     Account,
