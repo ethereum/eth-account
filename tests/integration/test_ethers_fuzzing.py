@@ -1,3 +1,4 @@
+import pytest
 import subprocess
 
 from hypothesis import (
@@ -5,7 +6,6 @@ from hypothesis import (
     settings,
     strategies as st,
 )
-import pytest
 
 from eth_account import (
     Account,

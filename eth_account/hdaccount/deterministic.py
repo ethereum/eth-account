@@ -33,7 +33,7 @@ Definitions
 * parse_256(p): interprets a 32-byte sequence as a 256-bit number, most significant
   byte first.
 
-"""
+"""  # blocklint: URL pragma
 # Additional notes:
 # - This module currently only implements private parent key => private child key
 #   CKD function, as it is not necessary to the HD key derivation functions used
@@ -196,7 +196,7 @@ class HDPath:
 
         Initializes an hd account generator using the
         given path string (from BIP-0032). The path is decoded into nodes of the
-        derivation key tree, which define a pathway from a given master seed to
+        derivation key tree, which define a pathway from a given main seed to
         the child key that is used for a given purpose. Please also reference BIP-
         0043 (which definites the first level as the "purpose" field of an HD path)
         and BIP-0044 (which defines a commonly-used, 5-level scheme for BIP32 paths)
@@ -240,13 +240,13 @@ class HDPath:
         """
         Perform the BIP32 Hierarchical Derivation recursive loop with the given Path.
 
-        Note that the key and chain_code are initialized with the master seed, and that
+        Note that the key and chain_code are initialized with the main seed, and that
         the key that is returned is the child key at the end of derivation process (and
         the chain code is discarded)
         """
-        master_node = hmac_sha512(b"Bitcoin seed", seed)
-        key = master_node[:32]
-        chain_code = master_node[32:]
+        main_node = hmac_sha512(b"Bitcoin seed", seed)
+        key = main_node[:32]
+        chain_code = main_node[32:]
         for node in self._path:
             key, chain_code = derive_child_key(key, chain_code, node)
         return key

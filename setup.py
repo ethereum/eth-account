@@ -16,6 +16,7 @@ extras_require = {
     ],
     "docs": [
         "sphinx>=6.0.0",
+        "sphinx-autobuild>=2024.2.4",
         "sphinx_rtd_theme>=1.0.0",
         "towncrier>=21,<22",
     ],
@@ -65,7 +66,7 @@ setup(
     license="MIT",
     zip_safe=False,
     keywords="ethereum",
-    packages=find_packages(exclude=["tests", "tests.*"]),
+    packages=find_packages(exclude=["scripts", "scripts.*", "tests", "tests.*"]),
     package_data={
         "eth_account": [
             "py.typed",
@@ -82,5 +83,6 @@ setup(
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Programming Language :: Python :: 3.11",
+        "Programming Language :: Python :: 3.12",
     ],
 )

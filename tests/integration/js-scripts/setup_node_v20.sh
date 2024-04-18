@@ -15,7 +15,7 @@
 # CONTRIBUTIONS TO THIS SCRIPT
 #
 # This script is built from a template in
-# https://github.com/nodesource/distributions/tree/master/deb/src
+# https://github.com/nodesource/distributions/tree/master/deb/src  # blocklint: URL pragma
 # please don't submit pull requests against the built scripts.
 #
 

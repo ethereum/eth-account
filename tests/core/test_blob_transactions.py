@@ -1,4 +1,5 @@
 import os
+import pytest
 
 from eth_utils import (
     ValidationError,
@@ -7,7 +8,6 @@ from eth_utils import (
 from hexbytes import (
     HexBytes,
 )
-import pytest
 from toolz import (
     merge,
 )

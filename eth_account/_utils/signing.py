@@ -71,7 +71,7 @@ def hash_of_signed_transaction(txn_obj):
     See details at https://github.com/ethereum/EIPs/blob/master/EIPS/eip-155.md
 
     :return: the hash of the provided transaction, to be signed
-    """
+    """  # blocklint: URL pragma
     (chain_id, _v) = extract_chain_id(txn_obj.v)
     unsigned_parts = strip_signature(txn_obj)
     if chain_id is None:
