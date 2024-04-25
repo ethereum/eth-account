@@ -45,9 +45,11 @@ class TypedTransaction:
     """
     Represents a Typed Transaction as per EIP-2718.
     The currently supported Transaction Types are:
+
      * EIP-2930's AccessListTransaction
      * EIP-1559's DynamicFeeTransaction
      * EIP-4844's BlobTransaction
+
     """
 
     def __init__(

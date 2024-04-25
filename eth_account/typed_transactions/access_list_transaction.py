@@ -175,7 +175,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
 
     @classmethod
     def from_bytes(cls, encoded_transaction: HexBytes) -> "AccessListTransaction":
-        """Builds an AccesslistTransaction from a signed encoded transaction."""
+        """Builds an AccessListTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
             raise TypeError(f"expected Hexbytes, got type: {type(encoded_transaction)}")
         if not (
@@ -205,8 +205,8 @@ class AccessListTransaction(_TypedTransactionImplementation):
         """
         Hashes this AccessListTransaction to prepare it for signing.
         As per the EIP-2930 specifications, the signature is a secp256k1 signature over
-        keccak256(0x01 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data, accessList])).  # noqa E501
-        Here, we compute the keccak256(...) hash.
+        ``keccak256(0x01 || rlp([chainId, nonce, gasPrice, gasLimit,
+        to, value, data, accessList])).``
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, "v", "r", "s")
@@ -228,9 +228,11 @@ class AccessListTransaction(_TypedTransactionImplementation):
         """
         Returns this transaction's payload as bytes.
 
-        Here, the TransactionPayload = rlp([chainId,
-        nonce, gasPrice, gasLimit, to, value, data, accessList,
-        signatureYParity, signatureR, signatureS])
+        Here, the transaction payload is:
+
+            TransactionPayload = rlp([chainId,
+            nonce, gasPrice, gasLimit, to, value, data, accessList,
+            signatureYParity, signatureR, signatureS])
         """
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")
