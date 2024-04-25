@@ -334,8 +334,8 @@ class BlobTransaction(_TypedTransactionImplementation):
 
             TransactionPayload = rlp([chainId,
             nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data,
-            accessList, maxFeePerBlobGas, blobVersionedHashes, signatureYParity, signatureR,
-            signatureS])
+            accessList, maxFeePerBlobGas, blobVersionedHashes, signatureYParity,
+            signatureR, signatureS])
 
         """
         if not all(k in self.dictionary for k in "vrs"):
