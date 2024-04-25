@@ -14,7 +14,7 @@ from eth_account._utils.legacy_transactions import (
     serializable_unsigned_transaction_from_dict,
     strip_signature,
 )
-from eth_account._utils.typed_transactions import (
+from eth_account.typed_transactions import (
     TypedTransaction,
 )
 

@@ -26,42 +26,54 @@ from hexbytes import (
 )
 import rlp
 from rlp.sedes import (
+    BigEndianInt,
     Binary,
+    CountableList,
+    List as ListSedesClass,
     big_endian_int,
     binary,
 )
 
-from ..transaction_utils import (
+from eth_account._utils.transaction_utils import (
     transaction_rlp_to_rpc_structure,
     transaction_rpc_to_rlp_structure,
 )
-from ..validation import (
+from eth_account._utils.validation import (
     LEGACY_TRANSACTION_VALID_VALUES,
     is_int_or_prefixed_hexstr,
     is_rpc_structured_access_list,
 )
-from .access_list_transaction import (
-    access_list_sede_type,
-)
+
 from .base import (
     TYPED_TRANSACTION_FORMATTERS,
     _TypedTransactionImplementation,
 )
 
+# Define typed transaction common sedes.
+# [[{20 bytes}, [{32 bytes}...]]...], where ... means
+# “zero or more of the thing to the left”.
+access_list_sede_type = CountableList(
+    ListSedesClass(
+        [
+            Binary.fixed_length(20, allow_empty=False),
+            CountableList(BigEndianInt(32)),
+        ]
+    ),
+)
 
-class DynamicFeeTransaction(_TypedTransactionImplementation):
+
+class AccessListTransaction(_TypedTransactionImplementation):
     """
-    Represents a dynamic fee transaction access per EIP-1559.
+    Represents an access list transaction per EIP-2930.
     """
 
-    # This is the second transaction to implement the EIP-2718 typed transaction.
-    transaction_type = 2  # '0x02'
+    # This is the first transaction to implement the EIP-2718 typed transaction.
+    transaction_type = 1  # '0x01'
 
     unsigned_transaction_fields = (
         ("chainId", big_endian_int),
         ("nonce", big_endian_int),
-        ("maxPriorityFeePerGas", big_endian_int),
-        ("maxFeePerGas", big_endian_int),
+        ("gasPrice", big_endian_int),
         ("gas", big_endian_int),
         ("to", Binary.fixed_length(20, allow_empty=True)),
         ("value", big_endian_int),
@@ -76,7 +88,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
     )
 
     transaction_field_defaults = {
-        "type": b"0x2",
+        "type": b"0x1",
         "chainId": 0,
         "to": b"",
         "value": 0,
@@ -109,8 +121,6 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
             LEGACY_TRANSACTION_VALID_VALUES,
             {
                 "type": is_int_or_prefixed_hexstr,
-                "maxPriorityFeePerGas": is_int_or_prefixed_hexstr,
-                "maxFeePerGas": is_int_or_prefixed_hexstr,
                 "accessList": is_rpc_structured_access_list,
             },
         )
@@ -134,13 +144,13 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
     @classmethod
     def from_dict(
         cls, dictionary: Dict[str, Any], blobs: List[bytes] = None
-    ) -> "DynamicFeeTransaction":
+    ) -> "AccessListTransaction":
         """
-        Builds a DynamicFeeTransaction from a dictionary.
+        Builds an AccessListTransaction from a dictionary.
         Verifies that the dictionary is well formed.
         """
         if blobs is not None:
-            raise ValueError("Blob data is not supported for `DynamicFeeTransaction`.")
+            raise ValueError("Blob data is not supported for `AccessListTransaction`.")
 
         # Validate fields.
         cls.assert_valid_fields(dictionary)
@@ -164,8 +174,8 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         )
 
     @classmethod
-    def from_bytes(cls, encoded_transaction: HexBytes) -> "DynamicFeeTransaction":
-        """Builds a DynamicFeeTransaction from a signed encoded transaction."""
+    def from_bytes(cls, encoded_transaction: HexBytes) -> "AccessListTransaction":
+        """Builds an AccesslistTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
             raise TypeError(f"expected Hexbytes, got type: {type(encoded_transaction)}")
         if not (
@@ -173,7 +183,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
             and encoded_transaction[0] == cls.transaction_type
         ):
             raise ValueError("unexpected input")
-        # Format is (0x02 || TransactionPayload)
+        # Format is (0x01 || TransactionPayload)
         # We strip the prefix, and RLP unmarshal the payload into our
         # signed transaction serializer.
         transaction_payload = encoded_transaction[1:]
@@ -193,10 +203,9 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
 
     def hash(self) -> bytes:
         """
-        Hashes this DynamicFeeTransaction to prepare it for signing.
-        As per the EIP-1559 specifications, the signature is a secp256k1 signature over
-        keccak256(0x02 || rlp([chainId, nonce, maxPriorityFeePerGas,
-        maxFeePerGas, gasLimit, to, value, data, accessList])).
+        Hashes this AccessListTransaction to prepare it for signing.
+        As per the EIP-2930 specifications, the signature is a secp256k1 signature over
+        keccak256(0x01 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data, accessList])).  # noqa E501
         Here, we compute the keccak256(...) hash.
         """
         # Remove signature fields.
@@ -210,8 +219,8 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
             rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore  # noqa: E501
             lambda val: rlp.encode(val),  # rlp([...])
             lambda val: bytes([self.__class__.transaction_type])
-            + val,  # (0x02 || rlp([...]))
-            keccak,  # keccak256(0x02 || rlp([...]))
+            + val,  # (0x01 || rlp([...]))
+            keccak,  # keccak256(0x01 || rlp([...]))
         )
         return cast(bytes, hash)
 
@@ -220,8 +229,8 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         Returns this transaction's payload as bytes.
 
         Here, the TransactionPayload = rlp([chainId,
-        nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data,
-        accessList, signatureYParity, signatureR, signatureS])
+        nonce, gasPrice, gasLimit, to, value, data, accessList,
+        signatureYParity, signatureR, signatureS])
         """
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")

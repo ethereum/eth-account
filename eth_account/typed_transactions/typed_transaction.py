@@ -18,13 +18,14 @@ from hexbytes import (
     HexBytes,
 )
 
-from ..transaction_utils import (
+from eth_account._utils.transaction_utils import (
     normalize_transaction_dict,
     set_transaction_type_if_needed,
 )
-from ..validation import (
+from eth_account._utils.validation import (
     is_int_or_prefixed_hexstr,
 )
+
 from .access_list_transaction import (
     AccessListTransaction,
 )
