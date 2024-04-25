@@ -40,20 +40,20 @@ from eth_account._utils.transaction_utils import (
     transaction_rlp_to_rpc_structure,
     transaction_rpc_to_rlp_structure,
 )
-from eth_account._utils.typed_transactions.access_list_transaction import (
-    access_list_sede_type,
-)
-from eth_account._utils.typed_transactions.base import (
-    TYPED_TRANSACTION_FORMATTERS,
-    Blob,
-    BlobPooledTransactionData,
-    _TypedTransactionImplementation,
-)
 from eth_account._utils.validation import (
     LEGACY_TRANSACTION_VALID_VALUES,
     is_int_or_prefixed_hexstr,
     is_rpc_structured_access_list,
     is_sequence_of_bytes_or_hexstr,
+)
+from eth_account.typed_transactions.access_list_transaction import (
+    access_list_sede_type,
+)
+from eth_account.typed_transactions.base import (
+    TYPED_TRANSACTION_FORMATTERS,
+    Blob,
+    BlobPooledTransactionData,
+    _TypedTransactionImplementation,
 )
 
 
@@ -288,13 +288,11 @@ class BlobTransaction(_TypedTransactionImplementation):
 
     def hash(self) -> bytes:
         """
-        Hashes the BlobTransaction to prepare it for signing.
+        Keccak256 hash of the BlobTransaction to prepare it for signing.
         As per the EIP-4844 specifications, the signature is a secp256k1 signature over
-        keccak256(0x03 || rlp([chainId, nonce, maxPriorityFeePerGas,
+        ``keccak256(0x03 || rlp([chainId, nonce, maxPriorityFeePerGas,
         maxFeePerGas, gasLimit, to, value, data, accessList, maxFeePerBlobGas,
-        blobVersionedHashes])).
-
-        Here, we compute the keccak256(...) hash.
+        blobVersionedHashes]))``.
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, "v", "r", "s")
@@ -332,10 +330,13 @@ class BlobTransaction(_TypedTransactionImplementation):
         """
         Returns this transaction's payload as bytes.
 
-        Here, the TransactionPayload = rlp([chainId,
-        nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data,
-        accessList, maxFeePerBlobGas, blobVersionedHashes, signatureYParity, signatureR,
-        signatureS])
+        Here, the transaction payload is:
+
+            TransactionPayload = rlp([chainId,
+            nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data,
+            accessList, maxFeePerBlobGas, blobVersionedHashes, signatureYParity,
+            signatureR, signatureS])
+
         """
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")

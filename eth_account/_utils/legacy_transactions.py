@@ -23,11 +23,12 @@ from rlp.sedes import (
     binary,
 )
 
+from eth_account.typed_transactions import (
+    TypedTransaction,
+)
+
 from .transaction_utils import (
     set_transaction_type_if_needed,
-)
-from .typed_transactions import (
-    TypedTransaction,
 )
 from .validation import (
     LEGACY_TRANSACTION_FORMATTERS,

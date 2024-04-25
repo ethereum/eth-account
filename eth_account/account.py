@@ -57,9 +57,6 @@ from eth_account._utils.signing import (
     to_standard_signature_bytes,
     to_standard_v,
 )
-from eth_account._utils.typed_transactions import (
-    TypedTransaction,
-)
 from eth_account.datastructures import (
     SignedMessage,
     SignedTransaction,
@@ -77,6 +74,9 @@ from eth_account.messages import (
 )
 from eth_account.signers.local import (
     LocalAccount,
+)
+from eth_account.typed_transactions import (
+    TypedTransaction,
 )
 
 VRS = TypeVar("VRS", bytes, HexStr, int)

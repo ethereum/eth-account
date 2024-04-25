@@ -1,6 +1,6 @@
 include LICENSE
 include README.md
-include eth_account/_utils/typed_transactions/blob_transactions/kzg_trusted_setup.txt
+include eth_account/typed_transactions/blob_transactions/kzg_trusted_setup.txt
 
 recursive-include tests *
 

@@ -11,6 +11,7 @@ Contents
 
     eth_account
     eth_account.signers
+    eth_account.typed_transactions
     release_notes
 
 
