@@ -15,7 +15,7 @@ from toolz import (
 from eth_account import (
     Account,
 )
-from eth_account._utils.typed_transactions import (
+from eth_account.typed_transactions import (
     BlobTransaction,
 )
 

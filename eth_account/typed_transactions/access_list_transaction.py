@@ -34,15 +34,16 @@ from rlp.sedes import (
     binary,
 )
 
-from ..transaction_utils import (
+from eth_account._utils.transaction_utils import (
     transaction_rlp_to_rpc_structure,
     transaction_rpc_to_rlp_structure,
 )
-from ..validation import (
+from eth_account._utils.validation import (
     LEGACY_TRANSACTION_VALID_VALUES,
     is_int_or_prefixed_hexstr,
     is_rpc_structured_access_list,
 )
+
 from .base import (
     TYPED_TRANSACTION_FORMATTERS,
     _TypedTransactionImplementation,
@@ -174,7 +175,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
 
     @classmethod
     def from_bytes(cls, encoded_transaction: HexBytes) -> "AccessListTransaction":
-        """Builds an AccesslistTransaction from a signed encoded transaction."""
+        """Builds an AccessListTransaction from a signed encoded transaction."""
         if not isinstance(encoded_transaction, HexBytes):
             raise TypeError(f"expected Hexbytes, got type: {type(encoded_transaction)}")
         if not (
@@ -204,8 +205,8 @@ class AccessListTransaction(_TypedTransactionImplementation):
         """
         Hashes this AccessListTransaction to prepare it for signing.
         As per the EIP-2930 specifications, the signature is a secp256k1 signature over
-        keccak256(0x01 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data, accessList])).  # noqa E501
-        Here, we compute the keccak256(...) hash.
+        ``keccak256(0x01 || rlp([chainId, nonce, gasPrice, gasLimit,
+        to, value, data, accessList])).``
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, "v", "r", "s")
@@ -227,9 +228,11 @@ class AccessListTransaction(_TypedTransactionImplementation):
         """
         Returns this transaction's payload as bytes.
 
-        Here, the TransactionPayload = rlp([chainId,
-        nonce, gasPrice, gasLimit, to, value, data, accessList,
-        signatureYParity, signatureR, signatureS])
+        Here, the transaction payload is:
+
+            TransactionPayload = rlp([chainId,
+            nonce, gasPrice, gasLimit, to, value, data, accessList,
+            signatureYParity, signatureR, signatureS])
         """
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")

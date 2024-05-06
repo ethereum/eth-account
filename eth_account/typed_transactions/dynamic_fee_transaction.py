@@ -31,15 +31,16 @@ from rlp.sedes import (
     binary,
 )
 
-from ..transaction_utils import (
+from eth_account._utils.transaction_utils import (
     transaction_rlp_to_rpc_structure,
     transaction_rpc_to_rlp_structure,
 )
-from ..validation import (
+from eth_account._utils.validation import (
     LEGACY_TRANSACTION_VALID_VALUES,
     is_int_or_prefixed_hexstr,
     is_rpc_structured_access_list,
 )
+
 from .access_list_transaction import (
     access_list_sede_type,
 )
@@ -195,9 +196,8 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         """
         Hashes this DynamicFeeTransaction to prepare it for signing.
         As per the EIP-1559 specifications, the signature is a secp256k1 signature over
-        keccak256(0x02 || rlp([chainId, nonce, maxPriorityFeePerGas,
-        maxFeePerGas, gasLimit, to, value, data, accessList])).
-        Here, we compute the keccak256(...) hash.
+        ``keccak256(0x02 || rlp([chainId, nonce, maxPriorityFeePerGas,
+        maxFeePerGas, gasLimit, to, value, data, accessList]))``
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, "v", "r", "s")
@@ -219,9 +219,11 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         """
         Returns this transaction's payload as bytes.
 
-        Here, the TransactionPayload = rlp([chainId,
-        nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data,
-        accessList, signatureYParity, signatureR, signatureS])
+        Here, the transaction payload is:
+
+            TransactionPayload = rlp([chainId,
+            nonce, maxPriorityFeePerGas, maxFeePerGas, gasLimit, to, value, data,
+            accessList, signatureYParity, signatureR, signatureS])
         """
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")

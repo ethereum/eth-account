@@ -1,12 +1,15 @@
-from .access_list_transaction import (
+import warnings
+
+from eth_account.typed_transactions import (
     AccessListTransaction,
-)
-from .blob_transactions.blob_transaction import (
     BlobTransaction,
-)
-from .dynamic_fee_transaction import (
     DynamicFeeTransaction,
-)
-from .typed_transaction import (
     TypedTransaction,
+)
+
+warnings.warn(
+    "Typed transactions will no longer be imported from _utils. "
+    "Import from eth_account.typed_transactions instead",
+    DeprecationWarning,
+    stacklevel=2,
 )
