@@ -1,1 +1,0 @@
-Expose TypedTransactions for public use. Deprecate importing from eth_account._utils.typed_transactions, and import from eth_account.typed_transactions instead.

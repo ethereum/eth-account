@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.12.3 (2024-05-08)
+--------------------------------
+
+Deprecations
+~~~~~~~~~~~~
+
+- Expose TypedTransactions for public use. Deprecate importing from eth_account._utils.typed_transactions, and import from eth_account.typed_transactions instead. (`#277 <https://github.com/ethereum/eth-account/issues/277>`__)
+
+
 eth-account v0.12.2 (2024-04-15)
 --------------------------------
 
