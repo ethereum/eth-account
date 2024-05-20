@@ -1,1 +1,0 @@
-Remove ``encode_structured_data`` in favor of ``encode_typed_data``

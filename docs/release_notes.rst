@@ -3,6 +3,43 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.13.0 (2024-05-20)
+--------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Open up Pydantic dependency (`#271 <https://github.com/ethereum/eth-account/issues/271>`__)
+
+
+Features
+~~~~~~~~
+
+- Expose TypedTransactions for public use (`#276 <https://github.com/ethereum/eth-account/issues/276>`__)
+
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Merge template updates, notably adding python 3.12 support (`#274 <https://github.com/ethereum/eth-account/issues/274>`__)
+
+
+Miscellaneous Changes
+~~~~~~~~~~~~~~~~~~~~~
+
+- `#275 <https://github.com/ethereum/eth-account/issues/275>`__
+
+
+Removals
+~~~~~~~~
+
+- Remove ``signHash`` in favor of ``unsafe_sign_hash`` (`#260 <https://github.com/ethereum/eth-account/issues/260>`__)
+- Remove ``messageHash`` in favor of ``message_hash`` (`#265 <https://github.com/ethereum/eth-account/issues/265>`__)
+- Moved private ``_parsePrivateKey`` method to ``_parse_private_key`` (`#267 <https://github.com/ethereum/eth-account/issues/267>`__)
+- Remove ``SignedTransaction``'s ``rawTransaction`` attribute in favor of ``raw_transaction`` (`#268 <https://github.com/ethereum/eth-account/issues/268>`__)
+- Remove ``encode_structured_data`` in favor of ``encode_typed_data`` (`#269 <https://github.com/ethereum/eth-account/issues/269>`__)
+
+
 eth-account v0.12.1 (2024-04-02)
 --------------------------------
 
