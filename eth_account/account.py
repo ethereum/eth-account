@@ -21,6 +21,9 @@ from eth_keys import (
     KeyAPI,
     keys,
 )
+from eth_keys.datatypes import (
+    PrivateKey,
+)
 from eth_keys.exceptions import (
     ValidationError,
 )
@@ -132,7 +135,7 @@ class Account:
         return self.from_key(key_bytes)
 
     @staticmethod
-    def decrypt(keyfile_json, password):
+    def decrypt(keyfile_json: Union[str, Dict[str, Any]], password: str) -> HexBytes:
         """
         Decrypts a private key.
 
@@ -175,7 +178,10 @@ class Account:
                 "The keyfile should be supplied as a JSON string, or a dictionary."
             )
         password_bytes = text_if_str(to_bytes, password)
-        return HexBytes(decode_keyfile_json(keyfile, password_bytes))
+        # type ignored because eth_keyfile appears to be using the wrong type for
+        # the password arg.
+        # once fixed there, this should error and can be removed
+        return HexBytes(decode_keyfile_json(keyfile, password_bytes))  # type: ignore[arg-type]  # noqa: E501
 
     @classmethod
     def encrypt(cls, private_key, password, kdf=None, iterations=None):
@@ -235,8 +241,11 @@ class Account:
         password_bytes = text_if_str(to_bytes, password)
         assert len(key_bytes) == 32
 
+        # type ignored because eth_keyfile appears to be using the wrong type for
+        # the password arg.
+        # once fixed there, this should error and can be removed
         return create_keyfile_json(
-            key_bytes, password_bytes, kdf=kdf, iterations=iterations
+            key_bytes, password_bytes, kdf=kdf, iterations=iterations  # type: ignore[arg-type]  # noqa: E501
         )
 
     @combomethod
@@ -487,7 +496,7 @@ class Account:
         else:
             raise TypeError("You must supply the vrs tuple or the signature bytes")
         pubkey = signature_obj.recover_public_key_from_msg_hash(hash_bytes)
-        return cast(ChecksumAddress, pubkey.to_checksum_address())
+        return pubkey.to_checksum_address()
 
     @combomethod
     def recover_transaction(self, serialized_transaction):
@@ -534,7 +543,7 @@ class Account:
     def sign_message(
         self,
         signable_message: SignableMessage,
-        private_key: Union[bytes, HexStr, int, keys.PrivateKey],
+        private_key: Union[bytes, HexStr, int, PrivateKey],
     ) -> SignedMessage:
         r"""
         Sign the provided message.
@@ -605,7 +614,7 @@ class Account:
     def _sign_hash(
         self,
         message_hash: Hash32,
-        private_key: Union[bytes, HexStr, int, keys.PrivateKey],
+        private_key: Union[bytes, HexStr, int, PrivateKey],
     ) -> SignedMessage:
         msg_hash_bytes = HexBytes(message_hash)
         if len(msg_hash_bytes) != 32:
@@ -837,7 +846,7 @@ class Account:
     @combomethod
     def sign_typed_data(
         self,
-        private_key: Union[bytes, HexStr, int, keys.PrivateKey],
+        private_key: Union[bytes, HexStr, int, PrivateKey],
         domain_data: Dict[str, Any] = None,
         message_types: Dict[str, Any] = None,
         message_data: Dict[str, Any] = None,

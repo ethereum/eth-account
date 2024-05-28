@@ -1,0 +1,1 @@
+Update ``mypy`` checks to run with all ``dev`` dependencies installed
