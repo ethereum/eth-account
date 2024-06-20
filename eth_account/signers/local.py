@@ -1,6 +1,37 @@
+from typing import (
+    Any,
+    Dict,
+    List,
+    Optional,
+)
+
+from eth_keyfile.keyfile import (
+    KDFType,
+)
+from eth_keys.datatypes import (
+    PrivateKey,
+)
+from eth_typing import (
+    ChecksumAddress,
+    Hash32,
+)
+
+# from eth_account.account import (
+#     Account,
+# )
+from eth_account.datastructures import (
+    SignedMessage,
+    SignedTransaction,
+)
+from eth_account.messages import (
+    SignableMessage,
+)
 from eth_account.signers.base import (
     BaseAccount,
 )
+
+# TODO can't import Account because circular
+PlaceholderAccountType = Any
 
 
 class LocalAccount(BaseAccount):
@@ -25,34 +56,39 @@ class LocalAccount(BaseAccount):
         b"\\x01\\x23..."
     """
 
-    def __init__(self, key, account):
+    def __init__(self, key: PrivateKey, account: PlaceholderAccountType):
         """
         Initialize a new account with the given private key.
 
         :param eth_keys.PrivateKey key: to prefill in private key execution
         :param ~eth_account.account.Account account: the key-unaware management API
         """
-        self._publicapi = account
+        self._publicapi: PlaceholderAccountType = account
 
-        self._address = key.public_key.to_checksum_address()
+        self._address: ChecksumAddress = key.public_key.to_checksum_address()
 
-        key_raw = key.to_bytes()
+        key_raw: bytes = key.to_bytes()
         self._private_key = key_raw
 
-        self._key_obj = key
+        self._key_obj: PrivateKey = key
 
     @property
-    def address(self):
+    def address(self) -> ChecksumAddress:
         return self._address
 
     @property
-    def key(self):
+    def key(self) -> bytes:
         """
         Get the private key.
         """
         return self._private_key
 
-    def encrypt(self, password, kdf=None, iterations=None):
+    def encrypt(
+        self,
+        password: str,
+        kdf: Optional[KDFType] = None,
+        iterations: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """
         Generate a string with the encrypted key.
 
@@ -60,17 +96,19 @@ class LocalAccount(BaseAccount):
         :meth:`~eth_account.account.Account.encrypt`, but without a
         private key argument.
         """
-        return self._publicapi.encrypt(
+        # type ignored need to refactor relation w Account to not have circular imports
+        return self._publicapi.encrypt(  # type: ignore
             self.key, password, kdf=kdf, iterations=iterations
         )
 
-    def unsafe_sign_hash(self, message_hash):
-        return self._publicapi.unsafe_sign_hash(
+    def unsafe_sign_hash(self, message_hash: Hash32) -> SignedMessage:
+        # type ignored need to refactor relation w Account to not have circular imports
+        return self._publicapi.unsafe_sign_hash(  # type: ignore
             message_hash,
             private_key=self.key,
         )
 
-    def sign_message(self, signable_message):
+    def sign_message(self, signable_message: SignableMessage) -> SignedMessage:
         """
         Generate a string with the encrypted key.
 
@@ -78,10 +116,18 @@ class LocalAccount(BaseAccount):
         :meth:`~eth_account.account.Account.sign_message`, but without a
         private key argument.
         """
-        return self._publicapi.sign_message(signable_message, private_key=self.key)
+        # type ignored need to refactor relation w Account to not have circular imports
+        return self._publicapi.sign_message(  # type: ignore
+            signable_message, private_key=self.key
+        )
 
-    def sign_transaction(self, transaction_dict, blobs=None):
-        return self._publicapi.sign_transaction(transaction_dict, self.key, blobs=blobs)
+    def sign_transaction(
+        self, transaction_dict: Dict[str, Any], blobs: Optional[List[bytes]] = None
+    ) -> SignedTransaction:
+        # type ignored need to refactor relation w Account to not have circular imports
+        return self._publicapi.sign_transaction(  # type: ignore
+            transaction_dict, self.key, blobs=blobs
+        )
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         return self.key

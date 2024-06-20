@@ -6,6 +6,7 @@ import os
 from typing import (
     Any,
     Dict,
+    List,
     Optional,
     Tuple,
     TypeVar,
@@ -17,9 +18,16 @@ from eth_keyfile import (
     create_keyfile_json,
     decode_keyfile_json,
 )
+from eth_keyfile.keyfile import (
+    KDFType,
+)
 from eth_keys import (
     KeyAPI,
     keys,
+)
+from eth_keys.backends import (
+    CoinCurveECCBackend,
+    NativeECCBackend,
 )
 from eth_keys.datatypes import (
     PrivateKey,
@@ -59,6 +67,9 @@ from eth_account._utils.signing import (
     to_standard_signature_bytes,
     to_standard_v,
 )
+from eth_account._utils.validation import (
+    validate_and_set_default_kdf,
+)
 from eth_account.datastructures import (
     SignedMessage,
     SignedTransaction,
@@ -93,20 +104,20 @@ class Account:
 
     _keys = keys
 
-    _default_kdf = os.getenv("ETH_ACCOUNT_KDF", "scrypt")
-
     # Enable unaudited features (off by default)
     _use_unaudited_hdwallet_features = False
 
+    _default_kdf: KDFType = validate_and_set_default_kdf()
+
     @classmethod
-    def enable_unaudited_hdwallet_features(cls):
+    def enable_unaudited_hdwallet_features(cls) -> None:
         """
         Use this flag to enable unaudited HD Wallet features.
         """
         cls._use_unaudited_hdwallet_features = True
 
     @combomethod
-    def create(self, extra_entropy=""):
+    def create(self, extra_entropy: Union[str, bytes, int] = "") -> LocalAccount:
         r"""
         Creates a new private key, and returns it as a
         :class:`~eth_account.local.LocalAccount`.
@@ -132,7 +143,7 @@ class Account:
         """
         extra_key_bytes = text_if_str(to_bytes, extra_entropy)
         key_bytes = keccak(os.urandom(32) + extra_key_bytes)
-        return self.from_key(key_bytes)
+        return cast(LocalAccount, self.from_key(key_bytes))
 
     @staticmethod
     def decrypt(keyfile_json: Union[str, Dict[str, Any]], password: str) -> HexBytes:
@@ -184,7 +195,13 @@ class Account:
         return HexBytes(decode_keyfile_json(keyfile, password_bytes))  # type: ignore[arg-type]  # noqa: E501
 
     @classmethod
-    def encrypt(cls, private_key, password, kdf=None, iterations=None):
+    def encrypt(
+        cls,
+        private_key: Union[HexStr, bytes, int, PrivateKey],
+        password: str,
+        kdf: Optional[KDFType] = None,
+        iterations: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """
         Creates a dictionary with an encrypted version of your private key.
         To import this keyfile into Ethereum clients like geth and parity:
@@ -249,7 +266,9 @@ class Account:
         )
 
     @combomethod
-    def from_key(self, private_key):
+    def from_key(
+        self, private_key: Union[HexStr, bytes, int, PrivateKey]
+    ) -> LocalAccount:
         r"""
         Returns a convenient object for working with the given private key.
 
@@ -499,14 +518,16 @@ class Account:
         return pubkey.to_checksum_address()
 
     @combomethod
-    def recover_transaction(self, serialized_transaction):
+    def recover_transaction(
+        self, serialized_transaction: Union[HexStr, bytes, int]
+    ) -> ChecksumAddress:
         """
         Get the address of the account that signed this transaction.
 
         :param serialized_transaction: the complete signed transaction
         :type serialized_transaction: hex str, bytes or int
         :returns: address of signer, hex-encoded & checksummed
-        :rtype: str
+        :rtype: ChecksumAddress
 
         .. doctest:: python
 
@@ -520,13 +541,15 @@ class Account:
             typed_transaction = TypedTransaction.from_bytes(txn_bytes)
             msg_hash = typed_transaction.hash()
             vrs = typed_transaction.vrs()
-            return self._recover_hash(msg_hash, vrs=vrs)
+            return cast(ChecksumAddress, self._recover_hash(msg_hash, vrs=vrs))
 
         txn = Transaction.from_bytes(txn_bytes)
         msg_hash = hash_of_signed_transaction(txn)
-        return self._recover_hash(msg_hash, vrs=vrs_from(txn))
+        return cast(ChecksumAddress, self._recover_hash(msg_hash, vrs=vrs_from(txn)))
 
-    def set_key_backend(self, backend):
+    def set_key_backend(
+        self, backend: Union[CoinCurveECCBackend, NativeECCBackend]
+    ) -> None:
         """
         Change the backend used by the underlying eth-keys library.
 
@@ -590,7 +613,11 @@ class Account:
         return cast(SignedMessage, self._sign_hash(message_hash, private_key))
 
     @combomethod
-    def unsafe_sign_hash(self, message_hash, private_key):
+    def unsafe_sign_hash(
+        self,
+        message_hash: Union[HexStr, bytes, int],
+        private_key: Union[HexStr, bytes, int, PrivateKey],
+    ) -> SignedMessage:
         """
         Sign the provided hash.
 
@@ -608,7 +635,7 @@ class Account:
           importantly the fields: v, r, and s
         :rtype: ~eth_account.datastructures.SignedMessage
         """
-        return self._sign_hash(message_hash, private_key)
+        return cast(SignedMessage, self._sign_hash(message_hash, private_key))
 
     @combomethod
     def _sign_hash(
@@ -632,7 +659,12 @@ class Account:
         )
 
     @combomethod
-    def sign_transaction(self, transaction_dict, private_key, blobs=None):
+    def sign_transaction(
+        self,
+        transaction_dict: Dict[str, Any],
+        private_key: Union[HexStr, bytes, int, PrivateKey],
+        blobs: Optional[List[bytes]] = None,
+    ) -> SignedTransaction:
         r"""
         Sign a transaction using a local private key.
 
@@ -819,7 +851,9 @@ class Account:
         )
 
     @combomethod
-    def _parse_private_key(self, key):
+    def _parse_private_key(
+        self, key: Union[bytes, HexStr, int, PrivateKey]
+    ) -> PrivateKey:
         """
         Generate a :class:`eth_keys.datatypes.PrivateKey` from the provided key.
 
@@ -835,12 +869,14 @@ class Account:
         if isinstance(key, self._keys.PrivateKey):
             return key
 
+        hb_key = HexBytes(key)
+
         try:
-            return self._keys.PrivateKey(HexBytes(key))
+            return self._keys.PrivateKey(hb_key)
         except ValidationError as original_exception:
             raise ValueError(
                 "The private key must be exactly 32 bytes long, instead of "
-                f"{len(key)} bytes."
+                f"{len(hb_key)} bytes."
             ) from original_exception
 
     @combomethod
