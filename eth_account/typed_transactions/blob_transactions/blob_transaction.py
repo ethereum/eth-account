@@ -4,7 +4,6 @@ from typing import (
     List,
     Optional,
     Tuple,
-    Union,
     cast,
 )
 
@@ -54,6 +53,9 @@ from eth_account.typed_transactions.base import (
     Blob,
     BlobPooledTransactionData,
     _TypedTransactionImplementation,
+)
+from eth_account.types import (
+    Blobs,
 )
 
 
@@ -135,7 +137,7 @@ class BlobTransaction(_TypedTransactionImplementation):
     def __init__(
         self,
         dictionary: Dict[str, Any],
-        blobs: Optional[List[Union[bytes, HexBytes]]] = None,
+        blobs: Optional[Blobs] = None,
     ):
         self.dictionary = dictionary
 
@@ -186,7 +188,7 @@ class BlobTransaction(_TypedTransactionImplementation):
     def from_dict(
         cls,
         dictionary: Dict[str, Any],
-        blobs: Optional[List[Union[bytes, HexBytes]]] = None,
+        blobs: Optional[Blobs] = None,
     ) -> "BlobTransaction":
         """
         Builds a BlobTransaction from a dictionary.

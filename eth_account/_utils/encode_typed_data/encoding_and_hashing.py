@@ -2,6 +2,8 @@ from typing import (
     Any,
     Dict,
     List,
+    Optional,
+    Set,
     Tuple,
     Union,
 )
@@ -125,7 +127,11 @@ def encode_field(
     return (type_, value)
 
 
-def find_type_dependencies(type_, types, results=None):
+def find_type_dependencies(
+    type_: str,
+    types: Dict[str, List[Dict[str, str]]],
+    results: Optional[Set[str]] = None,
+) -> Set[str]:
     if results is None:
         results = set()
 

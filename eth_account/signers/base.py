@@ -2,12 +2,24 @@ from abc import (
     ABC,
     abstractmethod,
 )
+from typing import (
+    Any,
+)
+
+from eth_typing import (
+    ChecksumAddress,
+    Hash32,
+)
 
 from eth_account.datastructures import (
     SignedMessage,
+    SignedTransaction,
 )
 from eth_account.messages import (
     SignableMessage,
+)
+from eth_account.types import (
+    TransactionDictType,
 )
 
 
@@ -18,7 +30,7 @@ class BaseAccount(ABC):
 
     @property
     @abstractmethod
-    def address(self):
+    def address(self) -> ChecksumAddress:
         """
         The checksummed public address for this account.
 
@@ -44,7 +56,7 @@ class BaseAccount(ABC):
         """
 
     @abstractmethod
-    def unsafe_sign_hash(self, message_hash):
+    def unsafe_sign_hash(self, message_hash: Hash32) -> SignedMessage:
         """
         Sign the hash of a message.
 
@@ -62,7 +74,9 @@ class BaseAccount(ABC):
         """
 
     @abstractmethod
-    def sign_transaction(self, transaction_dict):
+    def sign_transaction(
+        self, transaction_dict: TransactionDictType
+    ) -> SignedTransaction:
         """
         Sign a transaction dict.
 
@@ -73,7 +87,7 @@ class BaseAccount(ABC):
         :param dict transaction_dict: transaction with all fields specified
         """
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         """
         Equality test between two accounts.
 
@@ -82,5 +96,5 @@ class BaseAccount(ABC):
         """
         return type(self) is type(other) and self.address == other.address
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return hash((type(self), self.address))

@@ -1,5 +1,10 @@
 from typing import (
+    Any,
     NamedTuple,
+    SupportsIndex,
+    Tuple,
+    Union,
+    overload,
 )
 
 from hexbytes import (
@@ -7,30 +12,67 @@ from hexbytes import (
 )
 
 
-def __getitem__(self, index):
-    try:
-        return tuple.__getitem__(self, index)
-    except TypeError:
-        return getattr(self, index)
+class SignedTransaction(
+    NamedTuple(
+        "SignedTransaction",
+        [
+            ("raw_transaction", HexBytes),
+            ("hash", HexBytes),
+            ("r", int),
+            ("s", int),
+            ("v", int),
+        ],
+    )
+):
+    @overload
+    def __getitem__(self, index: SupportsIndex) -> Any:
+        ...
+
+    @overload
+    def __getitem__(self, index: slice) -> Tuple[Any, ...]:
+        ...
+
+    @overload
+    def __getitem__(self, index: str) -> Any:
+        ...
+
+    def __getitem__(self, index: Union[SupportsIndex, slice, str]) -> Any:
+        if isinstance(index, (int, slice)):
+            return super().__getitem__(index)
+        elif isinstance(index, str):
+            return getattr(self, index)
+        else:
+            raise TypeError("Index must be an integer, slice, or string")
 
 
-class SignedTransaction(NamedTuple):
-    raw_transaction: HexBytes
-    hash: HexBytes
-    r: int
-    s: int
-    v: int
+class SignedMessage(
+    NamedTuple(
+        "SignedMessage",
+        [
+            ("message_hash", HexBytes),
+            ("r", int),
+            ("s", int),
+            ("v", int),
+            ("signature", HexBytes),
+        ],
+    )
+):
+    @overload
+    def __getitem__(self, index: SupportsIndex) -> Any:
+        ...
 
-    def __getitem__(self, index):
-        return __getitem__(self, index)
+    @overload
+    def __getitem__(self, index: slice) -> Tuple[Any, ...]:
+        ...
 
+    @overload
+    def __getitem__(self, index: str) -> Any:
+        ...
 
-class SignedMessage(NamedTuple):
-    message_hash: HexBytes
-    r: int
-    s: int
-    v: int
-    signature: HexBytes
-
-    def __getitem__(self, index):
-        return __getitem__(self, index)
+    def __getitem__(self, index: Union[SupportsIndex, slice, str]) -> Any:
+        if isinstance(index, (int, slice)):
+            return super().__getitem__(index)
+        elif isinstance(index, str):
+            return getattr(self, index)
+        else:
+            raise TypeError("Index must be an integer, slice, or string")
