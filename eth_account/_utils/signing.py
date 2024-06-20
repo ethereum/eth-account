@@ -1,3 +1,12 @@
+from typing import (
+    Optional,
+    Tuple,
+    cast,
+)
+
+from eth_keys.datatypes import (
+    PrivateKey,
+)
 from eth_utils import (
     to_bytes,
     to_int,
@@ -17,6 +26,11 @@ from eth_account._utils.legacy_transactions import (
 from eth_account.typed_transactions import (
     TypedTransaction,
 )
+from eth_account.types import (
+    Blobs,
+    Bytes32,
+    TransactionDictType,
+)
 
 CHAIN_ID_OFFSET = 35
 V_OFFSET = 27
@@ -27,7 +41,11 @@ INTENDED_VALIDATOR_SIGN_VERSION = b"\x00"  # Hex value 0x00
 STRUCTURED_DATA_SIGN_VERSION = b"\x01"  # Hex value 0x01
 
 
-def sign_transaction_dict(eth_key, transaction_dict, blobs=None):
+def sign_transaction_dict(
+    eth_key: PrivateKey,
+    transaction_dict: TransactionDictType,
+    blobs: Optional[Blobs] = None,
+) -> Tuple[int, int, int, bytes]:
     # generate RLP-serializable transaction, with defaults filled
     unsigned_transaction = serializable_unsigned_transaction_from_dict(
         transaction_dict, blobs=blobs
@@ -58,7 +76,7 @@ def sign_transaction_dict(eth_key, transaction_dict, blobs=None):
     return (v, r, s, encoded_transaction)
 
 
-def hash_of_signed_transaction(txn_obj):
+def hash_of_signed_transaction(txn_obj: Transaction) -> Bytes32:
     """
     Regenerate the hash of the signed transaction object.
 
@@ -82,7 +100,7 @@ def hash_of_signed_transaction(txn_obj):
     return signable_transaction.hash()
 
 
-def extract_chain_id(raw_v):
+def extract_chain_id(raw_v: int) -> Tuple[Optional[int], int]:
     """
     Extracts chain ID, according to EIP-155.
 
@@ -103,21 +121,21 @@ def extract_chain_id(raw_v):
         return (chain_id, v_bit + V_OFFSET)
 
 
-def to_standard_signature_bytes(ethereum_signature_bytes):
+def to_standard_signature_bytes(ethereum_signature_bytes: bytes) -> bytes:
     rs = ethereum_signature_bytes[:-1]
     v = to_int(ethereum_signature_bytes[-1])
     standard_v = to_standard_v(v)
     return rs + to_bytes(standard_v)
 
 
-def to_standard_v(enhanced_v):
+def to_standard_v(enhanced_v: int) -> int:
     (_chain, chain_naive_v) = extract_chain_id(enhanced_v)
     v_standard = chain_naive_v - V_OFFSET
     assert v_standard in {0, 1}
     return v_standard
 
 
-def to_eth_v(v_raw, chain_id=None):
+def to_eth_v(v_raw: int, chain_id: Optional[int] = None) -> int:
     if chain_id is None:
         v = v_raw + V_OFFSET
     else:
@@ -125,26 +143,33 @@ def to_eth_v(v_raw, chain_id=None):
     return v
 
 
-def sign_transaction_hash(account, transaction_hash, chain_id):
+def sign_transaction_hash(
+    account: PrivateKey, transaction_hash: Bytes32, chain_id: Optional[int] = None
+) -> Tuple[int, int, int]:
     signature = account.sign_msg_hash(transaction_hash)
     (v_raw, r, s) = signature.vrs
     v = to_eth_v(v_raw, chain_id)
     return (v, r, s)
 
 
-def _pad_to_eth_word(bytes_val):
+def _pad_to_eth_word(bytes_val: bytes) -> Bytes32:
     return bytes_val.rjust(32, b"\0")
 
 
-def to_bytes32(val):
-    return pipe(
-        val,
-        to_bytes,
-        _pad_to_eth_word,
+def to_bytes32(val: int) -> Bytes32:
+    return cast(
+        bytes,
+        pipe(
+            val,
+            to_bytes,
+            _pad_to_eth_word,
+        ),
     )
 
 
-def sign_message_hash(key, msg_hash):
+def sign_message_hash(
+    key: PrivateKey, msg_hash: Bytes32
+) -> Tuple[int, int, int, bytes]:
     signature = key.sign_msg_hash(msg_hash)
     (v_raw, r, s) = signature.vrs
     v = to_eth_v(v_raw)

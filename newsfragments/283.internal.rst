@@ -1,0 +1,1 @@
+Updated ``mypy`` types setting ``disallow_untyped_defs`` and ``disallow_untyped_calls`` to ``true``
