@@ -2,6 +2,7 @@ from typing import (
     Any,
     Dict,
     List,
+    Optional,
     Tuple,
     cast,
 )
@@ -134,7 +135,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
 
     @classmethod
     def from_dict(
-        cls, dictionary: Dict[str, Any], blobs: List[bytes] = None
+        cls, dictionary: Dict[str, Any], blobs: Optional[List[bytes]] = None
     ) -> "DynamicFeeTransaction":
         """
         Builds a DynamicFeeTransaction from a dictionary.

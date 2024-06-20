@@ -2,6 +2,7 @@ from typing import (
     Any,
     Dict,
     List,
+    Optional,
     Tuple,
     cast,
 )
@@ -143,7 +144,7 @@ class AccessListTransaction(_TypedTransactionImplementation):
 
     @classmethod
     def from_dict(
-        cls, dictionary: Dict[str, Any], blobs: List[bytes] = None
+        cls, dictionary: Dict[str, Any], blobs: Optional[List[bytes]] = None
     ) -> "AccessListTransaction":
         """
         Builds an AccessListTransaction from a dictionary.

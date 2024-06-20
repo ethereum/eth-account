@@ -135,7 +135,7 @@ class BlobTransaction(_TypedTransactionImplementation):
     def __init__(
         self,
         dictionary: Dict[str, Any],
-        blobs: List[Union[bytes, HexBytes]] = None,
+        blobs: Optional[List[Union[bytes, HexBytes]]] = None,
     ):
         self.dictionary = dictionary
 
@@ -186,7 +186,7 @@ class BlobTransaction(_TypedTransactionImplementation):
     def from_dict(
         cls,
         dictionary: Dict[str, Any],
-        blobs: List[Union[bytes, HexBytes]] = None,
+        blobs: Optional[List[Union[bytes, HexBytes]]] = None,
     ) -> "BlobTransaction":
         """
         Builds a BlobTransaction from a dictionary.
