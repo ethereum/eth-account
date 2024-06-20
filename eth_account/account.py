@@ -406,7 +406,7 @@ class Account:
         self,
         signable_message: SignableMessage,
         vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
-        signature: bytes = None,
+        signature: Optional[bytes] = None,
     ) -> ChecksumAddress:
         r"""
         Get the address of the account that signed the given message.
@@ -478,7 +478,7 @@ class Account:
         self,
         message_hash: Hash32,
         vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
-        signature: bytes = None,
+        signature: Optional[bytes] = None,
     ) -> ChecksumAddress:
         hash_bytes = HexBytes(message_hash)
         if len(hash_bytes) != 32:
@@ -847,10 +847,10 @@ class Account:
     def sign_typed_data(
         self,
         private_key: Union[bytes, HexStr, int, PrivateKey],
-        domain_data: Dict[str, Any] = None,
-        message_types: Dict[str, Any] = None,
-        message_data: Dict[str, Any] = None,
-        full_message: Dict[str, Any] = None,
+        domain_data: Optional[Dict[str, Any]] = None,
+        message_types: Optional[Dict[str, Any]] = None,
+        message_data: Optional[Dict[str, Any]] = None,
+        full_message: Optional[Dict[str, Any]] = None,
     ) -> SignedMessage:
         r"""
         Sign the provided EIP-712 message with the provided key.

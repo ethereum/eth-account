@@ -1,0 +1,1 @@
+Enforce ``mypy`` ``strict_optional`` rule

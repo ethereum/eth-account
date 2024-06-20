@@ -72,7 +72,7 @@ class TypedTransaction:
 
     @classmethod
     def from_dict(
-        cls, dictionary: Dict[str, Any], blobs: List[bytes] = None
+        cls, dictionary: Dict[str, Any], blobs: Optional[List[bytes]] = None
     ) -> "TypedTransaction":
         """
         Builds a TypedTransaction from a dictionary.
