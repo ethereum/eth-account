@@ -32,7 +32,7 @@ from eth_account.messages import (
 )
 
 
-class AccountSigningMethods(ABC):
+class AccountLocalActions(ABC):
     @classmethod
     @abstractmethod
     def encrypt(

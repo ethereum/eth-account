@@ -17,11 +17,8 @@ from eth_typing import (
     Hash32,
 )
 
-# from eth_account import (
-#     Account,
-# )
-from eth_account.account_signers_abc import (
-    AccountSigningMethods,
+from eth_account.account_local_actions import (
+    AccountLocalActions,
 )
 from eth_account.datastructures import (
     SignedMessage,
@@ -57,14 +54,14 @@ class LocalAccount(BaseAccount):
         b"\\x01\\x23..."
     """
 
-    def __init__(self, key: PrivateKey, account: AccountSigningMethods):
+    def __init__(self, key: PrivateKey, account: AccountLocalActions):
         """
         Initialize a new account with the given private key.
 
         :param eth_keys.PrivateKey key: to prefill in private key execution
         :param ~eth_account.account.Account account: the key-unaware management API
         """
-        self._publicapi: AccountSigningMethods = account
+        self._publicapi: AccountLocalActions = account
 
         self._address: ChecksumAddress = key.public_key.to_checksum_address()
 
@@ -118,7 +115,6 @@ class LocalAccount(BaseAccount):
         :meth:`~eth_account.account.Account.sign_message`, but without a
         private key argument.
         """
-        # type ignored need to refactor relation w Account to not have circular imports
         return cast(
             SignedMessage,
             self._publicapi.sign_message(signable_message, private_key=self.key),
@@ -127,7 +123,6 @@ class LocalAccount(BaseAccount):
     def sign_transaction(
         self, transaction_dict: Dict[str, Any], blobs: Optional[List[bytes]] = None
     ) -> SignedTransaction:
-        # type ignored need to refactor relation w Account to not have circular imports
         return cast(
             SignedTransaction,
             self._publicapi.sign_transaction(transaction_dict, self.key, blobs=blobs),
