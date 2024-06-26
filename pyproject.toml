@@ -16,11 +16,11 @@ use_parentheses = true
 
 [tool.mypy]
 check_untyped_defs = true
-disallow_any_generics = false
+disallow_any_generics = true
 disallow_incomplete_defs = true
-disallow_subclassing_any = false
+disallow_subclassing_any = true
 disallow_untyped_calls = true
-disallow_untyped_decorators = false
+disallow_untyped_decorators = true
 disallow_untyped_defs = true
 ignore_missing_imports = true
 strict_equality = true

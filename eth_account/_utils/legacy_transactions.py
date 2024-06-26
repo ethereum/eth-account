@@ -179,7 +179,8 @@ def chain_id_to_v(transaction_dict: TransactionDictType) -> Dict[str, Any]:
         return dict(transaction_dict, v=chain_id, r=0, s=0)
 
 
-@curry
+# type ignored because curry doesn't preserve typing
+@curry  # type: ignore[misc]
 def fill_transaction_defaults(
     transaction_dict: TransactionDictType,
 ) -> TransactionDictType:
