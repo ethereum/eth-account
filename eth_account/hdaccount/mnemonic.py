@@ -56,7 +56,7 @@ WORDLIST_LEN = 2048
 _cached_wordlists: Dict[str, List[str]] = dict()
 
 
-def get_wordlist(language):
+def get_wordlist(language: str) -> List[str]:
     if language in _cached_wordlists.keys():
         return _cached_wordlists[language]
     with open(WORDLIST_DIR / f"{language}.txt", encoding="utf-8") as f:
@@ -71,7 +71,7 @@ def get_wordlist(language):
 
 
 class Mnemonic:
-    def __init__(self, raw_language="english"):
+    def __init__(self, raw_language: str = "english"):
         language = raw_language.lower().replace(" ", "_")
         languages = Mnemonic.list_languages()
         if language not in languages:
@@ -82,11 +82,11 @@ class Mnemonic:
         self.wordlist = get_wordlist(language)
 
     @staticmethod
-    def list_languages():
+    def list_languages() -> List[str]:
         return sorted(Path(f).stem for f in WORDLIST_DIR.rglob("*.txt"))
 
     @classmethod
-    def detect_language(cls, raw_mnemonic):
+    def detect_language(cls, raw_mnemonic: str) -> str:
         mnemonic = normalize_string(raw_mnemonic)
 
         words = set(mnemonic.split(" "))
@@ -154,7 +154,7 @@ class Mnemonic:
             phrase = " ".join(words)
         return phrase
 
-    def is_mnemonic_valid(self, mnemonic):
+    def is_mnemonic_valid(self, mnemonic: str) -> bool:
         words = normalize_string(mnemonic).split(" ")
         num_words = len(words)
 
@@ -185,11 +185,13 @@ class Mnemonic:
         # NOTE: Use secrets.compare_digest for protection again timing attacks
         return secrets.compare_digest(stored_checksum, computed_checksum)
 
-    def expand_word(self, prefix):
+    def expand_word(self, prefix: str) -> str:
         if prefix in self.wordlist:
             return prefix
         else:
-            matches = [word for word in self.wordlist if word.startswith(prefix)]
+            matches: List[str] = [
+                word for word in self.wordlist if word.startswith(prefix)
+            ]
             if len(matches) == 1:  # matched exactly one word in the wordlist
                 return matches[0]
             else:
@@ -197,7 +199,7 @@ class Mnemonic:
                 # this is not a validation routine, just return the input
                 return prefix
 
-    def expand(self, mnemonic):
+    def expand(self, mnemonic: str) -> str:
         return " ".join(map(self.expand_word, mnemonic.split(" ")))
 
     @classmethod

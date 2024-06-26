@@ -1,6 +1,12 @@
 import itertools
 from typing import (
+    Any,
     Dict,
+    Generator,
+    List,
+    Optional,
+    Tuple,
+    Union,
 )
 
 from eth_rlp import (
@@ -35,8 +41,34 @@ from .validation import (
     LEGACY_TRANSACTION_VALID_VALUES,
 )
 
+UNSIGNED_TRANSACTION_FIELDS = (
+    ("nonce", big_endian_int),
+    ("gasPrice", big_endian_int),
+    ("gas", big_endian_int),
+    ("to", Binary.fixed_length(20, allow_empty=True)),
+    ("value", big_endian_int),
+    ("data", binary),
+)
 
-def serializable_unsigned_transaction_from_dict(transaction_dict, blobs=None):
+
+class Transaction(HashableRLP):
+    fields = UNSIGNED_TRANSACTION_FIELDS + (
+        ("v", big_endian_int),
+        ("r", big_endian_int),
+        ("s", big_endian_int),
+    )
+
+
+class UnsignedTransaction(HashableRLP):
+    fields = UNSIGNED_TRANSACTION_FIELDS
+
+
+AnyTransaction = Union[TypedTransaction, Transaction, UnsignedTransaction]
+
+
+def serializable_unsigned_transaction_from_dict(
+    transaction_dict: Dict[str, Any], blobs: Optional[List[bytes]] = None
+) -> AnyTransaction:
     transaction_dict = set_transaction_type_if_needed(transaction_dict)
     if "type" in transaction_dict:
         # We delegate to TypedTransaction, which will carry out validation & formatting.
@@ -61,7 +93,9 @@ def serializable_unsigned_transaction_from_dict(transaction_dict, blobs=None):
     return serializer.from_dict(filled_transaction)
 
 
-def encode_transaction(unsigned_transaction, vrs):
+def encode_transaction(
+    unsigned_transaction: AnyTransaction, vrs: Tuple[int, int, int]
+) -> bytes:
     (v, r, s) = vrs
     chain_naive_transaction = dissoc(unsigned_transaction.as_dict(), "v", "r", "s")
     if isinstance(unsigned_transaction, TypedTransaction):
@@ -76,8 +110,10 @@ def encode_transaction(unsigned_transaction, vrs):
             blobs=[blob.as_bytes() for blob in blob_data.blobs] if blob_data else None,
         )
         return signed_typed_transaction.encode()
+
     signed_transaction = Transaction(v=v, r=r, s=s, **chain_naive_transaction)
-    return rlp.encode(signed_transaction)
+    # type ignored because pyrlp is not typed
+    return rlp.encode(signed_transaction)  # type: ignore[no-any-return]
 
 
 TRANSACTION_DEFAULTS = {
@@ -103,7 +139,7 @@ REQUIRED_TRANSACTION_KEYS = ALLOWED_TRANSACTION_KEYS.difference(
 )
 
 
-def assert_valid_fields(transaction_dict):
+def assert_valid_fields(transaction_dict: Dict[str, Any]) -> None:
     # check if any keys are missing
     missing_keys = REQUIRED_TRANSACTION_KEYS.difference(transaction_dict.keys())
     if missing_keys:
@@ -131,7 +167,7 @@ def assert_valid_fields(transaction_dict):
         raise TypeError(f"Transaction had invalid fields: {repr(invalid)}")
 
 
-def chain_id_to_v(transaction_dict):
+def chain_id_to_v(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
     # See EIP 155
     chain_id = transaction_dict.pop("chainId")
     if chain_id is None:
@@ -140,40 +176,20 @@ def chain_id_to_v(transaction_dict):
         return dict(transaction_dict, v=chain_id, r=0, s=0)
 
 
-@curry
-def fill_transaction_defaults(transaction):
-    return merge(TRANSACTION_DEFAULTS, transaction)
-
-
-UNSIGNED_TRANSACTION_FIELDS = (
-    ("nonce", big_endian_int),
-    ("gasPrice", big_endian_int),
-    ("gas", big_endian_int),
-    ("to", Binary.fixed_length(20, allow_empty=True)),
-    ("value", big_endian_int),
-    ("data", binary),
-)
-
-
-class Transaction(HashableRLP):
-    fields = UNSIGNED_TRANSACTION_FIELDS + (
-        ("v", big_endian_int),
-        ("r", big_endian_int),
-        ("s", big_endian_int),
-    )
-
-
-class UnsignedTransaction(HashableRLP):
-    fields = UNSIGNED_TRANSACTION_FIELDS
+# type ignored because curry doesn't preserve typing
+@curry  # type: ignore[misc]
+def fill_transaction_defaults(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
+    # type ignored because merge does not preserve typing
+    return merge(TRANSACTION_DEFAULTS, transaction_dict)  # type: ignore[no-any-return]
 
 
 ChainAwareUnsignedTransaction = Transaction
 
 
-def strip_signature(txn):
-    unsigned_parts = itertools.islice(txn, len(UNSIGNED_TRANSACTION_FIELDS))
+def strip_signature(transaction: Transaction) -> List[Union[int, bytes]]:
+    unsigned_parts = itertools.islice(transaction, len(UNSIGNED_TRANSACTION_FIELDS))
     return list(unsigned_parts)
 
 
-def vrs_from(transaction):
+def vrs_from(transaction: Transaction) -> Generator[int, None, None]:
     return (getattr(transaction, part) for part in "vrs")
