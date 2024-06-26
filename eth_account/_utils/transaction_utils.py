@@ -2,6 +2,7 @@ from typing import (
     Any,
     Dict,
     Sequence,
+    Tuple,
 )
 
 from toolz import (
@@ -74,7 +75,9 @@ def transaction_rpc_to_rlp_structure(dictionary: Dict[str, Any]) -> Dict[str, An
     return dictionary
 
 
-def _access_list_rpc_to_rlp_structure(access_list: Sequence) -> Sequence:
+def _access_list_rpc_to_rlp_structure(
+    access_list: Sequence[Dict[str, Any]]
+) -> Tuple[Tuple[str, Tuple[str]], ...]:
     if not is_rpc_structured_access_list(access_list):
         raise ValueError(
             "provided object not formatted as JSON-RPC-structured access list"
@@ -104,7 +107,9 @@ def transaction_rlp_to_rpc_structure(dictionary: Dict[str, Any]) -> Dict[str, An
     return dictionary
 
 
-def _access_list_rlp_to_rpc_structure(access_list: Sequence) -> Sequence:
+def _access_list_rlp_to_rpc_structure(
+    access_list: Sequence[Any],
+) -> Sequence[Dict[str, Any]]:
     if not is_rlp_structured_access_list(access_list):
         raise ValueError("provided object not formatted as rlp-structured access list")
 

@@ -102,7 +102,8 @@ def is_rlp_structured_access_list(val: Any) -> bool:
     return True
 
 
-@curry
+# type ignored because curry doesn't preserve typing
+@curry  # type: ignore[misc]
 def is_sequence_of_bytes_or_hexstr(
     value: Any, item_bytes_size: Optional[int] = None, can_be_empty: bool = False
 ) -> bool:
