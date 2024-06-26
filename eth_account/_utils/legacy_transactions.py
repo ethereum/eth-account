@@ -178,7 +178,7 @@ def chain_id_to_v(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
 
 @curry
 def fill_transaction_defaults(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
-    # type ignored because merge does not preserve the typing
+    # type ignored because merge does not preserve typing
     return merge(TRANSACTION_DEFAULTS, transaction_dict)  # type: ignore[no-any-return]
 
 

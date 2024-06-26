@@ -3,6 +3,7 @@ from typing import (
     Dict,
     List,
     Optional,
+    cast,
 )
 
 from eth_keyfile.keyfile import (
@@ -16,9 +17,12 @@ from eth_typing import (
     Hash32,
 )
 
-# from eth_account.account import (
+# from eth_account import (
 #     Account,
 # )
+from eth_account.account_signers_abc import (
+    AccountSigningMethods,
+)
 from eth_account.datastructures import (
     SignedMessage,
     SignedTransaction,
@@ -29,9 +33,6 @@ from eth_account.messages import (
 from eth_account.signers.base import (
     BaseAccount,
 )
-
-# TODO can't import Account because circular
-PlaceholderAccountType = Any
 
 
 class LocalAccount(BaseAccount):
@@ -56,14 +57,14 @@ class LocalAccount(BaseAccount):
         b"\\x01\\x23..."
     """
 
-    def __init__(self, key: PrivateKey, account: PlaceholderAccountType):
+    def __init__(self, key: PrivateKey, account: AccountSigningMethods):
         """
         Initialize a new account with the given private key.
 
         :param eth_keys.PrivateKey key: to prefill in private key execution
         :param ~eth_account.account.Account account: the key-unaware management API
         """
-        self._publicapi: PlaceholderAccountType = account
+        self._publicapi: AccountSigningMethods = account
 
         self._address: ChecksumAddress = key.public_key.to_checksum_address()
 
@@ -96,16 +97,17 @@ class LocalAccount(BaseAccount):
         :meth:`~eth_account.account.Account.encrypt`, but without a
         private key argument.
         """
-        # type ignored need to refactor relation w Account to not have circular imports
-        return self._publicapi.encrypt(  # type: ignore
+        return self._publicapi.encrypt(
             self.key, password, kdf=kdf, iterations=iterations
         )
 
     def unsafe_sign_hash(self, message_hash: Hash32) -> SignedMessage:
-        # type ignored need to refactor relation w Account to not have circular imports
-        return self._publicapi.unsafe_sign_hash(  # type: ignore
-            message_hash,
-            private_key=self.key,
+        return cast(
+            SignedMessage,
+            self._publicapi.unsafe_sign_hash(
+                message_hash,
+                private_key=self.key,
+            ),
         )
 
     def sign_message(self, signable_message: SignableMessage) -> SignedMessage:
@@ -117,16 +119,18 @@ class LocalAccount(BaseAccount):
         private key argument.
         """
         # type ignored need to refactor relation w Account to not have circular imports
-        return self._publicapi.sign_message(  # type: ignore
-            signable_message, private_key=self.key
+        return cast(
+            SignedMessage,
+            self._publicapi.sign_message(signable_message, private_key=self.key),
         )
 
     def sign_transaction(
         self, transaction_dict: Dict[str, Any], blobs: Optional[List[bytes]] = None
     ) -> SignedTransaction:
         # type ignored need to refactor relation w Account to not have circular imports
-        return self._publicapi.sign_transaction(  # type: ignore
-            transaction_dict, self.key, blobs=blobs
+        return cast(
+            SignedTransaction,
+            self._publicapi.sign_transaction(transaction_dict, self.key, blobs=blobs),
         )
 
     def __bytes__(self) -> bytes:

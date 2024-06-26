@@ -70,6 +70,9 @@ from eth_account._utils.signing import (
 from eth_account._utils.validation import (
     validate_and_set_default_kdf,
 )
+from eth_account.account_signers_abc import (
+    AccountSigningMethods,
+)
 from eth_account.datastructures import (
     SignedMessage,
     SignedTransaction,
@@ -95,7 +98,7 @@ from eth_account.typed_transactions import (
 VRS = TypeVar("VRS", bytes, HexStr, int)
 
 
-class Account:
+class Account(AccountSigningMethods):
     """
     The primary entry point for working with Ethereum private keys.
 
