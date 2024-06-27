@@ -5,7 +5,6 @@ from abc import (
 from typing import (
     Any,
     Dict,
-    List,
     Optional,
     Union,
 )
@@ -29,6 +28,9 @@ from eth_account.datastructures import (
 )
 from eth_account.messages import (
     SignableMessage,
+)
+from eth_account.types import (
+    Blobs,
 )
 
 
@@ -68,6 +70,6 @@ class AccountLocalActions(ABC):
         self,
         transaction_dict: Dict[str, Any],
         private_key: Union[HexStr, bytes, int, PrivateKey],
-        blobs: Optional[List[bytes]] = None,
+        blobs: Optional[Blobs] = None,
     ) -> SignedTransaction:
         pass

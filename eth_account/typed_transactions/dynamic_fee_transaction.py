@@ -1,7 +1,6 @@
 from typing import (
     Any,
     Dict,
-    List,
     Optional,
     Tuple,
     cast,
@@ -40,6 +39,9 @@ from eth_account._utils.validation import (
     LEGACY_TRANSACTION_VALID_VALUES,
     is_int_or_prefixed_hexstr,
     is_rpc_structured_access_list,
+)
+from eth_account.types import (
+    Blobs,
 )
 
 from .access_list_transaction import (
@@ -135,7 +137,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
 
     @classmethod
     def from_dict(
-        cls, dictionary: Dict[str, Any], blobs: Optional[List[bytes]] = None
+        cls, dictionary: Dict[str, Any], blobs: Optional[Blobs] = None
     ) -> "DynamicFeeTransaction":
         """
         Builds a DynamicFeeTransaction from a dictionary.

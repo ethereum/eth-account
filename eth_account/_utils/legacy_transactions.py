@@ -32,6 +32,9 @@ from rlp.sedes import (
 from eth_account.typed_transactions import (
     TypedTransaction,
 )
+from eth_account.types import (
+    Blobs,
+)
 
 from .transaction_utils import (
     set_transaction_type_if_needed,
@@ -67,7 +70,7 @@ AnyTransaction = Union[TypedTransaction, Transaction, UnsignedTransaction]
 
 
 def serializable_unsigned_transaction_from_dict(
-    transaction_dict: Dict[str, Any], blobs: Optional[List[bytes]] = None
+    transaction_dict: Dict[str, Any], blobs: Optional[Blobs] = None
 ) -> AnyTransaction:
     transaction_dict = set_transaction_type_if_needed(transaction_dict)
     if "type" in transaction_dict:

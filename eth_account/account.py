@@ -6,7 +6,6 @@ import os
 from typing import (
     Any,
     Dict,
-    List,
     Optional,
     Tuple,
     TypeVar,
@@ -93,6 +92,9 @@ from eth_account.signers.local import (
 )
 from eth_account.typed_transactions import (
     TypedTransaction,
+)
+from eth_account.types import (
+    Blobs,
 )
 
 VRS = TypeVar("VRS", bytes, HexStr, int)
@@ -666,7 +668,7 @@ class Account(AccountLocalActions):
         self,
         transaction_dict: Dict[str, Any],
         private_key: Union[HexStr, bytes, int, PrivateKey],
-        blobs: Optional[List[bytes]] = None,
+        blobs: Optional[Blobs] = None,
     ) -> SignedTransaction:
         r"""
         Sign a transaction using a local private key.
@@ -690,6 +692,7 @@ class Account(AccountLocalActions):
         :param private_key: the private key to sign the data with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :param blobs: optional list of blobs to sign in addition to the transaction
+        :type blobs: list of bytes or HexBytes
         :returns: Various details about the signature - most
           importantly the fields: v, r, and s
         :rtype: SignedTransaction

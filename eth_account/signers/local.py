@@ -1,7 +1,6 @@
 from typing import (
     Any,
     Dict,
-    List,
     Optional,
     cast,
 )
@@ -29,6 +28,9 @@ from eth_account.messages import (
 )
 from eth_account.signers.base import (
     BaseAccount,
+)
+from eth_account.types import (
+    Blobs,
 )
 
 
@@ -121,7 +123,7 @@ class LocalAccount(BaseAccount):
         )
 
     def sign_transaction(
-        self, transaction_dict: Dict[str, Any], blobs: Optional[List[bytes]] = None
+        self, transaction_dict: Dict[str, Any], blobs: Optional[Blobs] = None
     ) -> SignedTransaction:
         return cast(
             SignedTransaction,

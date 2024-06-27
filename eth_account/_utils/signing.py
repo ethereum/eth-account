@@ -1,7 +1,6 @@
 from typing import (
     Any,
     Dict,
-    List,
     Optional,
     Tuple,
     cast,
@@ -29,6 +28,9 @@ from eth_account._utils.legacy_transactions import (
 from eth_account.typed_transactions import (
     TypedTransaction,
 )
+from eth_account.types import (
+    Blobs,
+)
 
 CHAIN_ID_OFFSET = 35
 V_OFFSET = 27
@@ -42,7 +44,7 @@ STRUCTURED_DATA_SIGN_VERSION = b"\x01"  # Hex value 0x01
 def sign_transaction_dict(
     eth_key: PrivateKey,
     transaction_dict: Dict[str, Any],
-    blobs: Optional[List[bytes]] = None,
+    blobs: Optional[Blobs] = None,
 ) -> Tuple[int, int, int, bytes]:
     # generate RLP-serializable transaction, with defaults filled
     unsigned_transaction = serializable_unsigned_transaction_from_dict(
