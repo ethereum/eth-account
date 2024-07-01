@@ -2,7 +2,6 @@ import os
 from typing import (
     Any,
     Optional,
-    Sequence,
     cast,
 )
 
@@ -62,7 +61,7 @@ def is_empty_or_checksum_address(val: Any) -> bool:
         return is_valid_address(val)
 
 
-def is_rpc_structured_access_list(val: Sequence[Any]) -> bool:
+def is_rpc_structured_access_list(val: Any) -> bool:
     """Returns true if 'val' is a valid JSON-RPC structured access list."""
     if not is_list_like(val):
         return False
@@ -85,7 +84,7 @@ def is_rpc_structured_access_list(val: Sequence[Any]) -> bool:
     return True
 
 
-def is_rlp_structured_access_list(val: Sequence[Any]) -> bool:
+def is_rlp_structured_access_list(val: Any) -> bool:
     """Returns true if 'val' is a valid rlp-structured access list."""
     if not is_list_like(val):
         return False
