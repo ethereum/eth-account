@@ -95,6 +95,7 @@ from eth_account.typed_transactions import (
 )
 from eth_account.types import (
     Blobs,
+    PrivateKeyType,
 )
 
 VRS = TypeVar("VRS", bytes, HexStr, int)
@@ -571,7 +572,7 @@ class Account(AccountLocalActions):
     def sign_message(
         self,
         signable_message: SignableMessage,
-        private_key: Union[bytes, HexStr, int, PrivateKey],
+        private_key: PrivateKeyType,
     ) -> SignedMessage:
         r"""
         Sign the provided message.
@@ -646,7 +647,7 @@ class Account(AccountLocalActions):
     def _sign_hash(
         self,
         message_hash: Hash32,
-        private_key: Union[bytes, HexStr, int, PrivateKey],
+        private_key: PrivateKeyType,
     ) -> SignedMessage:
         msg_hash_bytes = HexBytes(message_hash)
         if len(msg_hash_bytes) != 32:
@@ -858,7 +859,8 @@ class Account(AccountLocalActions):
 
     @combomethod
     def _parse_private_key(
-        self, key: Union[bytes, HexStr, int, PrivateKey]
+        self,
+        key: PrivateKeyType,
     ) -> PrivateKey:
         """
         Generate a :class:`eth_keys.datatypes.PrivateKey` from the provided key.
@@ -888,7 +890,7 @@ class Account(AccountLocalActions):
     @combomethod
     def sign_typed_data(
         self,
-        private_key: Union[bytes, HexStr, int, PrivateKey],
+        private_key: PrivateKeyType,
         domain_data: Optional[Dict[str, Any]] = None,
         message_types: Optional[Dict[str, Any]] = None,
         message_data: Optional[Dict[str, Any]] = None,

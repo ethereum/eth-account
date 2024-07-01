@@ -12,9 +12,6 @@ from typing import (
 from eth_keyfile.keyfile import (
     KDFType,
 )
-from eth_keys.datatypes import (
-    PrivateKey,
-)
 from eth_typing import (
     HexStr,
 )
@@ -31,6 +28,7 @@ from eth_account.messages import (
 )
 from eth_account.types import (
     Blobs,
+    PrivateKeyType,
 )
 
 
@@ -39,7 +37,7 @@ class AccountLocalActions(ABC):
     @abstractmethod
     def encrypt(
         self,
-        private_key: Union[HexStr, bytes, int, PrivateKey],
+        private_key: PrivateKeyType,
         password: str,
         kdf: Optional[KDFType] = None,
         iterations: Optional[int] = None,
@@ -51,7 +49,7 @@ class AccountLocalActions(ABC):
     def unsafe_sign_hash(
         self,
         message_hash: Union[HexStr, bytes, int],
-        private_key: Union[HexStr, bytes, int, PrivateKey],
+        private_key: PrivateKeyType,
     ) -> SignedMessage:
         pass
 
@@ -60,7 +58,7 @@ class AccountLocalActions(ABC):
     def sign_message(
         self,
         signable_message: SignableMessage,
-        private_key: Union[bytes, HexStr, int, PrivateKey],
+        private_key: PrivateKeyType,
     ) -> SignedMessage:
         pass
 
@@ -69,7 +67,7 @@ class AccountLocalActions(ABC):
     def sign_transaction(
         self,
         transaction_dict: Dict[str, Any],
-        private_key: Union[HexStr, bytes, int, PrivateKey],
+        private_key: PrivateKeyType,
         blobs: Optional[Blobs] = None,
     ) -> SignedTransaction:
         pass
