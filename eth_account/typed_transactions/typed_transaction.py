@@ -1,7 +1,6 @@
 from typing import (
     Any,
     Dict,
-    List,
     Optional,
     Tuple,
     Union,
@@ -24,6 +23,9 @@ from eth_account._utils.transaction_utils import (
 )
 from eth_account._utils.validation import (
     is_int_or_prefixed_hexstr,
+)
+from eth_account.types import (
+    Blobs,
 )
 
 from .access_list_transaction import (
@@ -72,7 +74,7 @@ class TypedTransaction:
 
     @classmethod
     def from_dict(
-        cls, dictionary: Dict[str, Any], blobs: Optional[List[bytes]] = None
+        cls, dictionary: Dict[str, Any], blobs: Optional[Blobs] = None
     ) -> "TypedTransaction":
         """
         Builds a TypedTransaction from a dictionary.

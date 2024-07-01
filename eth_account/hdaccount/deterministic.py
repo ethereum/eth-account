@@ -74,7 +74,7 @@ class Node(int):
     OFFSET = 0x0  # No offset
     index: int
 
-    def __new__(cls, index):
+    def __new__(cls, index: int) -> "Node":
         if 0 > index or index > 2**31:
             raise ValidationError(f"{cls} cannot be initialized with value {index}")
 
@@ -82,7 +82,7 @@ class Node(int):
         obj.index = index
         return obj
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"{self.__class__.__name__}({self.index})"
 
     def __add__(self, other: int) -> "Node":

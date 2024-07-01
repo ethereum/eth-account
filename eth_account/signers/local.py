@@ -1,5 +1,37 @@
+from typing import (
+    Any,
+    Dict,
+    Optional,
+    cast,
+)
+
+from eth_keyfile.keyfile import (
+    KDFType,
+)
+from eth_keys.datatypes import (
+    PrivateKey,
+)
+from eth_typing import (
+    ChecksumAddress,
+    Hash32,
+)
+
+from eth_account.account_local_actions import (
+    AccountLocalActions,
+)
+from eth_account.datastructures import (
+    SignedMessage,
+    SignedTransaction,
+)
+from eth_account.messages import (
+    SignableMessage,
+)
 from eth_account.signers.base import (
     BaseAccount,
+)
+from eth_account.types import (
+    Blobs,
+    TransactionDictType,
 )
 
 
@@ -25,34 +57,39 @@ class LocalAccount(BaseAccount):
         b"\\x01\\x23..."
     """
 
-    def __init__(self, key, account):
+    def __init__(self, key: PrivateKey, account: AccountLocalActions):
         """
         Initialize a new account with the given private key.
 
         :param eth_keys.PrivateKey key: to prefill in private key execution
         :param ~eth_account.account.Account account: the key-unaware management API
         """
-        self._publicapi = account
+        self._publicapi: AccountLocalActions = account
 
-        self._address = key.public_key.to_checksum_address()
+        self._address: ChecksumAddress = key.public_key.to_checksum_address()
 
-        key_raw = key.to_bytes()
+        key_raw: bytes = key.to_bytes()
         self._private_key = key_raw
 
-        self._key_obj = key
+        self._key_obj: PrivateKey = key
 
     @property
-    def address(self):
+    def address(self) -> ChecksumAddress:
         return self._address
 
     @property
-    def key(self):
+    def key(self) -> bytes:
         """
         Get the private key.
         """
         return self._private_key
 
-    def encrypt(self, password, kdf=None, iterations=None):
+    def encrypt(
+        self,
+        password: str,
+        kdf: Optional[KDFType] = None,
+        iterations: Optional[int] = None,
+    ) -> Dict[str, Any]:
         """
         Generate a string with the encrypted key.
 
@@ -64,13 +101,16 @@ class LocalAccount(BaseAccount):
             self.key, password, kdf=kdf, iterations=iterations
         )
 
-    def unsafe_sign_hash(self, message_hash):
-        return self._publicapi.unsafe_sign_hash(
-            message_hash,
-            private_key=self.key,
+    def unsafe_sign_hash(self, message_hash: Hash32) -> SignedMessage:
+        return cast(
+            SignedMessage,
+            self._publicapi.unsafe_sign_hash(
+                message_hash,
+                private_key=self.key,
+            ),
         )
 
-    def sign_message(self, signable_message):
+    def sign_message(self, signable_message: SignableMessage) -> SignedMessage:
         """
         Generate a string with the encrypted key.
 
@@ -78,10 +118,18 @@ class LocalAccount(BaseAccount):
         :meth:`~eth_account.account.Account.sign_message`, but without a
         private key argument.
         """
-        return self._publicapi.sign_message(signable_message, private_key=self.key)
+        return cast(
+            SignedMessage,
+            self._publicapi.sign_message(signable_message, private_key=self.key),
+        )
 
-    def sign_transaction(self, transaction_dict, blobs=None):
-        return self._publicapi.sign_transaction(transaction_dict, self.key, blobs=blobs)
+    def sign_transaction(
+        self, transaction_dict: TransactionDictType, blobs: Optional[Blobs] = None
+    ) -> SignedTransaction:
+        return cast(
+            SignedTransaction,
+            self._publicapi.sign_transaction(transaction_dict, self.key, blobs=blobs),
+        )
 
-    def __bytes__(self):
+    def __bytes__(self) -> bytes:
         return self.key

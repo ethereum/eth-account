@@ -1,8 +1,13 @@
+import os
 from typing import (
     Any,
     Optional,
+    cast,
 )
 
+from eth_keyfile.keyfile import (
+    KDFType,
+)
 from eth_utils import (
     is_binary_address,
     is_checksum_address,
@@ -32,15 +37,15 @@ from hexbytes import (
 VALID_EMPTY_ADDRESSES = {None, b"", ""}
 
 
-def is_none(val):
+def is_none(val: Any) -> bool:
     return val is None
 
 
-def is_valid_address(value):
+def is_valid_address(value: Any) -> bool:
     return is_binary_address(value) or is_checksum_address(value)
 
 
-def is_int_or_prefixed_hexstr(val):
+def is_int_or_prefixed_hexstr(val: Any) -> bool:
     if is_integer(val):
         return True
     elif isinstance(val, str) and is_0x_prefixed(val):
@@ -49,14 +54,14 @@ def is_int_or_prefixed_hexstr(val):
         return False
 
 
-def is_empty_or_checksum_address(val):
+def is_empty_or_checksum_address(val: Any) -> bool:
     if val in VALID_EMPTY_ADDRESSES:
         return True
     else:
         return is_valid_address(val)
 
 
-def is_rpc_structured_access_list(val):
+def is_rpc_structured_access_list(val: Any) -> bool:
     """Returns true if 'val' is a valid JSON-RPC structured access list."""
     if not is_list_like(val):
         return False
@@ -79,7 +84,7 @@ def is_rpc_structured_access_list(val):
     return True
 
 
-def is_rlp_structured_access_list(val):
+def is_rlp_structured_access_list(val: Any) -> bool:
     """Returns true if 'val' is a valid rlp-structured access list."""
     if not is_list_like(val):
         return False
@@ -145,3 +150,12 @@ LEGACY_TRANSACTION_VALID_VALUES = {
     "data": lambda val: isinstance(val, (int, str, bytes, bytearray)),
     "chainId": lambda val: val is None or is_int_or_prefixed_hexstr(val),
 }
+
+
+def validate_and_set_default_kdf() -> KDFType:
+    os_kdf = os.getenv("ETH_ACCOUNT_KDF", "scrypt")
+    if os_kdf not in ("pbkdf2", "scrypt"):
+        raise ValueError(
+            f"Invalid KDF type: {os_kdf}. Must be one of 'pbkdf2' or 'scrypt'"
+        )
+    return cast(KDFType, os_kdf)
