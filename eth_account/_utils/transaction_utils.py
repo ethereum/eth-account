@@ -13,6 +13,9 @@ from eth_account._utils.validation import (
     is_rlp_structured_access_list,
     is_rpc_structured_access_list,
 )
+from eth_account.types import (
+    TransactionDictType,
+)
 
 
 def normalize_transaction_dict(txn_dict: Dict[str, Any]) -> Dict[str, Any]:
@@ -33,7 +36,9 @@ def normalize_transaction_dict(txn_dict: Dict[str, Any]) -> Dict[str, Any]:
     return txn_dict
 
 
-def set_transaction_type_if_needed(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
+def set_transaction_type_if_needed(
+    transaction_dict: TransactionDictType,
+) -> TransactionDictType:
     if "type" not in transaction_dict:
         if all(
             type_1_arg in transaction_dict for type_1_arg in ("gasPrice", "accessList")

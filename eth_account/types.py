@@ -1,5 +1,8 @@
 from typing import (
-    List,
+    Dict,
+    NewType,
+    Sequence,
+    TypedDict,
     Union,
 )
 
@@ -13,5 +16,17 @@ from hexbytes import (
     HexBytes,
 )
 
+Blobs = Sequence[Union[bytes, HexBytes]]
 PrivateKeyType = Union[bytes, int, HexStr, PrivateKey]
-Blobs = List[Union[bytes, HexBytes]]
+
+
+# Same as in web3.types
+class AccessListEntry(TypedDict):
+    address: HexStr
+    storageKeys: Sequence[HexStr]
+
+
+# Same as in web3.types
+AccessList = NewType("AccessList", Sequence[AccessListEntry])
+
+TransactionDictType = Dict[str, Union[AccessList, bytes, HexStr, int]]

@@ -7,6 +7,7 @@ from typing import (
     Optional,
     Tuple,
     Union,
+    cast,
 )
 
 from eth_rlp import (
@@ -34,6 +35,7 @@ from eth_account.typed_transactions import (
 )
 from eth_account.types import (
     Blobs,
+    TransactionDictType,
 )
 
 from .transaction_utils import (
@@ -70,7 +72,7 @@ AnyTransaction = Union[TypedTransaction, Transaction, UnsignedTransaction]
 
 
 def serializable_unsigned_transaction_from_dict(
-    transaction_dict: Dict[str, Any], blobs: Optional[Blobs] = None
+    transaction_dict: TransactionDictType, blobs: Optional[Blobs] = None
 ) -> AnyTransaction:
     transaction_dict = set_transaction_type_if_needed(transaction_dict)
     if "type" in transaction_dict:
@@ -142,7 +144,7 @@ REQUIRED_TRANSACTION_KEYS = ALLOWED_TRANSACTION_KEYS.difference(
 )
 
 
-def assert_valid_fields(transaction_dict: Dict[str, Any]) -> None:
+def assert_valid_fields(transaction_dict: TransactionDictType) -> None:
     # check if any keys are missing
     missing_keys = REQUIRED_TRANSACTION_KEYS.difference(transaction_dict.keys())
     if missing_keys:
@@ -170,7 +172,7 @@ def assert_valid_fields(transaction_dict: Dict[str, Any]) -> None:
         raise TypeError(f"Transaction had invalid fields: {repr(invalid)}")
 
 
-def chain_id_to_v(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
+def chain_id_to_v(transaction_dict: TransactionDictType) -> Dict[str, Any]:
     # See EIP 155
     chain_id = transaction_dict.pop("chainId")
     if chain_id is None:
@@ -180,9 +182,10 @@ def chain_id_to_v(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
 
 
 @curry
-def fill_transaction_defaults(transaction_dict: Dict[str, Any]) -> Dict[str, Any]:
-    # type ignored because merge does not preserve typing
-    return merge(TRANSACTION_DEFAULTS, transaction_dict)  # type: ignore[no-any-return]
+def fill_transaction_defaults(
+    transaction_dict: TransactionDictType,
+) -> TransactionDictType:
+    return cast(TransactionDictType, merge(TRANSACTION_DEFAULTS, transaction_dict))
 
 
 ChainAwareUnsignedTransaction = Transaction

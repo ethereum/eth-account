@@ -96,6 +96,7 @@ from eth_account.typed_transactions import (
 from eth_account.types import (
     Blobs,
     PrivateKeyType,
+    TransactionDictType,
 )
 
 VRS = TypeVar("VRS", bytes, HexStr, int)
@@ -667,7 +668,7 @@ class Account(AccountLocalActions):
     @combomethod
     def sign_transaction(
         self,
-        transaction_dict: Dict[str, Any],
+        transaction_dict: TransactionDictType,
         private_key: Union[HexStr, bytes, int, PrivateKey],
         blobs: Optional[Blobs] = None,
     ) -> SignedTransaction:
@@ -833,9 +834,14 @@ class Account(AccountLocalActions):
             if transaction_dict["from"] == account.address:
                 sanitized_transaction = dissoc(transaction_dict, "from")
             else:
+                str_from = (
+                    transaction_dict["from"].decode()
+                    if isinstance(transaction_dict["from"], bytes)
+                    else transaction_dict["from"]
+                )
                 raise TypeError(
                     f"from field must match key's {account.address}, but it was "
-                    f"{transaction_dict['from']}"
+                    f"{str_from}"
                 )
         else:
             sanitized_transaction = transaction_dict

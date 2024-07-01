@@ -31,6 +31,7 @@ from eth_account.signers.base import (
 )
 from eth_account.types import (
     Blobs,
+    TransactionDictType,
 )
 
 
@@ -123,7 +124,7 @@ class LocalAccount(BaseAccount):
         )
 
     def sign_transaction(
-        self, transaction_dict: Dict[str, Any], blobs: Optional[Blobs] = None
+        self, transaction_dict: TransactionDictType, blobs: Optional[Blobs] = None
     ) -> SignedTransaction:
         return cast(
             SignedTransaction,

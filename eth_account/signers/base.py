@@ -4,7 +4,6 @@ from abc import (
 )
 from typing import (
     Any,
-    Dict,
 )
 
 from eth_typing import (
@@ -18,6 +17,9 @@ from eth_account.datastructures import (
 )
 from eth_account.messages import (
     SignableMessage,
+)
+from eth_account.types import (
+    TransactionDictType,
 )
 
 
@@ -72,7 +74,9 @@ class BaseAccount(ABC):
         """
 
     @abstractmethod
-    def sign_transaction(self, transaction_dict: Dict[str, Any]) -> SignedTransaction:
+    def sign_transaction(
+        self, transaction_dict: TransactionDictType
+    ) -> SignedTransaction:
         """
         Sign a transaction dict.
 
