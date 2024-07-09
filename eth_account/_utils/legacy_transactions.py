@@ -35,7 +35,7 @@ from eth_account.typed_transactions import (
 )
 from eth_account.types import (
     Blobs,
-    TransactionDictType,
+    TxParams,
 )
 
 from .transaction_utils import (
@@ -69,7 +69,7 @@ class UnsignedTransaction(HashableRLP):
 
 
 def serializable_unsigned_transaction_from_dict(
-    transaction_dict: TransactionDictType, blobs: Optional[Blobs] = None
+    transaction_dict: TxParams, blobs: Optional[Blobs] = None
 ) -> Union[TypedTransaction, Transaction, UnsignedTransaction]:
     transaction_dict = set_transaction_type_if_needed(transaction_dict)
     if "type" in transaction_dict:
@@ -142,7 +142,7 @@ REQUIRED_TRANSACTION_KEYS = ALLOWED_TRANSACTION_KEYS.difference(
 )
 
 
-def assert_valid_fields(transaction_dict: TransactionDictType) -> None:
+def assert_valid_fields(transaction_dict: TxParams) -> None:
     # check if any keys are missing
     missing_keys = REQUIRED_TRANSACTION_KEYS.difference(transaction_dict.keys())
     if missing_keys:
@@ -170,7 +170,7 @@ def assert_valid_fields(transaction_dict: TransactionDictType) -> None:
         raise TypeError(f"Transaction had invalid fields: {repr(invalid)}")
 
 
-def chain_id_to_v(transaction_dict: TransactionDictType) -> Dict[str, Any]:
+def chain_id_to_v(transaction_dict: TxParams) -> Dict[str, Any]:
     # See EIP 155
     chain_id = transaction_dict.pop("chainId")
     if chain_id is None:
@@ -182,9 +182,9 @@ def chain_id_to_v(transaction_dict: TransactionDictType) -> Dict[str, Any]:
 # type ignored because curry doesn't preserve typing
 @curry  # type: ignore[misc]
 def fill_transaction_defaults(
-    transaction_dict: TransactionDictType,
-) -> TransactionDictType:
-    return cast(TransactionDictType, merge(TRANSACTION_DEFAULTS, transaction_dict))
+    transaction_dict: TxParams,
+) -> TxParams:
+    return cast(TxParams, merge(TRANSACTION_DEFAULTS, transaction_dict))
 
 
 ChainAwareUnsignedTransaction = Transaction

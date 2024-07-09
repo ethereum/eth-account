@@ -96,7 +96,7 @@ from eth_account.typed_transactions import (
 from eth_account.types import (
     Blobs,
     PrivateKeyType,
-    TransactionDictType,
+    TxParams,
 )
 
 VRS = TypeVar("VRS", bytes, HexStr, int)
@@ -664,7 +664,7 @@ class Account(AccountLocalActions):
     @combomethod
     def sign_transaction(
         self,
-        transaction_dict: TransactionDictType,
+        transaction_dict: TxParams,
         private_key: PrivateKeyType,
         blobs: Optional[Blobs] = None,
     ) -> SignedTransaction:

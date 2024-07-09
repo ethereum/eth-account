@@ -29,7 +29,7 @@ from eth_account.messages import (
 from eth_account.types import (
     Blobs,
     PrivateKeyType,
-    TransactionDictType,
+    TxParams,
 )
 
 
@@ -67,7 +67,7 @@ class AccountLocalActions(ABC):
     @abstractmethod
     def sign_transaction(
         self,
-        transaction_dict: TransactionDictType,
+        transaction_dict: TxParams,
         private_key: PrivateKeyType,
         blobs: Optional[Blobs] = None,
     ) -> SignedTransaction:

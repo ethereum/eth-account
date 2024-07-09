@@ -19,7 +19,7 @@ from eth_account.messages import (
     SignableMessage,
 )
 from eth_account.types import (
-    TransactionDictType,
+    TxParams,
 )
 
 
@@ -74,9 +74,7 @@ class BaseAccount(ABC):
         """
 
     @abstractmethod
-    def sign_transaction(
-        self, transaction_dict: TransactionDictType
-    ) -> SignedTransaction:
+    def sign_transaction(self, transaction_dict: TxParams) -> SignedTransaction:
         """
         Sign a transaction dict.
 
