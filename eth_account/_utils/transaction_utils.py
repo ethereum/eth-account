@@ -1,8 +1,6 @@
 from typing import (
     Any,
     Dict,
-    Sequence,
-    Tuple,
 )
 
 from toolz import (
@@ -15,6 +13,8 @@ from eth_account._utils.validation import (
     is_rpc_structured_access_list,
 )
 from eth_account.types import (
+    AccessList,
+    RLPStructuredAccessList,
     TransactionDictType,
 )
 
@@ -76,8 +76,8 @@ def transaction_rpc_to_rlp_structure(dictionary: Dict[str, Any]) -> Dict[str, An
 
 
 def _access_list_rpc_to_rlp_structure(
-    access_list: Sequence[Dict[str, Any]]
-) -> Tuple[Tuple[str, Tuple[str]], ...]:
+    access_list: AccessList,
+) -> RLPStructuredAccessList:
     if not is_rpc_structured_access_list(access_list):
         raise ValueError(
             "provided object not formatted as JSON-RPC-structured access list"
@@ -108,8 +108,8 @@ def transaction_rlp_to_rpc_structure(dictionary: Dict[str, Any]) -> Dict[str, An
 
 
 def _access_list_rlp_to_rpc_structure(
-    access_list: Sequence[Any],
-) -> Sequence[Dict[str, Any]]:
+    access_list: RLPStructuredAccessList,
+) -> AccessList:
     if not is_rlp_structured_access_list(access_list):
         raise ValueError("provided object not formatted as rlp-structured access list")
 
