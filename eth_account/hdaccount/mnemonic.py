@@ -95,7 +95,7 @@ class Mnemonic:
             for lang in Mnemonic.list_languages()
             if len(words.intersection(cls(lang).wordlist)) == len(words)
         }
-
+        # breakpoint()
         # No language had all words match it, so the language can't be fully determined
         if len(matching_languages) < 1:
             raise ValidationError(f"Language not detected for word(s): {raw_mnemonic}")
