@@ -79,7 +79,7 @@ def is_rpc_structured_access_list(val: Any) -> bool:
         if not is_list_like(storage_keys):
             return False
         for storage_key in storage_keys:
-            if not is_int_or_prefixed_hexstr(storage_key):
+            if not is_int_or_prefixed_hexstr(storage_key) and not is_bytes(storage_key):
                 return False
     return True
 
@@ -97,7 +97,7 @@ def is_rlp_structured_access_list(val: Any) -> bool:
         if not is_address(address):
             return False
         for storage_key in storage_keys:
-            if not is_int_or_prefixed_hexstr(storage_key):
+            if not is_int_or_prefixed_hexstr(storage_key) and not is_bytes(storage_key):
                 return False
     return True
 
