@@ -3,6 +3,18 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.13.1 (2024-07-24)
+--------------------------------
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Update ``mypy`` checks to run with all ``dev`` dependencies installed (`#280 <https://github.com/ethereum/eth-account/issues/280>`__)
+- Enforce ``mypy`` ``strict_optional`` rule (`#281 <https://github.com/ethereum/eth-account/issues/281>`__)
+- Updated ``mypy`` types setting ``disallow_untyped_defs`` and ``disallow_untyped_calls`` to ``true`` (`#283 <https://github.com/ethereum/eth-account/issues/283>`__)
+- Set mypy rules ``disallow_any_generics``, ``disallow_subclassing_any``, and ``disallow_untyped_decorators`` to ``true`` (`#285 <https://github.com/ethereum/eth-account/issues/285>`__)
+
+
 eth-account v0.13.0 (2024-05-20)
 --------------------------------
 

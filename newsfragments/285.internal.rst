@@ -1,1 +1,0 @@
-Set mypy rules ``disallow_any_generics``, ``disallow_subclassing_any``, and ``disallow_untyped_decorators`` to ``true``
