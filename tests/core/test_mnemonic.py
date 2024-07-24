@@ -54,6 +54,9 @@ def test_failed_checksum():
             "chinese_traditional",
             "滅",  # traditional and simplified Chinese, assumes simplified
         ),
+        ("portuguese", "cachorro"),
+        ("russian", "барышня"),
+        ("turkish", "anarşi"),
     ],
 )
 def test_detection(language, word):
