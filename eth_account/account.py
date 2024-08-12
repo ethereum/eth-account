@@ -95,6 +95,7 @@ from eth_account.typed_transactions import (
 )
 from eth_account.types import (
     Blobs,
+    Language,
     PrivateKeyType,
     TransactionDictType,
 )
@@ -376,7 +377,7 @@ class Account(AccountLocalActions):
         self,
         passphrase: str = "",
         num_words: int = 12,
-        language: str = "english",
+        language: Language = Language.ENGLISH,
         account_path: str = ETHEREUM_DEFAULT_PATH,
     ) -> Tuple[LocalAccount, str]:
         r"""
@@ -392,7 +393,7 @@ class Account(AccountLocalActions):
         :param int num_words: Number of words to use with seed phrase.
                               Default is 12 words.
                               Must be one of [12, 15, 18, 21, 24].
-        :param str language: Language to use for BIP39 mnemonic seed phrase.
+        :param Language language: Language to use for BIP39 mnemonic seed phrase.
         :param str account_path: Specify an alternate HD path for deriving the
             seed using BIP32 HD wallet key derivation.
         :returns: A tuple consisting of an object with private key and
@@ -415,6 +416,13 @@ class Account(AccountLocalActions):
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
+        if isinstance(language, str):
+            raise TypeError(
+                "Invalid language argument type. Expected an instance of `Language`, "
+                "but got a string. Please use `language=Language.{}` instead.".format(
+                    language.upper()
+                )
+            )
         if not self._use_unaudited_hdwallet_features:
             raise AttributeError(
                 "The use of the Mnemonic features of Account is disabled by "

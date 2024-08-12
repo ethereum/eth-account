@@ -2,6 +2,10 @@ from eth_utils import (
     ValidationError,
 )
 
+from eth_account.types import (
+    Language,
+)
+
 from .deterministic import (
     HDPath,
 )
@@ -12,7 +16,7 @@ from .mnemonic import (
 ETHEREUM_DEFAULT_PATH = "m/44'/60'/0'/0/0"
 
 
-def generate_mnemonic(num_words: int, lang: str) -> str:
+def generate_mnemonic(num_words: int, lang: Language) -> str:
     return Mnemonic(lang).generate(num_words)
 
 
