@@ -42,6 +42,10 @@ from eth_utils import (
     ValidationError,
 )
 
+from eth_account.types import (
+    Language,
+)
+
 from ._utils import (
     normalize_string,
     pbkdf2_hmac_sha512,
@@ -71,29 +75,23 @@ def get_wordlist(language: str) -> List[str]:
 
 
 class Mnemonic:
-    def __init__(self, raw_language: str = "english"):
-        language = raw_language.lower().replace(" ", "_")
-        languages = Mnemonic.list_languages()
-        if language not in languages:
-            raise ValidationError(
-                f'Invalid language choice "{language}", must be one of {languages}'
-            )
-        self.language = language
-        self.wordlist = get_wordlist(language)
+    def __init__(self, raw_language: Language = Language.ENGLISH):
+        self.language = raw_language.value
+        self.wordlist = get_wordlist(self.language)
 
     @staticmethod
     def list_languages() -> List[str]:
         return sorted(Path(f).stem for f in WORDLIST_DIR.rglob("*.txt"))
 
     @classmethod
-    def detect_language(cls, raw_mnemonic: str) -> str:
+    def detect_language(cls, raw_mnemonic: str) -> Language:
         mnemonic = normalize_string(raw_mnemonic)
 
         words = set(mnemonic.split(" "))
         matching_languages = {
             lang
             for lang in Mnemonic.list_languages()
-            if len(words.intersection(cls(lang).wordlist)) == len(words)
+            if len(words.intersection(cls(Language(lang)).wordlist)) == len(words)
         }
 
         # No language had all words match it, so the language can't be fully determined
@@ -106,7 +104,7 @@ class Mnemonic:
         if len(matching_languages) == 2 and all(
             "chinese" in lang for lang in matching_languages
         ):
-            return "chinese_simplified"
+            return Language.CHINESE_SIMPLIFIED
 
         # Because certain wordlists share some similar words, if we detect multiple
         # languages that the provided mnemonic word(s) could be valid in, we have
@@ -117,7 +115,7 @@ class Mnemonic:
             )
 
         (language,) = matching_languages
-        return language
+        return Language(language)
 
     def generate(self, num_words: int = 12) -> str:
         if num_words not in VALID_WORD_COUNTS:
