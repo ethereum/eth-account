@@ -14,6 +14,9 @@ from eth_account.hdaccount.mnemonic import (
     VALID_ENTROPY_SIZES,
     Mnemonic,
 )
+from eth_account.types import (
+    Language,
+)
 
 Account.enable_unaudited_hdwallet_features()
 
@@ -37,6 +40,7 @@ path_st = (
 @settings(deadline=1000)
 @pytest.mark.compatibility
 def test_compatibility(seed, language, account_path):
+    language = Language(language)
     mnemonic = Mnemonic(language).to_mnemonic(seed)
     acct = Account.from_mnemonic(mnemonic, account_path=account_path)
     # NOTE Must do `cd tests/integration/js-scripts && npm install -g .
@@ -47,7 +51,7 @@ def test_compatibility(seed, language, account_path):
             "-m",
             mnemonic,
             "-l",
-            language,
+            language.value,
             "-p",
             account_path,
         ],
