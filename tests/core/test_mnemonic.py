@@ -23,6 +23,7 @@
 import pytest
 
 from eth_account.hdaccount.mnemonic import (
+    Language,
     Mnemonic,
     ValidationError,
     normalize_string,
@@ -30,7 +31,7 @@ from eth_account.hdaccount.mnemonic import (
 
 
 def test_failed_checksum():
-    mnemo = Mnemonic("english")
+    mnemo = Mnemonic(Language.ENGLISH)
     assert not mnemo.is_mnemonic_valid(
         "bless cloud wheel regular tiny venue bird web grief security dignity zoo"
     )
@@ -39,19 +40,19 @@ def test_failed_checksum():
 @pytest.mark.parametrize(
     "language,word",
     [
-        ("english", "security"),
-        ("french", "baguette"),
-        ("spanish", "leche"),
-        ("italian", "cordata"),
-        ("czech", "nitro"),
-        ("japanese", "あらためる"),
-        ("korean", "강북"),
+        (Language.ENGLISH, "security"),
+        (Language.FRENCH, "baguette"),
+        (Language.SPANISH, "leche"),
+        (Language.ITALIAN, "cordata"),
+        (Language.CZECH, "nitro"),
+        (Language.JAPANESE, "あらためる"),
+        (Language.KOREAN, "강북"),
         (
-            "chinese_simplified",
+            Language.CHINESE_SIMPLIFIED,
             "也",  # NOTE: This succeeds even though this character is in both
         ),
         (
-            "chinese_traditional",
+            Language.CHINESE_TRADITIONAL,
             "滅",  # traditional and simplified Chinese, assumes simplified
         ),
     ],
@@ -63,12 +64,12 @@ def test_detection(language, word):
 def test_undetected_language():
     with pytest.raises(ValidationError):
         Mnemonic.detect_language("xxxxxxx")
-    with pytest.raises(ValidationError):
+    with pytest.raises(AttributeError):
         Mnemonic("xxxxxxx")
 
 
 def test_expand_word():
-    m = Mnemonic("english")
+    m = Mnemonic(Language.ENGLISH)
     assert "" == m.expand_word("")
     assert " " == m.expand_word(" ")
     assert "access" == m.expand_word("access")  # word in list
@@ -82,7 +83,7 @@ def test_expand_word():
 @pytest.mark.parametrize(
     "lang",
     {
-        lang
+        Language(lang)
         for lang in Mnemonic.list_languages()
         if lang
         not in (
@@ -108,6 +109,7 @@ def test_expand(lang):
 @pytest.mark.parametrize("lang", Mnemonic.list_languages())
 @pytest.mark.parametrize("num_words", [12, 15, 18, 21, 24])
 def test_generation(lang, num_words):
+    lang = Language(lang)
     m = Mnemonic(lang)
     mnemonic = m.generate(num_words)
     assert m.is_mnemonic_valid(mnemonic)
@@ -318,7 +320,7 @@ def test_generation(lang, num_words):
     ],
 )
 def test_english_mnemonics(entropy, expected_mnemonic, expected_seed):
-    m = Mnemonic("english")
+    m = Mnemonic(Language.ENGLISH)
     mnemonic = m.to_mnemonic(bytes.fromhex(entropy))
     assert m.is_mnemonic_valid(mnemonic)
     assert mnemonic == expected_mnemonic
@@ -542,7 +544,7 @@ def test_english_mnemonics(entropy, expected_mnemonic, expected_seed):
     ],
 )
 def test_japanese_mnemonics(entropy, expected_mnemonic, passphrase, expected_seed):
-    m = Mnemonic("japanese")
+    m = Mnemonic(Language.JAPANESE)
     mnemonic = m.to_mnemonic(bytes.fromhex(entropy))
     assert m.is_mnemonic_valid(mnemonic)
     # NOTE For some reason, the strings weren't appearing in normalized form as
