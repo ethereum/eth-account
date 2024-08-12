@@ -1,3 +1,4 @@
+import enum
 from typing import (
     Dict,
     Sequence,
@@ -22,3 +23,15 @@ AccessList = Sequence[Dict[str, Union[HexStr, Sequence[HexStr]]]]
 RLPStructuredAccessList = Sequence[Sequence[Union[HexStr, Sequence[HexStr]]]]
 
 TransactionDictType = Dict[str, Union[AccessList, bytes, HexStr, int]]
+
+
+class Language(enum.Enum):
+    ENGLISH = "english"
+    CHINESE_SIMPLIFIED = "chinese_simplified"
+    CHINESE_TRADITIONAL = "chinese_traditional"
+    FRENCH = "french"
+    CZECH = "czech"
+    ITALIAN = "italian"
+    JAPANESE = "japanese"
+    KOREAN = "korean"
+    SPANISH = "spanish"
