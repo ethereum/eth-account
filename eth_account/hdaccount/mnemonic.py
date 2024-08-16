@@ -76,17 +76,32 @@ def get_wordlist(language: str) -> List[str]:
 
 
 class Mnemonic:
-    def __init__(self, raw_language: Union[Language | str] = Language.ENGLISH):
-        if isinstance(raw_language, str):
-            language = raw_language.lower().replace(" ", "_")
-            languages = Mnemonic.list_languages()
-            if language not in languages:
-                raise ValidationError(
-                    f"Invalid language choice '{language}', must be one of {languages}"
-                )
-        else:
-            language = raw_language.value
-        self.language = language
+    """
+    Creates and validates BIP39 mnemonics.
+
+    .. doctest:: python
+
+        >>> from eth_account.hdaccount import Language, Mnemonic
+
+        >>> # Create a new Mnemonic instance with English language
+        >>> mnemonic = Mnemonic(Language.ENGLISH)
+
+        >>> # List available languages
+        >>> available_languages = Mnemonic.list_languages()
+
+        >>> # Generate a new mnemonic phrase
+        >>> mnemonic_phrase = mnemonic.generate()
+
+        >>> # Validate a mnemonic phrase
+        >>> is_valid = mnemonic.is_mnemonic_valid(mnemonic_phrase)
+
+        >>> # Convert mnemonic phrase to seed
+        >>> seed = mnemonic.to_seed(mnemonic_phrase, passphrase="optional passphrase")
+
+    """
+
+    def __init__(self, raw_language: Language = Language.ENGLISH):
+        self.language = raw_language.value
         self.wordlist = get_wordlist(self.language)
 
     @staticmethod
