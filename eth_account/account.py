@@ -377,7 +377,7 @@ class Account(AccountLocalActions):
         self,
         passphrase: str = "",
         num_words: int = 12,
-        language: Language = Language.ENGLISH,
+        language: Union[Language | str] = Language.ENGLISH,
         account_path: str = ETHEREUM_DEFAULT_PATH,
     ) -> Tuple[LocalAccount, str]:
         r"""
@@ -393,7 +393,7 @@ class Account(AccountLocalActions):
         :param int num_words: Number of words to use with seed phrase.
                               Default is 12 words.
                               Must be one of [12, 15, 18, 21, 24].
-        :param Language language: Language to use for BIP39 mnemonic seed phrase.
+        :param (Language, str) language: Language to use for BIP39 mnemonic seed phrase.
         :param str account_path: Specify an alternate HD path for deriving the
             seed using BIP32 HD wallet key derivation.
         :returns: A tuple consisting of an object with private key and

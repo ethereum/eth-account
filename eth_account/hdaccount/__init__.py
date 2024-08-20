@@ -1,3 +1,7 @@
+from typing import (
+    Union,
+)
+
 from eth_utils import (
     ValidationError,
 )
@@ -16,7 +20,7 @@ from .mnemonic import (
 ETHEREUM_DEFAULT_PATH = "m/44'/60'/0'/0/0"
 
 
-def generate_mnemonic(num_words: int, lang: Language) -> str:
+def generate_mnemonic(num_words: int, lang: Union[Language | str]) -> str:
     return Mnemonic(lang).generate(num_words)
 
 
