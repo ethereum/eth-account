@@ -99,7 +99,7 @@ class Mnemonic:
         >>> seed = mnemonic.to_seed(mnemonic_phrase, passphrase="optional passphrase")
     """
 
-    def __init__(self, raw_language: Union[Language | str] = Language.ENGLISH):
+    def __init__(self, raw_language: Union[Language, str] = Language.ENGLISH):
         if isinstance(raw_language, str):
             language = raw_language.lower().replace(" ", "_")
             languages = Mnemonic.list_languages()
