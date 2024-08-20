@@ -64,7 +64,7 @@ def test_detection(language, word):
 def test_undetected_language():
     with pytest.raises(ValidationError):
         Mnemonic.detect_language("xxxxxxx")
-    with pytest.raises(AttributeError):
+    with pytest.raises(ValidationError):
         Mnemonic("xxxxxxx")
 
 
