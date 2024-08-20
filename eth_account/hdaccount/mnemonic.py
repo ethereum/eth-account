@@ -97,11 +97,19 @@ class Mnemonic:
 
         >>> # Convert mnemonic phrase to seed
         >>> seed = mnemonic.to_seed(mnemonic_phrase, passphrase="optional passphrase")
-
     """
 
-    def __init__(self, raw_language: Language = Language.ENGLISH):
-        self.language = raw_language.value
+    def __init__(self, raw_language: Union[Language | str] = Language.ENGLISH):
+        if isinstance(raw_language, str):
+            language = raw_language.lower().replace(" ", "_")
+            languages = Mnemonic.list_languages()
+            if language not in languages:
+                raise ValidationError(
+                    f"Invalid language choice '{language}', must be one of {languages}"
+                )
+        else:
+            language = raw_language.value
+        self.language = language
         self.wordlist = get_wordlist(self.language)
 
     @staticmethod
