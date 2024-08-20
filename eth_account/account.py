@@ -377,7 +377,7 @@ class Account(AccountLocalActions):
         self,
         passphrase: str = "",
         num_words: int = 12,
-        language: Union[Language | str] = Language.ENGLISH,
+        language: Union[Language, str] = Language.ENGLISH,
         account_path: str = ETHEREUM_DEFAULT_PATH,
     ) -> Tuple[LocalAccount, str]:
         r"""
