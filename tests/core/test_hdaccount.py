@@ -95,5 +95,7 @@ def test_bad_account_path2():
 
 
 def test_unknown_language():
-    with pytest.raises(TypeError, match="Invalid language argument type"):
+    with pytest.raises(
+        ValidationError, match="Invalid language choice 'pig_latin', must be one of.*"
+    ):
         Account.create_with_mnemonic(language="pig latin")

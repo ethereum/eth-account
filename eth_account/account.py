@@ -416,13 +416,6 @@ class Account(AccountLocalActions):
             # They correspond to the same-named methods in Account.*
             # but without the private key argument
         """
-        if isinstance(language, str):
-            raise TypeError(
-                "Invalid language argument type. Expected an instance of `Language`, "
-                "but got a string. Please use `language=Language.{}` instead.".format(
-                    language.upper()
-                )
-            )
         if not self._use_unaudited_hdwallet_features:
             raise AttributeError(
                 "The use of the Mnemonic features of Account is disabled by "

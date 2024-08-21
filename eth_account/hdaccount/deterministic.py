@@ -2,9 +2,10 @@
 Generate Heirarchical Deterministic Wallets (HDWallet).
 
 Partially implements the BIP-0032, BIP-0043, and BIP-0044 specifications:
-BIP-0032: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
-BIP-0043: https://github.com/bitcoin/bips/blob/master/bip-0043.mediawiki
-BIP-0044: https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
+
+* BIP-0032: https://github.com/bitcoin/bips/blob/master/bip-0032.mediawiki
+* BIP-0043: https://github.com/bitcoin/bips/blob/master/bip-0043.mediawiki
+* BIP-0044: https://github.com/bitcoin/bips/blob/master/bip-0044.mediawiki
 
 Skips serialization and public key derivation as unnecssary for this library's purposes.
 
