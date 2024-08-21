@@ -58,7 +58,7 @@ def test_failed_checksum():
     ],
 )
 def test_detection(language, word):
-    assert language == Mnemonic.detect_language(word)
+    assert language.value == Mnemonic.detect_language(word)
 
 
 def test_undetected_language():
@@ -119,7 +119,7 @@ def test_generation(lang, num_words):
     if lang == "chinese_traditional":
         assert "chinese" in Mnemonic.detect_language(mnemonic)
     else:
-        assert Mnemonic.detect_language(mnemonic) == lang
+        assert Mnemonic.detect_language(mnemonic) == lang.value
     assert len(Mnemonic.to_seed(mnemonic)) == 64
 
 

@@ -1,12 +1,9 @@
-:orphan:
-
-eth\_account.hdaccount package
+HD Account
 ==============================
 
-Submodules
-----------
+.. CAUTION:: These features are experimental and unaudited
 
-eth\_account.hdaccount.deterministic module
+HD Deterministic module
 -------------------------------------------
 
 .. automodule:: eth_account.hdaccount.deterministic
@@ -14,7 +11,7 @@ eth\_account.hdaccount.deterministic module
    :undoc-members:
    :show-inheritance:
 
-eth\_account.hdaccount.mnemonic module
+HD Mnemonic module
 --------------------------------------
 
 .. automodule:: eth_account.hdaccount.mnemonic

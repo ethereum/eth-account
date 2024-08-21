@@ -26,11 +26,11 @@ TransactionDictType = Dict[str, Union[AccessList, bytes, HexStr, int]]
 
 
 class Language(enum.Enum):
-    ENGLISH = "english"
     CHINESE_SIMPLIFIED = "chinese_simplified"
     CHINESE_TRADITIONAL = "chinese_traditional"
-    FRENCH = "french"
     CZECH = "czech"
+    ENGLISH = "english"
+    FRENCH = "french"
     ITALIAN = "italian"
     JAPANESE = "japanese"
     KOREAN = "korean"

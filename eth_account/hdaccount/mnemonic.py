@@ -76,28 +76,42 @@ def get_wordlist(language: str) -> List[str]:
 
 
 class Mnemonic:
-    """
+    r"""
     Creates and validates BIP39 mnemonics.
 
     .. doctest:: python
 
         >>> from eth_account.hdaccount import Language, Mnemonic
 
-        >>> # Create a new Mnemonic instance with English language
-        >>> mnemonic = Mnemonic(Language.ENGLISH)
+        >>> # Create a new Mnemonic instance with Czech language
+        >>> cz_mnemonic = Mnemonic(Language.CZECH)
+
+        >>> # English is the default language
+        >>> en_mnemonic = Mnemonic()
+
+        >>> # Mnemonic also accepts the language as a string
+        >>> fr_mnemonic = Mnemonic("french")
 
         >>> # List available languages
         >>> available_languages = Mnemonic.list_languages()
+        >>> print(available_languages)
+        ['chinese_simplified', 'chinese_traditional', 'czech', 'english', 'french', 'italian', 'japanese', 'korean', 'spanish']
 
         >>> # Generate a new mnemonic phrase
-        >>> mnemonic_phrase = mnemonic.generate()
+        >>> mnemonic_phrase = en_mnemonic.generate()
+        >>> print(mnemonic_phrase) # doctest: +SKIP
+        'cabin raise oven oven knock fantasy flock letter click empty skate volcano'
 
         >>> # Validate a mnemonic phrase
-        >>> is_valid = mnemonic.is_mnemonic_valid(mnemonic_phrase)
+        >>> is_valid = en_mnemonic.is_mnemonic_valid(mnemonic_phrase)
+        >>> print(is_valid)
+        True
 
         >>> # Convert mnemonic phrase to seed
-        >>> seed = mnemonic.to_seed(mnemonic_phrase, passphrase="optional passphrase")
-    """
+        >>> seed = en_mnemonic.to_seed(mnemonic_phrase, passphrase="optional passphrase")
+        >>> print(seed) # doctest: +SKIP
+        b'\x97ii\x07\x12\xf0$\x81\x98\xb6?\x07\x08t7\x18d\x87\xe1\x7f\xbe\xbaL\xb4i%\xeb\x12\xce\xe2h\x1c\xb2\x19\x13\xfb9wtoV\x9c\xb8\xdf;5\xba4X\xa3\xd6b`|\xdc\xb1\x10\xb0\xeeS\x86\x95\xd75'
+    """  # noqa: E501
 
     def __init__(self, raw_language: Union[Language, str] = Language.ENGLISH):
         if isinstance(raw_language, str):
@@ -117,7 +131,7 @@ class Mnemonic:
         return sorted(Path(f).stem for f in WORDLIST_DIR.rglob("*.txt"))
 
     @classmethod
-    def detect_language(cls, raw_mnemonic: str) -> Language:
+    def detect_language(cls, raw_mnemonic: str) -> str:
         mnemonic = normalize_string(raw_mnemonic)
 
         words = set(mnemonic.split(" "))
@@ -137,7 +151,7 @@ class Mnemonic:
         if len(matching_languages) == 2 and all(
             "chinese" in lang for lang in matching_languages
         ):
-            return Language.CHINESE_SIMPLIFIED
+            return Language.CHINESE_SIMPLIFIED.value
 
         # Because certain wordlists share some similar words, if we detect multiple
         # languages that the provided mnemonic word(s) could be valid in, we have
@@ -148,7 +162,7 @@ class Mnemonic:
             )
 
         (language,) = matching_languages
-        return Language(language)
+        return Language(language).value
 
     def generate(self, num_words: int = 12) -> str:
         if num_words not in VALID_WORD_COUNTS:
