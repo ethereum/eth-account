@@ -89,9 +89,6 @@ class Mnemonic:
         >>> # English is the default language
         >>> en_mnemonic = Mnemonic()
 
-        >>> # Mnemonic also accepts the language as a string
-        >>> fr_mnemonic = Mnemonic("french")
-
         >>> # List available languages
         >>> available_languages = Mnemonic.list_languages()
         >>> print(available_languages)
