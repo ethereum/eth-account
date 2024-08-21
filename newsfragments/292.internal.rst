@@ -1,0 +1,1 @@
+Pin ckzg to <2.0. Something in 2.0 is causing blob tests to fail
