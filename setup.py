@@ -58,7 +58,7 @@ setup(
         "eth-utils>=2.0.0",
         "hexbytes>=1.2.0",
         "rlp>=1.0.0",
-        "ckzg>=0.4.3,<2",
+        "ckzg>=2.0.0",
         "pydantic>=2.0.0",
     ],
     python_requires=">=3.8, <4",

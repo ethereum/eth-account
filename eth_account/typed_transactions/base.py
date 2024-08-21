@@ -207,7 +207,7 @@ class BlobPooledTransactionData(BaseModel):
                 BlobKZGCommitment(
                     data=HexBytes(
                         blob_to_kzg_commitment(
-                            blob.data, load_trusted_setup(TRUSTED_SETUP)
+                            blob.data, load_trusted_setup(TRUSTED_SETUP, 0)
                         )
                     )
                 )
@@ -227,7 +227,7 @@ class BlobPooledTransactionData(BaseModel):
                         compute_blob_kzg_proof(
                             blob.data,
                             commitment.data,
-                            load_trusted_setup(TRUSTED_SETUP),
+                            load_trusted_setup(TRUSTED_SETUP, 0),
                         )
                     )
                 )
