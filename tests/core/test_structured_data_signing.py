@@ -799,11 +799,10 @@ def test_type_regex_for_redos():
         }}
     }}"""
 
-    with pytest.raises(re.error, match="unterminated character set at position 15"):
-        with pytest.raises(
-            ValidationError, match=f"Invalid Type `$[{long}0` in `EIP712Domain`"
-        ):
-            load_and_validate_structured_message(invalid_structured_data_string)
+    with pytest.raises(
+        ValidationError, match=re.escape(f"Invalid Type `$[{long}0` in `EIP712Domain`")
+    ):
+        load_and_validate_structured_message(invalid_structured_data_string)
 
     done = time.time() - start
     assert done < 1

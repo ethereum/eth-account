@@ -1,0 +1,1 @@
+Pin ckzg dependency to <2 for backwards compatiblity
