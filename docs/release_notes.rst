@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.13.2 (2024-08-21)
+--------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Pin ckzg to ``>=2.0``; update the the trusted setup and how it is loaded. (`#293 <https://github.com/ethereum/eth-account/issues/293>`__)
+
+
 eth-account v0.13.1 (2024-07-24)
 --------------------------------
 
