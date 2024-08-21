@@ -37,6 +37,12 @@ def test_failed_checksum():
     )
 
 
+def test_mnemonic_accepts_enum_and_str():
+    e_mnemonic = Mnemonic(Language.ENGLISH)
+    s_mnemonic = Mnemonic("english")
+    assert e_mnemonic.language == s_mnemonic.language
+
+
 @pytest.mark.parametrize(
     "language,word",
     [
