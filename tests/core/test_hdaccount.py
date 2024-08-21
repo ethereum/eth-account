@@ -99,3 +99,11 @@ def test_unknown_language():
         ValidationError, match="Invalid language choice 'pig_latin', must be one of.*"
     ):
         Account.create_with_mnemonic(language="pig latin")
+
+
+def test_known_language_as_string_warns():
+    with pytest.warns(
+        DeprecationWarning,
+        match="The language parameter should be a Language enum, not a string*.",
+    ):
+        Account.create_with_mnemonic(language="spanish")

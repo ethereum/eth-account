@@ -20,7 +20,6 @@
 # WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 # CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
-
 import os
 from pathlib import (
     Path,
@@ -31,6 +30,7 @@ from typing import (
     List,
     Union,
 )
+import warnings
 
 from bitarray import (
     bitarray,
@@ -115,6 +115,13 @@ class Mnemonic:
 
     def __init__(self, raw_language: Union[Language, str] = Language.ENGLISH):
         if isinstance(raw_language, str):
+            warnings.warn(
+                "The language parameter should be a Language enum, not a string. "
+                "This will be enforced in a future version.",
+                DeprecationWarning,
+                stacklevel=2,
+            )
+
             language = raw_language.lower().replace(" ", "_")
             languages = Mnemonic.list_languages()
             if language not in languages:
@@ -132,6 +139,7 @@ class Mnemonic:
 
     @classmethod
     def detect_language(cls, raw_mnemonic: str) -> str:
+        # return type will be a Language enum value in a future version
         mnemonic = normalize_string(raw_mnemonic)
 
         words = set(mnemonic.split(" "))
