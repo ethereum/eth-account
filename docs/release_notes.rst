@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.11.3 (2024-08-21)
+--------------------------------
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Pin ckzg dependency to <2 for backwards compatiblity (`#295 <https://github.com/ethereum/eth-account/issues/295>`__)
+
+
 eth-account v0.11.2 (2024-04-08)
 --------------------------------
 
