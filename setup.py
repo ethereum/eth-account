@@ -39,7 +39,7 @@ with open("./README.md") as readme:
 setup(
     name="eth-account",
     # *IMPORTANT*: Don't manually change the version here. Use `make bump`, as described in readme
-    version="0.12.3",
+    version="0.12.4",
     description="""eth-account: Sign Ethereum transactions and messages with local private keys""",
     long_description=long_description,
     long_description_content_type="text/markdown",
