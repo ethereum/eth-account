@@ -1,1 +1,0 @@
-Raise lower pin on ``eth-keyfile`` to ``>=0.7.0`` where a bug was fixed in the default values for ``scrypt`` generated keyfiles.

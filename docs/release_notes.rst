@@ -3,6 +3,15 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.13.3 (2024-08-28)
+--------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Raise lower pin on ``eth-keyfile`` to ``>=0.7.0`` where a bug was fixed in the default values for ``scrypt`` generated keyfiles. (`#297 <https://github.com/ethereum/eth-account/issues/297>`__)
+
+
 eth-account v0.13.2 (2024-08-21)
 --------------------------------
 
