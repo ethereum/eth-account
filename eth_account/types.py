@@ -35,3 +35,8 @@ class Language(enum.Enum):
     JAPANESE = "japanese"
     KOREAN = "korean"
     SPANISH = "spanish"
+
+    def __lt__(self, other):
+        if self.__class__ is other.__class__:
+            return self.value < other.value
+        return NotImplemented

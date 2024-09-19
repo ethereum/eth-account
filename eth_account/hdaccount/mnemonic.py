@@ -132,11 +132,20 @@ class Mnemonic:
 
     @staticmethod
     def list_languages() -> List[str]:
+        """
+        Returns a list of languages available for the seed phrase
+        """
         return sorted(Path(f).stem for f in WORDLIST_DIR.rglob("*.txt"))
+
+    @staticmethod
+    def list_languages_enum() -> List[Language]:
+        """
+        Returns a list of Language objects available for the seed phrase
+        """
+        return sorted(Language(Path(f).stem) for f in WORDLIST_DIR.rglob("*.txt"))
 
     @classmethod
     def detect_language(cls, raw_mnemonic: str) -> Language:
-        # return type will be a Language enum value in a future version
         mnemonic = normalize_string(raw_mnemonic)
 
         words = set(mnemonic.split(" "))
