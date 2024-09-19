@@ -94,6 +94,11 @@ class Mnemonic:
         >>> print(available_languages)
         ['chinese_simplified', 'chinese_traditional', 'czech', 'english', 'french', 'italian', 'japanese', 'korean', 'spanish']
 
+        >>> # List available enumerated languages
+        >>> available_languages = Mnemonic.list_languages_enum()
+        >>> print(available_languages)
+        [<Language.CHINESE_SIMPLIFIED: 'chinese_simplified'>, <Language.CHINESE_TRADITIONAL: 'chinese_traditional'>, <Language.CZECH: 'czech'>, <Language.ENGLISH: 'english'>, <Language.FRENCH: 'french'>, <Language.ITALIAN: 'italian'>, <Language.JAPANESE: 'japanese'>, <Language.KOREAN: 'korean'>, <Language.SPANISH: 'spanish'>]
+
         >>> # Generate a new mnemonic phrase
         >>> mnemonic_phrase = en_mnemonic.generate()
         >>> print(mnemonic_phrase) # doctest: +SKIP
@@ -179,6 +184,9 @@ class Mnemonic:
         return Language(language)
 
     def generate(self, num_words: int = 12) -> str:
+        """
+        Generate a new mnemonic with the specified number of words.
+        """
         if num_words not in VALID_WORD_COUNTS:
             raise ValidationError(
                 f"Invalid choice for number of words: {num_words}, should be one of "
@@ -214,6 +222,11 @@ class Mnemonic:
         return phrase
 
     def is_mnemonic_valid(self, mnemonic: str) -> bool:
+        """
+        Checks if mnemonic is valid
+
+        :param str mnemonic: Mnemonic string
+        """
         words = normalize_string(mnemonic).split(" ")
         num_words = len(words)
 

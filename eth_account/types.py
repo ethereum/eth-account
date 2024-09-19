@@ -1,5 +1,6 @@
 import enum
 from typing import (
+    Any,
     Dict,
     Sequence,
     Union,
@@ -36,7 +37,7 @@ class Language(enum.Enum):
     KOREAN = "korean"
     SPANISH = "spanish"
 
-    def __lt__(self, other):
-        if self.__class__ is other.__class__:
+    def __lt__(self, other: Any) -> Any:
+        if other.__class__ is Language:
             return self.value < other.value
         return NotImplemented
