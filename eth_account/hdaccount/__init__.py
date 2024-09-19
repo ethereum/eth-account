@@ -22,13 +22,6 @@ ETHEREUM_DEFAULT_PATH = "m/44'/60'/0'/0/0"
 
 
 def generate_mnemonic(num_words: int, lang: Union[Language, str]) -> str:
-    if isinstance(lang, str):
-        warnings.warn(
-            "The language parameter should be a Language enum, not a string. "
-            "This will be enforced in a future version.",
-            DeprecationWarning,
-            stacklevel=2,
-        )
     return Mnemonic(lang).generate(num_words)
 
 

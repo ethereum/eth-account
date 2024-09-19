@@ -135,7 +135,7 @@ class Mnemonic:
         return sorted(Path(f).stem for f in WORDLIST_DIR.rglob("*.txt"))
 
     @classmethod
-    def detect_language(cls, raw_mnemonic: str) -> str:
+    def detect_language(cls, raw_mnemonic: str) -> Language:
         # return type will be a Language enum value in a future version
         mnemonic = normalize_string(raw_mnemonic)
 
@@ -156,7 +156,7 @@ class Mnemonic:
         if len(matching_languages) == 2 and all(
             "chinese" in lang for lang in matching_languages
         ):
-            return Language.CHINESE_SIMPLIFIED.value
+            return Language.CHINESE_SIMPLIFIED
 
         # Because certain wordlists share some similar words, if we detect multiple
         # languages that the provided mnemonic word(s) could be valid in, we have
@@ -167,7 +167,7 @@ class Mnemonic:
             )
 
         (language,) = matching_languages
-        return Language(language).value
+        return Language(language)
 
     def generate(self, num_words: int = 12) -> str:
         if num_words not in VALID_WORD_COUNTS:

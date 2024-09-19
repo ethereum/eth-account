@@ -12,7 +12,6 @@ from typing import (
     Union,
     cast,
 )
-import warnings
 
 from eth_keyfile import (
     create_keyfile_json,
@@ -425,13 +424,6 @@ class Account(AccountLocalActions):
                 "default until its API stabilizes. To use these features, please "
                 "enable them by running `Account.enable_unaudited_hdwallet_features()` "
                 "and try again."
-            )
-        if isinstance(language, str):
-            warnings.warn(
-                "The language parameter should be a Language enum, not a string. "
-                "This will be enforced in a future version.",
-                DeprecationWarning,
-                stacklevel=2,
             )
         mnemonic = generate_mnemonic(num_words, language)
         return self.from_mnemonic(mnemonic, passphrase, account_path), mnemonic
