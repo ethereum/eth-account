@@ -94,6 +94,11 @@ class Mnemonic:
         >>> print(available_languages)
         ['chinese_simplified', 'chinese_traditional', 'czech', 'english', 'french', 'italian', 'japanese', 'korean', 'spanish']
 
+        >>> # List available enumerated languages
+        >>> available_languages = Mnemonic.list_languages_enum()
+        >>> print(available_languages)
+        [<Language.CHINESE_SIMPLIFIED: 'chinese_simplified'>, <Language.CHINESE_TRADITIONAL: 'chinese_traditional'>, <Language.CZECH: 'czech'>, <Language.ENGLISH: 'english'>, <Language.FRENCH: 'french'>, <Language.ITALIAN: 'italian'>, <Language.JAPANESE: 'japanese'>, <Language.KOREAN: 'korean'>, <Language.SPANISH: 'spanish'>]
+
         >>> # Generate a new mnemonic phrase
         >>> mnemonic_phrase = en_mnemonic.generate()
         >>> print(mnemonic_phrase) # doctest: +SKIP
@@ -132,11 +137,20 @@ class Mnemonic:
 
     @staticmethod
     def list_languages() -> List[str]:
+        """
+        Returns a list of languages available for the seed phrase
+        """
         return sorted(Path(f).stem for f in WORDLIST_DIR.rglob("*.txt"))
 
+    @staticmethod
+    def list_languages_enum() -> List[Language]:
+        """
+        Returns a list of Language objects available for the seed phrase
+        """
+        return sorted(Language(Path(f).stem) for f in WORDLIST_DIR.rglob("*.txt"))
+
     @classmethod
-    def detect_language(cls, raw_mnemonic: str) -> str:
-        # return type will be a Language enum value in a future version
+    def detect_language(cls, raw_mnemonic: str) -> Language:
         mnemonic = normalize_string(raw_mnemonic)
 
         words = set(mnemonic.split(" "))
@@ -156,7 +170,7 @@ class Mnemonic:
         if len(matching_languages) == 2 and all(
             "chinese" in lang for lang in matching_languages
         ):
-            return Language.CHINESE_SIMPLIFIED.value
+            return Language.CHINESE_SIMPLIFIED
 
         # Because certain wordlists share some similar words, if we detect multiple
         # languages that the provided mnemonic word(s) could be valid in, we have
@@ -167,9 +181,12 @@ class Mnemonic:
             )
 
         (language,) = matching_languages
-        return Language(language).value
+        return Language(language)
 
     def generate(self, num_words: int = 12) -> str:
+        """
+        Generate a new mnemonic with the specified number of words.
+        """
         if num_words not in VALID_WORD_COUNTS:
             raise ValidationError(
                 f"Invalid choice for number of words: {num_words}, should be one of "
@@ -205,6 +222,11 @@ class Mnemonic:
         return phrase
 
     def is_mnemonic_valid(self, mnemonic: str) -> bool:
+        """
+        Checks if mnemonic is valid
+
+        :param str mnemonic: Mnemonic string
+        """
         words = normalize_string(mnemonic).split(" ")
         num_words = len(words)
 
