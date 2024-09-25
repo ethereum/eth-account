@@ -1,1 +1,0 @@
-Pin ``eth-keyfile <0.9.0`` due to breaking changes to typing

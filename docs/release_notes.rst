@@ -3,6 +3,27 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.13.4 (2024-09-25)
+--------------------------------
+
+Deprecations
+~~~~~~~~~~~~
+
+- Change ``language`` arg to enum in ``Mnemonic`` (`#291 <https://github.com/ethereum/eth-account/issues/291>`__)
+
+
+Features
+~~~~~~~~
+
+- Add new list_languages_enum method to HDAccount class (`#302 <https://github.com/ethereum/eth-account/issues/302>`__)
+
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Pin ``eth-keyfile <0.9.0`` due to breaking changes to typing (`#299 <https://github.com/ethereum/eth-account/issues/299>`__)
+
+
 eth-account v0.13.3 (2024-08-28)
 --------------------------------
 
