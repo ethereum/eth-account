@@ -73,6 +73,9 @@ class LocalAccount(BaseAccount):
 
         self._key_obj: PrivateKey = key
 
+    def __bytes__(self) -> bytes:
+        return self.key
+
     @property
     def address(self) -> ChecksumAddress:
         return self._address
@@ -131,5 +134,27 @@ class LocalAccount(BaseAccount):
             self._publicapi.sign_transaction(transaction_dict, self.key, blobs=blobs),
         )
 
-    def __bytes__(self) -> bytes:
-        return self.key
+    def sign_typed_data(
+        self,
+        domain_data: Optional[Dict[str, Any]] = None,
+        message_types: Optional[Dict[str, Any]] = None,
+        message_data: Optional[Dict[str, Any]] = None,
+        full_message: Optional[Dict[str, Any]] = None,
+    ) -> SignedMessage:
+        """
+        Sign the provided EIP-712 message with the local private key.
+
+        This uses the same structure as in
+        :meth:`~eth_account.account.Account.sign_typed_data`, but without a
+        private key argument.
+        """
+        return cast(
+            SignedMessage,
+            self._publicapi.sign_typed_data(
+                private_key=self.key,
+                domain_data=domain_data,
+                message_types=message_types,
+                message_data=message_data,
+                full_message=full_message,
+            ),
+        )

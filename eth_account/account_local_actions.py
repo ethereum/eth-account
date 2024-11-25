@@ -72,3 +72,15 @@ class AccountLocalActions(ABC):
         blobs: Optional[Blobs] = None,
     ) -> SignedTransaction:
         pass
+
+    @combomethod
+    @abstractmethod
+    def sign_typed_data(
+        self,
+        private_key: PrivateKeyType,
+        domain_data: Optional[Dict[str, Any]] = None,
+        message_types: Optional[Dict[str, Any]] = None,
+        message_data: Optional[Dict[str, Any]] = None,
+        full_message: Optional[Dict[str, Any]] = None,
+    ) -> SignedMessage:
+        pass
