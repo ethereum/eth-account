@@ -55,7 +55,7 @@ repos:
     rev: v0.2.5
     hooks:
     -   id: blocklint
-        exclude: 'docs/Makefile|docs/release_notes.rst|tox.ini|eth_account/hdaccount/wordlist/english.txt'
+        exclude: 'docs/Makefile|docs/release_notes.rst|tox.ini|eth_account/hdaccount/wordlist/english.txt|tests/integration/js-scripts/setup_node_v22.sh'
 -   repo: local
     hooks:
     -   id: check-rst-files

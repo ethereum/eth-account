@@ -138,7 +138,7 @@ integration: &integration
           python -m pip install tox
     - run:
         name: install dependencies (node)
-        command: sudo -E bash tests/integration/js-scripts/setup_node_v20.sh && sudo apt-get install -y nodejs
+        command: sudo -E bash tests/integration/js-scripts/setup_node_v22.sh && sudo apt-get install -y nodejs
     - run:
         name: Build js-scripts
         command: cd tests/integration/js-scripts && sudo npm install && sudo npm install -g . && cd ../../../
