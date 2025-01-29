@@ -41,10 +41,12 @@ To run the integration test cases, we need to install node and the custom cli to
 
 .. code:: sh
 
-    apt-get install -y nodejs  # As sudo
+    # on Ubuntu
+    chmod +x ./tests/integration/js-scripts/setup_node_v22.sh
     ./tests/integration/js-scripts/setup_node_v22.sh  # As sudo
+    apt-get install -y nodejs  # As sudo
     cd tests/integration/js-scripts
-    npm install -g .  # As sudo
+    npm install
 
 We can then run all tests with:
 
