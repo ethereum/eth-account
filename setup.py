@@ -51,8 +51,8 @@ setup(
     include_package_data=True,
     install_requires=[
         "bitarray>=2.4.0",
-        "eth-abi>=4.0.0-b.2",
-        "eth-keyfile>=0.7.0, <0.9.0",
+        "eth-abi>=4.0.0",
+        "eth-keyfile>=0.9.0",
         "eth-keys>=0.4.0",
         "eth-rlp>=2.1.0",
         "eth-utils>=2.0.0",
