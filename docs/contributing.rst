@@ -37,14 +37,14 @@ We can then run the core tests with:
 
     pytest tests/core
 
-To run the integration test cases, you need to install node and the custom cli tool as follows:
+To run the integration test cases, we need to install node and the custom cli tool as follows:
 
-```sh
-apt-get install -y nodejs  # As sudo
-./tests/integration/js-scripts/setup_node_v22.sh  # As sudo
-cd tests/integration/js-scripts
-npm install -g .  # As sudo
-```
+.. code:: sh
+
+    apt-get install -y nodejs  # As sudo
+    ./tests/integration/js-scripts/setup_node_v22.sh  # As sudo
+    cd tests/integration/js-scripts
+    npm install -g .  # As sudo
 
 We can then run all tests with:
 

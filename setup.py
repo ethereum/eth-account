@@ -24,7 +24,7 @@ extras_require = {
     "test": [
         "pytest>=7.0.0",
         "pytest-xdist>=2.4.0",
-        "hypothesis>=4.18.0,<5",
+        "hypothesis>=6.22.0,<6.108.7",
         "coverage",
     ],
 }
