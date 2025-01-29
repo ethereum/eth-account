@@ -1,5 +1,5 @@
-import os
 import pytest
+import os
 
 from eth_keyfile.keyfile import (
     get_default_work_factor_for_kdf,
