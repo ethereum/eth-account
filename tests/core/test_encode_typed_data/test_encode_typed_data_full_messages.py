@@ -1,4 +1,7 @@
 import pytest
+from copy import (
+    deepcopy,
+)
 import json
 
 from eth_utils import (
@@ -15,33 +18,35 @@ from tests.eip712_messages import (
     convert_to_3_arg,
 )
 
+all_valid = deepcopy(ALL_VALID_EIP712_MESSAGES)
+invalid = deepcopy(INVALID)
+one_arg_invalid = deepcopy(ONE_ARG_INVALID)
 
-@pytest.mark.parametrize(
-    "test_cases", (ALL_VALID_EIP712_MESSAGES, INVALID, ONE_ARG_INVALID)
-)
+
+@pytest.mark.parametrize("test_cases", (all_valid, invalid, one_arg_invalid))
 def test_there_are_no_duplicate_test_cases(test_cases):
     string_test_cases = [json.dumps(msg, sort_keys=True) for msg in test_cases.values()]
     assert len(string_test_cases) == len(set(string_test_cases))
 
 
-@pytest.mark.parametrize("message", ALL_VALID_EIP712_MESSAGES)
+@pytest.mark.parametrize("message", all_valid)
 def test_valid_messages(message):
-    assert encode_typed_data(
-        full_message=ALL_VALID_EIP712_MESSAGES[message]
-    ) == encode_typed_data(*convert_to_3_arg(ALL_VALID_EIP712_MESSAGES[message]))
+    assert encode_typed_data(full_message=all_valid[message]) == encode_typed_data(
+        *convert_to_3_arg(all_valid[message])
+    )
 
 
-@pytest.mark.parametrize("message", INVALID)
+@pytest.mark.parametrize("message", invalid)
 def test_invalid_messages(message):
     with pytest.raises(ValueError):
-        encode_typed_data(full_message=INVALID[message])
+        encode_typed_data(full_message=invalid[message])
 
     with pytest.raises(ValueError):
-        encode_typed_data(*convert_to_3_arg(INVALID[message]))
+        encode_typed_data(*convert_to_3_arg(invalid[message]))
 
 
-@pytest.mark.parametrize("message", ONE_ARG_INVALID)
+@pytest.mark.parametrize("message", one_arg_invalid)
 def test_messages_that_are_only_invalid_for_one_arg_encoding(message):
     with pytest.raises(ValidationError):
-        encode_typed_data(full_message=ONE_ARG_INVALID[message])
-    encode_typed_data(*convert_to_3_arg(ONE_ARG_INVALID[message]))
+        encode_typed_data(full_message=one_arg_invalid[message])
+    encode_typed_data(*convert_to_3_arg(one_arg_invalid[message]))

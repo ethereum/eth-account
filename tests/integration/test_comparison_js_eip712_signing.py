@@ -1,4 +1,7 @@
 import pytest
+from copy import (
+    deepcopy,
+)
 import json
 import subprocess
 
@@ -14,6 +17,10 @@ from tests.eip712_messages import (
     VALID_FOR_PY_AND_METAMASK,
     convert_to_3_arg,
 )
+
+valid_for_all = deepcopy(VALID_FOR_ALL)
+valid_for_py_and_ethers = deepcopy(VALID_FOR_PY_AND_ETHERS)
+valid_for_py_and_metamask = deepcopy(VALID_FOR_PY_AND_METAMASK)
 
 TEST_KEY = "756e69636f726e73756e69636f726e73756e69636f726e73756e69636f726e73"
 py_account = Account.from_key(TEST_KEY)
@@ -34,9 +41,9 @@ def get_js_sig(message, library):
 
 
 @pytest.mark.compatibility
-@pytest.mark.parametrize("message_title", VALID_FOR_ALL)
+@pytest.mark.parametrize("message_title", valid_for_all)
 def test_messages_where_all_3_sigs_match(message_title):
-    message = VALID_FOR_ALL[message_title]
+    message = valid_for_all[message_title]
 
     ethers_sig = get_js_sig(message, "ethers")
     metamask_sig = get_js_sig(message, "metamask")
@@ -59,9 +66,9 @@ def test_messages_where_all_3_sigs_match(message_title):
 
 
 @pytest.mark.compatibility
-@pytest.mark.parametrize("message_title", VALID_FOR_PY_AND_ETHERS)
+@pytest.mark.parametrize("message_title", valid_for_py_and_ethers)
 def test_messages_where_eth_account_matches_ethers_but_not_metamask(message_title):
-    message = VALID_FOR_PY_AND_ETHERS[message_title]
+    message = valid_for_py_and_ethers[message_title]
 
     ethers_sig = get_js_sig(message, "ethers")
     metamask_sig = get_js_sig(message, "metamask")
@@ -85,9 +92,9 @@ def test_messages_where_eth_account_matches_ethers_but_not_metamask(message_titl
 
 
 @pytest.mark.compatibility
-@pytest.mark.parametrize("message_title", VALID_FOR_PY_AND_METAMASK)
+@pytest.mark.parametrize("message_title", valid_for_py_and_metamask)
 def test_messages_where_eth_account_matches_metamask_but_not_ethers(message_title):
-    message = VALID_FOR_PY_AND_METAMASK[message_title]
+    message = valid_for_py_and_metamask[message_title]
 
     ethers_sig = get_js_sig(message, "ethers")
     metamask_sig = get_js_sig(message, "metamask")
