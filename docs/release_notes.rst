@@ -3,6 +3,23 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.13.5 (2025-02-04)
+--------------------------------
+
+Features
+~~~~~~~~
+
+- Make ``sign_typed_data`` available in the ``LocalAccount`` class. (`#304 <https://github.com/ethereum/eth-account/issues/304>`__)
+- Merge template, adding py313 support, replacing ``bumpversion`` with ``bump-my-version`` and bumping ``hypothesis`` test dep to ``>=6.22.0,<6.108.7``. (`#311 <https://github.com/ethereum/eth-account/issues/311>`__)
+
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- ``deepcopy`` EIP712 messages used in test to avoid unintended mutation. (`#308 <https://github.com/ethereum/eth-account/issues/308>`__)
+- Update node.js version used in tests from 20 to 22. (`#309 <https://github.com/ethereum/eth-account/issues/309>`__)
+
+
 eth-account v0.13.4 (2024-09-25)
 --------------------------------
 

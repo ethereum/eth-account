@@ -1,1 +1,0 @@
-Make ``sign_typed_data`` available in the ``LocalAccount`` class.

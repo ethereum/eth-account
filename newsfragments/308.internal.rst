@@ -1,1 +1,0 @@
-``deepcopy`` EIP712 messages used in test to avoid unintended mutation.
