@@ -3,11 +3,17 @@ eth-account
 
 Sign Ethereum transactions and messages with local private keys
 
-Contents
---------
+Installation
+------------
+
+.. code-block:: bash
+
+    python -m pip install eth-account
+
 
 .. toctree::
-    :maxdepth: 3
+    :maxdepth: 1
+    :caption: General
 
     eth_account
     eth_account.signers
@@ -15,9 +21,9 @@ Contents
     eth_account.hdaccount
     release_notes
 
+.. toctree::
+    :maxdepth: 1
+    :caption: Community
 
-Indices and tables
-------------------
-
-* :ref:`genindex`
-* :ref:`modindex`
+    contributing
+    code_of_conduct
