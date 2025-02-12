@@ -12,8 +12,6 @@ Read the [documentation](https://eth-account.readthedocs.io/).
 
 View the [change log](https://eth-account.readthedocs.io/en/latest/release_notes.html).
 
-View the [change log](https://eth-account.readthedocs.io/en/latest/release_notes.html).
-
 ## Installation
 
 ```sh
