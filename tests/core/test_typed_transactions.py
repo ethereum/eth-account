@@ -8,6 +8,7 @@ from eth_account.typed_transactions import (
     AccessListTransaction,
     BlobTransaction,
     DynamicFeeTransaction,
+    SetCodeTransaction,
     TypedTransaction,
 )
 
@@ -339,6 +340,74 @@ TEST_CASES = [
             "s": "0x3040e5f117d33a7873d8bfa8fad8bf5d1163db2ce4e3de5ea414a45e199b5b2d",
         },
     },
+    {
+        "expected_type": SetCodeTransaction,
+        "expected_hash": "0xc3b8fd19170b73ab1981db5be074eb6b920cae2c58fc222d73041ebcdc6ce99b",  # noqa: E501
+        "expected_raw_transaction": "0x04f901188501a58877101284ee6b27f984ee6b2807830186a094e3f1413e071332840db2735f809cf3240c4a425580b844a9059cbb0000000000000000000000003d3dc402103535134968adf08fab95b1012c1cb5000000000000000000000000000000000000000000000000000000000000029ac0f861f85f8501a5887710943e6c95d880401e4e36ee62f4ebded346e1adf42d0201a031f464e6a607fc66e0f982a2d21498799b0571760a272f3d903aca6594cef595a0343b0b143924a5db42a3200ae72d5c6dd03633847bc2da025cff5214e28708ec01a0a9c1555a0d706755bbdb7537c80f4e6a06ba0719ec03174190ccc934207c805da012ad4e24ae01171ee8a64b18ab772c88141e490498bde39d12e773f422f389c8",  # noqa: E501
+        "transaction": {
+            "gas": 100000,
+            "maxFeePerGas": 4000000007,
+            "maxPriorityFeePerGas": 3999999993,
+            "data": "0xa9059cbb0000000000000000000000003d3dc402103535134968adf08fab95b1012c1cb5000000000000000000000000000000000000000000000000000000000000029a",  # noqa: E501
+            "nonce": 18,
+            "to": "0xe3f1413e071332840dB2735F809Cf3240C4a4255",
+            "value": 0,
+            "type": 4,
+            "accessList": [],
+            "chainId": 7072151312,
+            "authorizationList": [
+                {
+                    "chainId": "0x1a5887710",
+                    "address": "0x3e6c95d880401e4e36ee62f4ebded346e1adf42d",
+                    "nonce": "0x2",
+                    "yParity": 1,
+                    "r": "0x31f464e6a607fc66e0f982a2d21498799b0571760a272f3d903aca6594cef595",  # noqa: E501
+                    "s": "0x343b0b143924a5db42a3200ae72d5c6dd03633847bc2da025cff5214e28708ec",  # noqa: E501
+                }
+            ],
+            "v": 1,
+            "r": "0xa9c1555a0d706755bbdb7537c80f4e6a06ba0719ec03174190ccc934207c805d",
+            "s": "0x12ad4e24ae01171ee8a64b18ab772c88141e490498bde39d12e773f422f389c8",
+        },
+    },
+    {
+        "expected_type": SetCodeTransaction,
+        "expected_hash": "0x22367af37fbccc318e9849ac2b6bb115081312a012160d934de9c4d2e10c7f31",  # noqa: E501
+        "expected_raw_transaction": "0x04f901748501a58877101284ee6b27f984ee6b2807830186a094e3f1413e071332840db2735f809cf3240c4a425580b844a9059cbb0000000000000000000000003d3dc402103535134968adf08fab95b1012c1cb5000000000000000000000000000000000000000000000000000000000000029af85bf85994095e7baea6a6c7c4c2dfeb977efac326af552d87f842a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000001f861f85f8501a5887710943e6c95d880401e4e36ee62f4ebded346e1adf42d0201a031f464e6a607fc66e0f982a2d21498799b0571760a272f3d903aca6594cef595a0343b0b143924a5db42a3200ae72d5c6dd03633847bc2da025cff5214e28708ec01a0a9c1555a0d706755bbdb7537c80f4e6a06ba0719ec03174190ccc934207c805da012ad4e24ae01171ee8a64b18ab772c88141e490498bde39d12e773f422f389c8",  # noqa: E501
+        "transaction": {
+            "gas": 100000,
+            "maxFeePerGas": 4000000007,
+            "maxPriorityFeePerGas": 3999999993,
+            "data": "0xa9059cbb0000000000000000000000003d3dc402103535134968adf08fab95b1012c1cb5000000000000000000000000000000000000000000000000000000000000029a",  # noqa: E501
+            "nonce": 18,
+            "to": "0xe3f1413e071332840dB2735F809Cf3240C4a4255",
+            "value": 0,
+            "type": 4,
+            "chainId": 7072151312,
+            "authorizationList": [
+                {
+                    "chainId": "0x1a5887710",
+                    "address": "0x3e6c95d880401e4e36ee62f4ebded346e1adf42d",
+                    "nonce": "0x2",
+                    "yParity": 1,
+                    "r": "0x31f464e6a607fc66e0f982a2d21498799b0571760a272f3d903aca6594cef595",  # noqa: E501
+                    "s": "0x343b0b143924a5db42a3200ae72d5c6dd03633847bc2da025cff5214e28708ec",  # noqa: E501
+                }
+            ],
+            "accessList": (
+                {
+                    "address": "0x095E7BAea6a6c7c4c2DfeB977eFac326aF552d87",
+                    "storageKeys": (
+                        "0x0000000000000000000000000000000000000000000000000000000000000000",  # noqa: E501
+                        "0x0000000000000000000000000000000000000000000000000000000000000001",  # noqa: E501
+                    ),
+                },
+            ),
+            "v": 1,
+            "r": "0xa9c1555a0d706755bbdb7537c80f4e6a06ba0719ec03174190ccc934207c805d",
+            "s": "0x12ad4e24ae01171ee8a64b18ab772c88141e490498bde39d12e773f422f389c8",
+        },
+    },
 ]
 
 TEST_CASE_IDS = [
@@ -353,6 +422,8 @@ TEST_CASE_IDS = [
     "blob-no-access-list",
     "blob-int-values-and-access-list",
     "blob-no-explicit-type",
+    "sc-standard-case",
+    "sc-and-al",
 ]
 
 

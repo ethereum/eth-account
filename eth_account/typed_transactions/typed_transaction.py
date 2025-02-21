@@ -41,6 +41,9 @@ from .blob_transactions.blob_transaction import (
 from .dynamic_fee_transaction import (
     DynamicFeeTransaction,
 )
+from .set_code_transaction import (
+    SetCodeTransaction,
+)
 
 
 class TypedTransaction:
@@ -51,6 +54,7 @@ class TypedTransaction:
      * EIP-2930's AccessListTransaction
      * EIP-1559's DynamicFeeTransaction
      * EIP-4844's BlobTransaction
+     * EIP-7702's SetCodeTransaction
 
     """
 
@@ -92,6 +96,8 @@ class TypedTransaction:
             transaction = DynamicFeeTransaction
         elif transaction_type == BlobTransaction.transaction_type:
             transaction = BlobTransaction
+        elif transaction_type == SetCodeTransaction.transaction_type:
+            transaction = SetCodeTransaction
         else:
             raise TypeError(f"Unknown Transaction type: {transaction_type}")
         return cls(
@@ -108,18 +114,25 @@ class TypedTransaction:
             raise ValueError("unexpected input")
 
         transaction: Union[
-            "DynamicFeeTransaction", "AccessListTransaction", "BlobTransaction"
+            "DynamicFeeTransaction",
+            "AccessListTransaction",
+            "BlobTransaction",
+            "SetCodeTransaction",
         ]
 
-        if encoded_transaction[0] == AccessListTransaction.transaction_type:
+        encoded_tx_type = encoded_transaction[0]
+        if encoded_tx_type == AccessListTransaction.transaction_type:
             transaction_type = AccessListTransaction.transaction_type
             transaction = AccessListTransaction.from_bytes(encoded_transaction)
-        elif encoded_transaction[0] == DynamicFeeTransaction.transaction_type:
+        elif encoded_tx_type == DynamicFeeTransaction.transaction_type:
             transaction_type = DynamicFeeTransaction.transaction_type
             transaction = DynamicFeeTransaction.from_bytes(encoded_transaction)
-        elif encoded_transaction[0] == BlobTransaction.transaction_type:
+        elif encoded_tx_type == BlobTransaction.transaction_type:
             transaction_type = BlobTransaction.transaction_type
             transaction = BlobTransaction.from_bytes(encoded_transaction)
+        elif encoded_tx_type == SetCodeTransaction.transaction_type:
+            transaction_type = SetCodeTransaction.transaction_type
+            transaction = SetCodeTransaction.from_bytes(encoded_transaction)
         else:
             # The only known transaction types should be explicit if/elif branches.
             raise TypeError(

@@ -23,6 +23,10 @@ PrivateKeyType = Union[Bytes32, int, HexStr, PrivateKey]
 AccessList = Sequence[Dict[str, Union[HexStr, Sequence[HexStr]]]]
 RLPStructuredAccessList = Sequence[Sequence[Union[HexStr, Sequence[HexStr]]]]
 
+AuthorizationDictType = Dict[str, Union[HexStr, int]]
+AuthorizationList = Sequence[AuthorizationDictType]
+RLPStructuredAuthorizationList = Sequence[Sequence[Union[HexStr, int]]]
+
 TransactionDictType = Dict[str, Union[AccessList, bytes, HexStr, int]]
 
 
