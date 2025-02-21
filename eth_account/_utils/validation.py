@@ -102,6 +102,83 @@ def is_rlp_structured_access_list(val: Any) -> bool:
     return True
 
 
+def is_rpc_structured_authorization_list(val: Any) -> bool:
+    """Returns true if 'val' is a valid JSON-RPC structured access list."""
+    if not is_list_like(val):
+        return False
+    if len(val) == 0:
+        return False
+    for d in val:
+        if not is_dict(d):
+            return False
+        if len(d) != 6:
+            return False
+        chain_id = d.get("chainId")
+        address = d.get("address")
+        nonce = d.get("nonce")
+        y_parity = d.get("yParity")
+        signer_r = d.get("r")
+        signer_s = d.get("s")
+        if chain_id is None:
+            return False
+        if not is_int_or_prefixed_hexstr(chain_id):
+            return False
+        if nonce is None:
+            return False
+        if not is_int_or_prefixed_hexstr(nonce):
+            return False
+        if not is_address(address):
+            return False
+        if y_parity is None:
+            return False
+        if y_parity not in (0, 1, "0x0", "0x1"):
+            return False
+        if signer_r is None:
+            return False
+        if not is_int_or_prefixed_hexstr(signer_r):
+            return False
+        if signer_s is None:
+            return False
+        if not is_int_or_prefixed_hexstr(signer_s):
+            return False
+    return True
+
+
+def is_rlp_structured_authorization_list(val: Any) -> bool:
+    """Returns true if 'val' is a valid rlp-structured access list."""
+    if not is_list_like(val):
+        return False
+    for item in val:
+        if not is_list_like(item):
+            return False
+        if len(item) != 6:
+            return False
+        chain_id, address, nonce, y_parity, signer_r, signer_s = item
+        if chain_id is None:
+            return False
+        if not is_int_or_prefixed_hexstr(chain_id):
+            return False
+        if nonce is None:
+            return False
+        if not is_int_or_prefixed_hexstr(nonce):
+            return False
+        if not is_address(address):
+            return False
+        if y_parity is None:
+            return False
+        if y_parity not in ("0x0", "0x1", 0, 1):
+            return False
+        if signer_r is None:
+            return False
+        if not is_int_or_prefixed_hexstr(signer_r):
+            return False
+        if signer_s is None:
+            return False
+        if not is_int_or_prefixed_hexstr(signer_s):
+            return False
+    return True
+
+
 # type ignored because curry doesn't preserve typing
 @curry  # type: ignore[misc]
 def is_sequence_of_bytes_or_hexstr(

@@ -93,7 +93,12 @@ from eth_account.signers.local import (
 from eth_account.typed_transactions import (
     TypedTransaction,
 )
+from eth_account.typed_transactions.set_code_transaction import (
+    AuthorizationRLP,
+    SignedAuthorizationRLP,
+)
 from eth_account.types import (
+    AuthorizationDictType,
     Blobs,
     Language,
     PrivateKeyType,
@@ -1043,3 +1048,79 @@ class Account(AccountLocalActions):
         )
         message_hash = _hash_eip191_message(signable_message)
         return cast(SignedMessage, self._sign_hash(message_hash, private_key))
+
+    @combomethod
+    def sign_authorization(
+        self,
+        authorization_dict: AuthorizationDictType,
+        private_key: PrivateKeyType,
+    ) -> AuthorizationDictType:
+        r"""
+        Sign an authorization  using a local private key to be included in a EIP-7702 transaction.
+        It adds the signature fields to the authorization dict.
+
+        :param dict authorization_dict: the required keys are: chainId, address, nonce
+        :param private_key: the private key to sign the data with
+        :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
+        :returns: the dictionary with the signature fields added, suitable for inclusion in a EIP-7702 transaction
+        :rtype: dict
+
+        .. NOTE::
+            You need to get signed one or more signed authorizations from an EOA willing to have a smart contract code associated with the EOA, this the essence of EIP-7702
+
+            in the code below in the variable authorization_to_sign:
+            - chainId is the chain id of the chain where the EOA is located or 0 if the authorization is for all chains
+            - address is the address of the smart contract code to be associated with the EOA, the address format is bytes
+            - nonce is the nonce of the EOA, it is used to prevent replay attacks
+            once signed, the fields are the signature of the first 3 fields by the EOA
+
+            to create a transaction that associates the code with the EOA, you need to create a transaction with the authorizationList field, this field is a list of signed authorizations, one for each EOA willing to have the code associated with its address
+
+        ::
+
+            # from web3 import Web3, EthereumTesterProvider
+            # from eth_account import Account
+            # from eth_tester import EthereumTester, MockBackend
+            # w3 = Web3(EthereumTesterProvider())
+            # code_address = '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
+            # signer_EOA_private_key = "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
+            # signer_EOA_address = Account.from_key(signer_EOA_private_key).address
+            # nonce = w3.eth.get_transaction_count(code_address)
+            # authorization_to_sign = {'chainId': 7072151312,
+            #                          'address':  bytes.fromhex(code_address[2:]),
+            # 'nonce': nonce}
+            # my_auth1 = Account.sign_authorization(authorization_to_sign, signer_EOA_private_key)
+            # my_auth1
+            # {'chainId': 7072151312,
+            #  'address': b'\\\xe9EI\tc\x9d-\x17\xa3\xf7S\xce}\x93\xfa\x0b\x9a\xb1.',
+            #  'nonce': 0,
+            #  'yParity': 0,
+            #  'r': 100888818593976975127029069136432183996023174646240393744022637628800244730652,
+            #  's': 17383471040173889700247006932658923008999125929610946821971349508861021723564}
+            # some_address = "0x0000000000000000000000000000000000000042"
+            # transaction_dict = {'authorizationList':[my_auth1], "to": some_address}
+
+        .. _EIP-7702: https://eips.ethereum.org/EIPS/eip-7702
+        """  # noqa: E501
+        if not isinstance(authorization_dict, Mapping):
+            raise TypeError(
+                f"authorization_dict must be dict-like, got {repr(authorization_dict)}"
+            )
+
+        authority_key = self._parse_private_key(private_key)
+
+        authorization_dict = dict(
+            authorization_dict
+        )  # make a copy to avoid mutating the input dict
+        dissoc(authorization_dict, "yParity", "r", "s")
+
+        chain_id = authorization_dict["chainId"]
+        nonce = authorization_dict["nonce"]
+        code_address = authorization_dict["address"]
+        unsigned_authorization = AuthorizationRLP(chain_id, code_address, nonce)
+        [v, r, s] = authority_key.sign_msg_hash(unsigned_authorization.hash()).vrs
+        signed_authorization = SignedAuthorizationRLP(
+            chain_id, code_address, nonce, v, r, s
+        )
+        signed_authorization_dict = signed_authorization.as_dict()
+        return signed_authorization_dict
