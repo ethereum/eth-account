@@ -48,9 +48,9 @@ from eth_account.types import (
 )
 
 from ._utils import (
-    normalize_string,
     pbkdf2_hmac_sha512,
     sha256,
+    unicode_decompose_string,
 )
 
 VALID_ENTROPY_SIZES = [16, 20, 24, 28, 32]
@@ -151,7 +151,7 @@ class Mnemonic:
 
     @classmethod
     def detect_language(cls, raw_mnemonic: str) -> Language:
-        mnemonic = normalize_string(raw_mnemonic)
+        mnemonic = unicode_decompose_string(raw_mnemonic)
 
         words = set(mnemonic.split(" "))
         matching_languages = {
@@ -227,7 +227,7 @@ class Mnemonic:
 
         :param str mnemonic: Mnemonic string
         """
-        words = normalize_string(mnemonic).split(" ")
+        words = unicode_decompose_string(mnemonic).split(" ")
         num_words = len(words)
 
         if num_words not in VALID_WORD_COUNTS:
@@ -281,11 +281,11 @@ class Mnemonic:
         :param str passphrase: Encryption passphrase used to secure the mnemonic
         :returns bytes: 64 bytes of raw seed material from PRNG
         """
-        mnemonic = normalize_string(checked_mnemonic)
+        mnemonic = unicode_decompose_string(checked_mnemonic)
         # NOTE: This domain separater ("mnemonic") is added per BIP39 spec
         # to the passphrase
         # https://github.com/bitcoin/bips/blob/master/bip-0039.mediawiki#from-mnemonic-to-seed  # blocklint: URL pragma  # noqa: E501
-        salt = "mnemonic" + normalize_string(passphrase)
+        salt = "mnemonic" + unicode_decompose_string(passphrase)
         # From BIP39:
         #   To create a binary seed from the mnemonic, we use the PBKDF2 function with a
         # mnemonic sentence (in UTF-8 NFKD) used as the password and the string
