@@ -22,11 +22,14 @@
 #
 import pytest
 
+from eth_account.hdaccount._utils import (
+    unicode_compose_string,
+)
 from eth_account.hdaccount.mnemonic import (
     Language,
     Mnemonic,
     ValidationError,
-    normalize_string,
+    unicode_decompose_string,
 )
 
 
@@ -105,9 +108,13 @@ def test_expand(lang):
     words = m.generate()
     for word in words.split(" "):  # Space delinates in languages not excluded above
         # BIP39 can support word expansion with as little as 4 characters
-        norm_word = normalize_string(word)
+        # we count composed characters as they are actually one character
+        # from the user perspective
+        norm_word = unicode_compose_string(word)
         for size in range(4, len(norm_word)):
-            assert m.expand(norm_word[: size + 1]) == word
+            # words from the list have been normalized in decomposed form (NFKD)
+            # they should be compared in decomposed form as well
+            assert m.expand(unicode_decompose_string(norm_word[:size])) == word
 
 
 @pytest.mark.parametrize("lang", Mnemonic.list_languages_enum())
@@ -136,7 +143,7 @@ def test_generation_with_string(lang, num_words):
     # NOTE: Sometimes traditional chinese can return characters that are also
     # valid simplified chinese characters. In that scenario, the detection
     # algorithm will assume simplified.
-    if lang == "chinese_simplified":
+    if lang == "chinese_traditional":
         assert "chinese" in Mnemonic.detect_language(mnemonic).value
     else:
         assert Mnemonic.detect_language(mnemonic) == Language(lang)
@@ -569,7 +576,9 @@ def test_japanese_mnemonics(entropy, expected_mnemonic, passphrase, expected_see
     assert m.is_mnemonic_valid(mnemonic)
     # NOTE For some reason, the strings weren't appearing in normalized form as
     #      copied rrom BIP39 test vectors
-    assert normalize_string(mnemonic) == normalize_string(expected_mnemonic)
+    assert unicode_decompose_string(mnemonic) == unicode_decompose_string(
+        expected_mnemonic
+    )
 
     seed = Mnemonic.to_seed(mnemonic, passphrase)
     assert seed.hex() == expected_seed
