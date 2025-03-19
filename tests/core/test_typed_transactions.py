@@ -357,9 +357,9 @@ TEST_CASES = [
             "chainId": 7072151312,
             "authorizationList": [
                 {
-                    "chainId": "0x1a5887710",
+                    "chainId": 7072151312,
                     "address": "0x3e6c95d880401e4e36ee62f4ebded346e1adf42d",
-                    "nonce": "0x2",
+                    "nonce": 2,
                     "yParity": 1,
                     "r": "0x31f464e6a607fc66e0f982a2d21498799b0571760a272f3d903aca6594cef595",  # noqa: E501
                     "s": "0x343b0b143924a5db42a3200ae72d5c6dd03633847bc2da025cff5214e28708ec",  # noqa: E501
@@ -386,9 +386,9 @@ TEST_CASES = [
             "chainId": 7072151312,
             "authorizationList": [
                 {
-                    "chainId": "0x1a5887710",
-                    "address": "0x3e6c95d880401e4e36ee62f4ebded346e1adf42d",
-                    "nonce": "0x2",
+                    "chainId": 7072151312,
+                    "address": "0x3e6C95D880401e4E36Ee62f4eBDed346e1aDf42d",
+                    "nonce": 2,
                     "yParity": 1,
                     "r": "0x31f464e6a607fc66e0f982a2d21498799b0571760a272f3d903aca6594cef595",  # noqa: E501
                     "s": "0x343b0b143924a5db42a3200ae72d5c6dd03633847bc2da025cff5214e28708ec",  # noqa: E501
@@ -408,8 +408,46 @@ TEST_CASES = [
             "s": "0x12ad4e24ae01171ee8a64b18ab772c88141e490498bde39d12e773f422f389c8",
         },
     },
+    # taken from EEST Prague tests, test id:
+    # `tests/prague/eip7702_set_code_tx/test_set_code_txs_2.py::test_double_auth[fork_Prague-state_test-second_delegation_DelegationTo.CONTRACT_A-first_delegation_DelegationTo.CONTRACT_B]`  # noqa: E501
+    {
+        "expected_type": SetCodeTransaction,
+        "expected_hash": "0x8a18f7a8f47670098b55d580258f8231fe057dba47f980c1b7320298a9bfc487",  # noqa: E501
+        "expected_raw_transaction": "0x04f9011d0180800783030d409400000000000000000000000000000000000012008080c0f8b8f85a809400000000000000000000000000000000000011008001a0ac427f776ac7ad34aafce7f63eceb1cde3eface529edeac41327496a0cdead7ea07571612216f35c4666ff4101d5ccf93fff270ced7d93664c4d7e8f5048a80198f85a809400000000000000000000000000000000000010000180a07b91d27c441ad90c7e4f127433b8fb33c04c78284b1b67b6603df12a1364e265a064780c93a04fbeb27eb3f98dcfae6af75a827471b398f86b82e598baa3f4966f80a03074805d7025deb8803f8687fbb60b5cc346804fffe0ea58a3efe0ed126c14d4a06b3367eee5089bc00db6631a5f1f9ed25a5a526d240d1aba845e0411a134f97e",  # noqa: 501
+        "transaction": {
+            "nonce": 0,
+            "maxPriorityFeePerGas": 0,
+            "maxFeePerGas": 7,
+            "gas": 200000,
+            "to": "0x0000000000000000000000000000000000001200",
+            "value": 0,
+            "data": "0x",
+            "accessList": (),
+            "authorizationList": [
+                {
+                    "chainId": 0,
+                    "address": "0x0000000000000000000000000000000000001100",
+                    "nonce": 0,
+                    "yParity": 1,
+                    "r": "0xac427f776ac7ad34aafce7f63eceb1cde3eface529edeac41327496a0cdead7e",  # noqa: E501
+                    "s": "0x7571612216f35c4666ff4101d5ccf93fff270ced7d93664c4d7e8f5048a80198",  # noqa: E501
+                },
+                {
+                    "chainId": 0,
+                    "address": "0x0000000000000000000000000000000000001000",
+                    "nonce": 1,
+                    "yParity": 0,
+                    "r": "0x7b91d27c441ad90c7e4f127433b8fb33c04c78284b1b67b6603df12a1364e265",  # noqa: E501
+                    "s": "0x64780c93a04fbeb27eb3f98dcfae6af75a827471b398f86b82e598baa3f4966f",  # noqa: E501
+                },
+            ],
+            "chainId": 1,
+            "v": 0,
+            "r": "0x3074805d7025deb8803f8687fbb60b5cc346804fffe0ea58a3efe0ed126c14d4",
+            "s": "0x6b3367eee5089bc00db6631a5f1f9ed25a5a526d240d1aba845e0411a134f97e",
+        },
+    },
 ]
-
 TEST_CASE_IDS = [
     "al-non-empty-list",
     "al-empty-list",
@@ -424,6 +462,7 @@ TEST_CASE_IDS = [
     "blob-no-explicit-type",
     "sc-standard-case",
     "sc-and-al",
+    "sc-eest-two-auths",
 ]
 
 
@@ -435,8 +474,8 @@ TEST_CASE_IDS = [
 def test_hash(test_case):
     expected = test_case["expected_hash"]
     transaction = TypedTransaction.from_dict(test_case["transaction"])
-    hash = transaction.hash()
-    actual = HexBytes(hash).to_0x_hex()
+    hash_ = transaction.hash()
+    actual = HexBytes(hash_).to_0x_hex()
     assert actual == expected
 
 

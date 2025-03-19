@@ -3,6 +3,8 @@ from typing import (
     Any,
     Dict,
     Sequence,
+    Tuple,
+    TypedDict,
     Union,
 )
 
@@ -10,6 +12,7 @@ from eth_keys.datatypes import (
     PrivateKey,
 )
 from eth_typing import (
+    HexAddress,
     HexStr,
 )
 from hexbytes import (
@@ -23,9 +26,23 @@ PrivateKeyType = Union[Bytes32, int, HexStr, PrivateKey]
 AccessList = Sequence[Dict[str, Union[HexStr, Sequence[HexStr]]]]
 RLPStructuredAccessList = Sequence[Sequence[Union[HexStr, Sequence[HexStr]]]]
 
-AuthorizationDictType = Dict[str, Union[HexStr, int]]
-AuthorizationList = Sequence[AuthorizationDictType]
-RLPStructuredAuthorizationList = Sequence[Sequence[Union[HexStr, int]]]
+
+class AuthorizationDict(TypedDict):
+    chainId: int
+    address: HexAddress
+    nonce: int
+
+
+class SignedAuthorizationDict(AuthorizationDict):
+    yParity: int
+    r: HexStr
+    s: HexStr
+
+
+AuthorizationList = Sequence[SignedAuthorizationDict]
+RLPStructuredAuthorizationList = Sequence[
+    Tuple[int, HexAddress, int, int, HexStr, HexStr]
+]
 
 TransactionDictType = Dict[str, Union[AccessList, bytes, HexStr, int]]
 

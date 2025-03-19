@@ -4,11 +4,33 @@ from typing import (
     SupportsIndex,
     Tuple,
     Union,
+    cast,
     overload,
 )
 
+from eth_keys.datatypes import (
+    Signature,
+)
+from eth_typing import (
+    HexStr,
+)
+from eth_utils import (
+    to_checksum_address,
+)
 from hexbytes import (
     HexBytes,
+)
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    field_serializer,
+)
+from pydantic.alias_generators import (
+    to_camel,
+)
+
+from eth_account.types import (
+    SignedAuthorizationDict,
 )
 
 
@@ -76,3 +98,39 @@ class SignedMessage(
             return getattr(self, index)
         else:
             raise TypeError("Index must be an integer, slice, or string")
+
+
+class SignedSetCodeAuthorization(BaseModel):
+    chain_id: int
+    address: bytes
+    nonce: int
+    y_parity: int
+    r: int
+    s: int
+    signature: Signature
+    authorization_hash: HexBytes
+    authority: bytes
+
+    _excludes = {"signature", "authorization_hash", "authority"}
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,  # `Signature` is not a standard type
+        populate_by_name=True,  # populate using snake_case
+        alias_generator=to_camel,
+    )
+
+    @field_serializer("address", when_used="json")
+    @classmethod
+    def serialize_address(cls, value: bytes) -> str:
+        return to_checksum_address(value)
+
+    @field_serializer("r", "s", when_used="json")
+    @classmethod
+    def serialize_bigint_as_hex(cls, value: int) -> HexStr:
+        return HexStr(hex(value))
+
+    def as_rpc_object(self) -> SignedAuthorizationDict:
+        return cast(
+            SignedAuthorizationDict,
+            self.model_dump(mode="json", by_alias=True, exclude=self._excludes),
+        )

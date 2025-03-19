@@ -142,15 +142,13 @@ def transaction_rlp_to_rpc_structure(dictionary: Dict[str, Any]) -> Dict[str, An
         rpc_structured_access_list = _access_list_rlp_to_rpc_structure(access_list)
         dictionary = assoc(dictionary, "accessList", rpc_structured_access_list)
     if authorization_list:
-        dictionary = dissoc(
-            dictionary, "authorizationList"
-        )  # remove the access list from the dictionary
+        dictionary = dissoc(dictionary, "authorizationList")
         rpc_structured_authorization_list = _authorization_list_rlp_to_rpc_structure(
             authorization_list
         )
         dictionary = assoc(
             dictionary, "authorizationList", rpc_structured_authorization_list
-        )  # add the access list back to the dictionary
+        )
     return dictionary
 
 
@@ -171,7 +169,6 @@ def _authorization_list_rlp_to_rpc_structure(
         raise ValueError(
             "provided object not formatted as rlp-structured authorization list"
         )
-    # build a dictionary with appropriate keys for each tuple
     return tuple(
         {
             "chainId": t[0],
