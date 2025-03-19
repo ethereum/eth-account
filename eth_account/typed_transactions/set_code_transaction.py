@@ -28,7 +28,6 @@ import rlp
 from rlp.sedes import (
     Binary,
     CountableList,
-    List as ListSedesClass,
     big_endian_int,
     binary,
 )
@@ -55,21 +54,8 @@ from .base import (
     _TypedTransactionImplementation,
 )
 
-authorization_list_sede_type = CountableList(
-    ListSedesClass(
-        [
-            big_endian_int,  # chainId
-            Binary.fixed_length(20, allow_empty=False),  # codeSource address
-            big_endian_int,  # nonce
-            big_endian_int,  # yParity
-            big_endian_int,  # r
-            big_endian_int,  # s
-        ]
-    ),
-)
 
-
-class AuthorizationRLP(HashableRLP):
+class Authorization(HashableRLP):
     magic = 5  # '0x05' 'MAGIC' as per specification EIP-7702
     fields = (
         ("chainId", big_endian_int),
@@ -92,7 +78,9 @@ class AuthorizationRLP(HashableRLP):
         )
 
 
-class SignedAuthorizationRLP(HashableRLP):
+class SignedAuthorization(HashableRLP):
+    _authority: bytes
+
     fields = (
         ("chainId", big_endian_int),
         ("address", Binary.fixed_length(20, allow_empty=False)),
@@ -108,7 +96,6 @@ class SetCodeTransaction(_TypedTransactionImplementation):
     Represents a set code transaction as per EIP-7702.
     """
 
-    # This is the third transaction to implement the EIP-2718 typed transaction.
     transaction_type = 4  # '0x04'
 
     unsigned_transaction_fields = (
@@ -121,7 +108,7 @@ class SetCodeTransaction(_TypedTransactionImplementation):
         ("value", big_endian_int),
         ("data", binary),
         ("accessList", access_list_sede_type),
-        ("authorizationList", authorization_list_sede_type),
+        ("authorizationList", CountableList(SignedAuthorization)),
     )
 
     signature_fields = (
@@ -133,6 +120,7 @@ class SetCodeTransaction(_TypedTransactionImplementation):
     transaction_field_defaults = {
         "type": b"0x4",
         "chainId": 0,
+        "nonce": 0,
         "to": b"",
         "value": 0,
         "data": b"",
@@ -216,9 +204,7 @@ class SetCodeTransaction(_TypedTransactionImplementation):
                 f"expected transaction type {cls.transaction_type}, "
                 f"got {transaction_type}"
             )
-        return cls(
-            dictionary=sanitized_dictionary,
-        )
+        return cls(dictionary=sanitized_dictionary)
 
     @classmethod
     def from_bytes(cls, encoded_transaction: HexBytes) -> "SetCodeTransaction":
@@ -235,9 +221,7 @@ class SetCodeTransaction(_TypedTransactionImplementation):
         # signed transaction serializer.
         transaction_payload = encoded_transaction[1:]
         rlp_serializer = cls._signed_transaction_serializer
-        dictionary = rlp_serializer.from_bytes(  # type: ignore
-            transaction_payload
-        ).as_dict()
+        dictionary = rlp_serializer.from_bytes(transaction_payload).as_dict()  # type: ignore  # noqa: E501
         rpc_structured_dict = transaction_rlp_to_rpc_structure(dictionary)
         rpc_structured_dict["type"] = cls.transaction_type
         return cls.from_dict(rpc_structured_dict)
@@ -251,9 +235,9 @@ class SetCodeTransaction(_TypedTransactionImplementation):
     def hash(self) -> bytes:
         """
         Hashes this SetCodeTransaction to prepare it for signing.
-        As per the EIP-2930 specifications, the signature is a secp256k1 signature over
-        ``keccak256(0x01 || rlp([chainId, nonce, gasPrice, gasLimit,
-        to, value, data, accessList, authorisationList])).``
+        As per the EIP-7702 specifications, the signature is a secp256k1 signature over
+        ``keccak256(0x04 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data,
+        accessList, authorizationList])).``
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, "v", "r", "s")
@@ -262,14 +246,14 @@ class SetCodeTransaction(_TypedTransactionImplementation):
             transaction_without_signature_fields
         )
         rlp_serializer = self.__class__._unsigned_transaction_serializer
-        hash = pipe(
+        hash_ = pipe(
             rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore  # noqa: E501
             lambda val: rlp.encode(val),  # rlp([...])
             lambda val: bytes([self.__class__.transaction_type])
-            + val,  # (0x04 || rlp([...]))
+            + val,  # (0x04 || rlp([...]))  # noqa: E501
             keccak,  # keccak256(0x04 || rlp([...]))
         )
-        return cast(bytes, hash)
+        return cast(bytes, hash_)
 
     def payload(self) -> bytes:
         """
@@ -288,9 +272,7 @@ class SetCodeTransaction(_TypedTransactionImplementation):
             raise ValueError("attempting to encode an unsigned transaction")
         rlp_serializer = self.__class__._signed_transaction_serializer
         rlp_structured_dict = transaction_rpc_to_rlp_structure(self.dictionary)
-        payload = rlp.encode(
-            rlp_serializer.from_dict(rlp_structured_dict)  # type: ignore
-        )
+        payload = rlp.encode(rlp_serializer.from_dict(rlp_structured_dict))  # type: ignore  # noqa: E501
         return cast(bytes, payload)
 
     def vrs(self) -> Tuple[int, int, int]:

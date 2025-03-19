@@ -1,6 +1,9 @@
 from collections.abc import (
     Mapping,
 )
+from copy import (
+    copy,
+)
 import json
 import os
 from typing import (
@@ -39,6 +42,9 @@ from eth_typing import (
     Hash32,
     HexStr,
 )
+from eth_utils import (
+    to_canonical_address,
+)
 from eth_utils.curried import (
     combomethod,
     hexstr_if_str,
@@ -74,6 +80,7 @@ from eth_account.account_local_actions import (
 )
 from eth_account.datastructures import (
     SignedMessage,
+    SignedSetCodeAuthorization,
     SignedTransaction,
 )
 from eth_account.hdaccount import (
@@ -94,11 +101,10 @@ from eth_account.typed_transactions import (
     TypedTransaction,
 )
 from eth_account.typed_transactions.set_code_transaction import (
-    AuthorizationRLP,
-    SignedAuthorizationRLP,
+    Authorization,
 )
 from eth_account.types import (
-    AuthorizationDictType,
+    AuthorizationDict,
     Blobs,
     Language,
     PrivateKeyType,
@@ -680,11 +686,11 @@ class Account(AccountLocalActions):
         Sign a transaction using a local private key.
 
         It produces signature details and the hex-encoded transaction suitable for
-        broadcast using :meth:`w3.eth.sendRawTransaction()
-        <web3.eth.Eth.sendRawTransaction>`.
+        broadcast using :meth:`w3.eth.send_raw_transactions()
+        <web3.eth.Eth.send_raw_transactions>`.
 
         To create the transaction dict that calls a contract, use contract object:
-        `my_contract.functions.my_function().buildTransaction()
+        `my_contract.functions.my_function().build_transaction()
         <http://web3py.readthedocs.io/en/latest/contracts.html#methods>`_
 
         Note: For non-legacy (typed) transactions, if the transaction type is not
@@ -734,7 +740,7 @@ class Account(AccountLocalActions):
              r=48949965662841329840326477994465373664672499148507933176648302825256944281697,
              s=1123041608316060268133200864147951676126406077675157976022772782796802590165,
              v=1)
-            >>> w3.eth.sendRawTransaction(signed_df_tx.raw_transaction)  # doctest: +SKIP
+            >>> w3.eth.send_raw_transaction(signed_df_tx.raw_transaction)  # doctest: +SKIP
 
         .. doctest:: python
 
@@ -757,7 +763,7 @@ class Account(AccountLocalActions):
              r=11971260903864915610009019893820767192081275151191539081612245320300335068143,
              s=35365272040292958794699923036506252105590820339897221552886630515981233937234,
              v=2709)
-            >>> w3.eth.sendRawTransaction(signed_legacy_tx.raw_transaction)  # doctest: +SKIP
+            >>> w3.eth.send_raw_transaction(signed_legacy_tx.raw_transaction)  # doctest: +SKIP
 
         .. doctest:: python
 
@@ -788,7 +794,7 @@ class Account(AccountLocalActions):
              r=107355854401379915513092408112372039746594668141865279802319959599514133709188,
              s=6729502936685237038651223791038758905953302464070244934323623239104475448298,
              v=1)
-            >>> w3.eth.sendRawTransaction(signed_al_tx.raw_transaction)  # doctest: +SKIP
+            >>> w3.eth.send_raw_transaction(signed_al_tx.raw_transaction)  # doctest: +SKIP
 
         .. doctest:: python
 
@@ -824,7 +830,7 @@ class Account(AccountLocalActions):
              r=14319949980593194209648175507603206696573324965145502821772573913457715875718,
              s=9129184742597516615341309773045281461399831333162885393648678700392065987233,
              v=1)
-            >>> w3.eth.sendRawTransaction(signed_blob_tx.raw_transaction)  # doctest: +SKIP
+            >>> w3.eth.send_raw_transaction(signed_blob_tx.raw_transaction)  # doctest: +SKIP
         """  # noqa: E501
         if not isinstance(transaction_dict, Mapping):
             raise TypeError(
@@ -1052,11 +1058,11 @@ class Account(AccountLocalActions):
     @combomethod
     def sign_authorization(
         self,
-        authorization_dict: AuthorizationDictType,
+        authorization_dict: AuthorizationDict,
         private_key: PrivateKeyType,
-    ) -> AuthorizationDictType:
+    ) -> SignedSetCodeAuthorization:
         r"""
-        Sign an authorization  using a local private key to be included in a EIP-7702 transaction.
+        Sign an authorization using a local private key to be included in a EIP-7702 transaction.
         It adds the signature fields to the authorization dict.
 
         :param dict authorization_dict: the required keys are: chainId, address, nonce
@@ -1076,29 +1082,43 @@ class Account(AccountLocalActions):
 
             to create a transaction that associates the code with the EOA, you need to create a transaction with the authorizationList field, this field is a list of signed authorizations, one for each EOA willing to have the code associated with its address
 
-        ::
+        .. doctest:: python
 
-            # from web3 import Web3, EthereumTesterProvider
-            # from eth_account import Account
-            # from eth_tester import EthereumTester, MockBackend
-            # w3 = Web3(EthereumTesterProvider())
-            # code_address = '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
-            # signer_EOA_private_key = "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
-            # signer_EOA_address = Account.from_key(signer_EOA_private_key).address
-            # nonce = w3.eth.get_transaction_count(code_address)
-            # authorization_to_sign = {'chainId': 7072151312,
-            #                          'address':  bytes.fromhex(code_address[2:]),
-            # 'nonce': nonce}
-            # my_auth1 = Account.sign_authorization(authorization_to_sign, signer_EOA_private_key)
-            # my_auth1
-            # {'chainId': 7072151312,
-            #  'address': b'\\\xe9EI\tc\x9d-\x17\xa3\xf7S\xce}\x93\xfa\x0b\x9a\xb1.',
-            #  'nonce': 0,
-            #  'yParity': 0,
-            #  'r': 100888818593976975127029069136432183996023174646240393744022637628800244730652,
-            #  's': 17383471040173889700247006932658923008999125929610946821971349508861021723564}
-            # some_address = "0x0000000000000000000000000000000000000042"
-            # transaction_dict = {'authorizationList':[my_auth1], "to": some_address}
+            >>> from eth_account import Account
+
+            >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            >>> auth = {
+            ...     "chainId": 1337,
+            ...     "address": "0x5ce9454909639d2d17a3f753ce7d93fa0b9ab12e",
+            ...     "nonce": 0,
+            ... }
+
+            >>> auth_signed = Account.sign_authorization(auth, key)
+            >>> auth_signed
+            SignedSetCodeAuthorization(chain_id=1337,
+             address=b'\\\xe9EI\tc\x9d-\x17\xa3\xf7S\xce}\x93\xfa\x0b\x9a\xb1.',
+             nonce=0,
+             y_parity=0,
+             r=13559089679153465389530080958732165835506259206033627652019224547096284912193,
+             s=4909893498344689684383026337158184903862784607939660326835239278207516636646,
+             signature='0x1dfa2c3c5b3bf61e364f7ce7ed744aef498fe26c981de726b139e0461c545a410adae6b7a1ff6137fb698a9973f4706cf8fe56aba87e8241b76042af587175e600',
+             authorization_hash=HexBytes('0x5a1bfd35dee8528cbcbe2dad796fec10b7ad15fa67ecc77c427d0d57bc5e2737'),
+             authority=b'\x8f\xd3y$h4\xea\xc7K\x84\x19\xff\xda ,\xf8\x05\x1fz\x03')
+
+            >>> tx = {
+            ...     "gas": 100000,
+            ...     "maxFeePerGas": 2000000000,
+            ...     "maxPriorityFeePerGas": 2000000000,
+            ...     "data": "0x616263646566",
+            ...     "nonce": 34,
+            ...     "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
+            ...     "value": "0x5af3107a4000",
+            ...     "accessList": (),
+            ...     "authorizationList": [auth_signed.as_rpc_object()],
+            ...     "chainId": 1337,
+            ... }
+            >>> signed = Account.sign_transaction(tx, key)
+            >>> w3.eth.send_raw_transaction(signed.raw_transaction)  # doctest: +SKIP
 
         .. _EIP-7702: https://eips.ethereum.org/EIPS/eip-7702
         """  # noqa: E501
@@ -1109,18 +1129,26 @@ class Account(AccountLocalActions):
 
         authority_key = self._parse_private_key(private_key)
 
-        authorization_dict = dict(
-            authorization_dict
-        )  # make a copy to avoid mutating the input dict
-        dissoc(authorization_dict, "yParity", "r", "s")
+        # prevent mutating the original input
+        authorization_dict = copy(authorization_dict)
 
         chain_id = authorization_dict["chainId"]
+        code_address = to_canonical_address(authorization_dict["address"])
         nonce = authorization_dict["nonce"]
-        code_address = authorization_dict["address"]
-        unsigned_authorization = AuthorizationRLP(chain_id, code_address, nonce)
-        [v, r, s] = authority_key.sign_msg_hash(unsigned_authorization.hash()).vrs
-        signed_authorization = SignedAuthorizationRLP(
-            chain_id, code_address, nonce, v, r, s
+
+        unsigned_authorization = Authorization(chain_id, code_address, nonce)
+        authorization_hash = unsigned_authorization.hash()
+        signature = authority_key.sign_msg_hash(authorization_hash)
+        [v, r, s] = signature.vrs
+
+        return SignedSetCodeAuthorization(
+            chain_id=chain_id,
+            address=code_address,
+            nonce=nonce,
+            y_parity=v,
+            r=r,
+            s=s,
+            authority=authority_key.public_key.to_canonical_address(),
+            signature=signature,
+            authorization_hash=authorization_hash,
         )
-        signed_authorization_dict = signed_authorization.as_dict()
-        return signed_authorization_dict

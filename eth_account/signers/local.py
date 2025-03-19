@@ -158,3 +158,9 @@ class LocalAccount(BaseAccount):
                 full_message=full_message,
             ),
         )
+
+    def sign_authorization(self, authorization: Dict[str, Any]) -> SignedMessage:
+        return cast(
+            SignedMessage,
+            self._publicapi.sign_authorization(authorization, private_key=self.key),
+        )

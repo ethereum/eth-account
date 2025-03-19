@@ -33,8 +33,8 @@ Blob Transaction
    :undoc-members:
    :show-inheritance:
 
-SetCode Transaction
--------------------
+Set Code Transaction
+--------------------
 
 .. automodule:: eth_account.typed_transactions.set_code_transaction
    :members:
