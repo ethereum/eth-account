@@ -109,7 +109,6 @@ class SignedSetCodeAuthorization(BaseModel):
     s: int
     signature: Signature
     authorization_hash: HexBytes
-    authority: bytes
 
     _excludes = {"signature", "authorization_hash", "authority"}
 
@@ -128,6 +127,20 @@ class SignedSetCodeAuthorization(BaseModel):
     @classmethod
     def serialize_bigint_as_hex(cls, value: int) -> HexStr:
         return HexStr(hex(value))
+
+    @property
+    def authority(self) -> bytes:
+        """
+        Return the address of the authority that signed the authorization.
+
+        In order to prevent any potential confusion or mal-intent, the authority is
+        always derived from the signature and the authorization hash, rather than
+        statically assigned. This value should be verified against the expected
+        authority for a signed authorization.
+        """
+        return self.signature.recover_public_key_from_msg_hash(
+            self.authorization_hash
+        ).to_canonical_address()
 
     def as_rpc_object(self) -> SignedAuthorizationDict:
         return cast(
