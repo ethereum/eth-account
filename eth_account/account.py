@@ -1102,8 +1102,7 @@ class Account(AccountLocalActions):
              r=13559089679153465389530080958732165835506259206033627652019224547096284912193,
              s=4909893498344689684383026337158184903862784607939660326835239278207516636646,
              signature='0x1dfa2c3c5b3bf61e364f7ce7ed744aef498fe26c981de726b139e0461c545a410adae6b7a1ff6137fb698a9973f4706cf8fe56aba87e8241b76042af587175e600',
-             authorization_hash=HexBytes('0x5a1bfd35dee8528cbcbe2dad796fec10b7ad15fa67ecc77c427d0d57bc5e2737'),
-             authority=b'\x8f\xd3y$h4\xea\xc7K\x84\x19\xff\xda ,\xf8\x05\x1fz\x03')
+             authorization_hash=HexBytes('0x5a1bfd35dee8528cbcbe2dad796fec10b7ad15fa67ecc77c427d0d57bc5e2737'))
 
             >>> tx = {
             ...     "gas": 100000,
@@ -1148,7 +1147,6 @@ class Account(AccountLocalActions):
             y_parity=v,
             r=r,
             s=s,
-            authority=authority_key.public_key.to_canonical_address(),
             signature=signature,
             authorization_hash=authorization_hash,
         )
