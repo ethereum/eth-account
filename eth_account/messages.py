@@ -255,6 +255,10 @@ def encode_typed_data(
         - ``int`` and ``uint`` types will also accept strings. If prefixed with ``"0x"``
           , the string will be interpreted as hex. Otherwise, it will be interpreted as
           decimal.
+        - Any value for a ``bool`` type that Python considers "falsy" will be
+          interpreted as ``False``. The strings ``"False"``, ``"false"``, and ``"0"``
+          will be also interpreted as ``False``. All other values will be interpreted as
+          ``True``.
 
     Noteable differences from ``signTypedData``:
         - Custom types that are not alphanumeric will encode differently.
