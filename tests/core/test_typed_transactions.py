@@ -1,9 +1,15 @@
 import pytest
 
+from eth_keys.datatypes import (
+    Signature,
+)
 from hexbytes import (
     HexBytes,
 )
 
+from eth_account.datastructures import (
+    SignedSetCodeAuthorization,
+)
 from eth_account.typed_transactions import (
     AccessListTransaction,
     BlobTransaction,
@@ -372,6 +378,39 @@ TEST_CASES = [
     },
     {
         "expected_type": SetCodeTransaction,
+        "expected_hash": "0xc3b8fd19170b73ab1981db5be074eb6b920cae2c58fc222d73041ebcdc6ce99b",  # noqa: E501
+        "expected_raw_transaction": "0x04f901188501a58877101284ee6b27f984ee6b2807830186a094e3f1413e071332840db2735f809cf3240c4a425580b844a9059cbb0000000000000000000000003d3dc402103535134968adf08fab95b1012c1cb5000000000000000000000000000000000000000000000000000000000000029ac0f861f85f8501a5887710943e6c95d880401e4e36ee62f4ebded346e1adf42d0201a031f464e6a607fc66e0f982a2d21498799b0571760a272f3d903aca6594cef595a0343b0b143924a5db42a3200ae72d5c6dd03633847bc2da025cff5214e28708ec01a0a9c1555a0d706755bbdb7537c80f4e6a06ba0719ec03174190ccc934207c805da012ad4e24ae01171ee8a64b18ab772c88141e490498bde39d12e773f422f389c8",  # noqa: E501
+        "transaction": {
+            "gas": 100000,
+            "maxFeePerGas": 4000000007,
+            "maxPriorityFeePerGas": 3999999993,
+            "data": "0xa9059cbb0000000000000000000000003d3dc402103535134968adf08fab95b1012c1cb5000000000000000000000000000000000000000000000000000000000000029a",  # noqa: E501
+            "nonce": 18,
+            "to": "0xe3f1413e071332840dB2735F809Cf3240C4a4255",
+            "value": 0,
+            "type": 4,
+            "accessList": [],
+            "chainId": 7072151312,
+            "authorizationList": [
+                SignedSetCodeAuthorization(
+                    chain_id=7072151312,
+                    address=b">l\x95\xd8\x80@\x1eN6\xeeb\xf4\xeb\xde\xd3F\xe1\xad\xf4-",
+                    nonce=2,
+                    y_parity=1,
+                    r=22595136657293516951860802422974352017713294017347016159649668416801694741909,  # noqa: E501
+                    s=23624588567578401597292901415360791985725988995245670164012927046435484403948,  # noqa: E501
+                    # signature and hash are not tested here as they are not serialized
+                    signature=Signature(b"\x00" * 65),
+                    authorization_hash=HexBytes(f"0x{'00' * 32}"),
+                )
+            ],
+            "v": 1,
+            "r": "0xa9c1555a0d706755bbdb7537c80f4e6a06ba0719ec03174190ccc934207c805d",
+            "s": "0x12ad4e24ae01171ee8a64b18ab772c88141e490498bde39d12e773f422f389c8",
+        },
+    },
+    {
+        "expected_type": SetCodeTransaction,
         "expected_hash": "0x22367af37fbccc318e9849ac2b6bb115081312a012160d934de9c4d2e10c7f31",  # noqa: E501
         "expected_raw_transaction": "0x04f901748501a58877101284ee6b27f984ee6b2807830186a094e3f1413e071332840db2735f809cf3240c4a425580b844a9059cbb0000000000000000000000003d3dc402103535134968adf08fab95b1012c1cb5000000000000000000000000000000000000000000000000000000000000029af85bf85994095e7baea6a6c7c4c2dfeb977efac326af552d87f842a00000000000000000000000000000000000000000000000000000000000000000a00000000000000000000000000000000000000000000000000000000000000001f861f85f8501a5887710943e6c95d880401e4e36ee62f4ebded346e1adf42d0201a031f464e6a607fc66e0f982a2d21498799b0571760a272f3d903aca6594cef595a0343b0b143924a5db42a3200ae72d5c6dd03633847bc2da025cff5214e28708ec01a0a9c1555a0d706755bbdb7537c80f4e6a06ba0719ec03174190ccc934207c805da012ad4e24ae01171ee8a64b18ab772c88141e490498bde39d12e773f422f389c8",  # noqa: E501
         "transaction": {
@@ -432,14 +471,17 @@ TEST_CASES = [
                     "r": "0xac427f776ac7ad34aafce7f63eceb1cde3eface529edeac41327496a0cdead7e",  # noqa: E501
                     "s": "0x7571612216f35c4666ff4101d5ccf93fff270ced7d93664c4d7e8f5048a80198",  # noqa: E501
                 },
-                {
-                    "chainId": 0,
-                    "address": "0x0000000000000000000000000000000000001000",
-                    "nonce": 1,
-                    "yParity": 0,
-                    "r": "0x7b91d27c441ad90c7e4f127433b8fb33c04c78284b1b67b6603df12a1364e265",  # noqa: E501
-                    "s": "0x64780c93a04fbeb27eb3f98dcfae6af75a827471b398f86b82e598baa3f4966f",  # noqa: E501
-                },
+                SignedSetCodeAuthorization(
+                    chain_id=0,
+                    address=b"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x10\x00",  # noqa: E501
+                    nonce=1,
+                    y_parity=0,
+                    r=55892125917073124639845531850251761096026021061906423766531483903865175466597,  # noqa: E501
+                    s=45443393307051138335427421723677224041668544703452310926862473140750133794415,  # noqa: E501
+                    # signature and hash are not tested here as they are not serialized
+                    signature=Signature(b"\x00" * 65),
+                    authorization_hash=HexBytes(f"0x{'00' * 32}"),
+                ),
             ],
             "chainId": 1,
             "v": 0,
@@ -460,9 +502,10 @@ TEST_CASE_IDS = [
     "blob-no-access-list",
     "blob-int-values-and-access-list",
     "blob-no-explicit-type",
-    "sc-standard-case",
-    "sc-and-al",
-    "sc-eest-two-auths",
+    "sc-one-auth",
+    "sc-pydantic",
+    "sc-with-access-list",
+    "sc-eest-dict-and-pydantic-auths",
 ]
 
 

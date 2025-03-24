@@ -686,12 +686,10 @@ class Account(AccountLocalActions):
         Sign a transaction using a local private key.
 
         It produces signature details and the hex-encoded transaction suitable for
-        broadcast using :meth:`w3.eth.send_raw_transactions()
-        <web3.eth.Eth.send_raw_transactions>`.
+        broadcast using :meth:`w3.eth.send_raw_transaction()<web3.eth.Eth.send_raw_transaction>`.
 
-        To create the transaction dict that calls a contract, use contract object:
-        `my_contract.functions.my_function().build_transaction()
-        <http://web3py.readthedocs.io/en/latest/contracts.html#methods>`_
+        To create the transaction dict that calls a contract, use
+        :meth:`my_contract.functions.myFunction().build_transaction()<web3.contract.ContractFunction.build_transaction>`.
 
         Note: For non-legacy (typed) transactions, if the transaction type is not
         explicitly provided, it may be determined from the transaction parameters of
@@ -1063,24 +1061,22 @@ class Account(AccountLocalActions):
     ) -> SignedSetCodeAuthorization:
         r"""
         Sign an authorization using a local private key to be included in a EIP-7702 transaction.
-        It adds the signature fields to the authorization dict.
 
-        :param dict authorization_dict: the required keys are: chainId, address, nonce
+        :param dict authorization_dict: the required keys are: ``chainId``, ``address``, and ``nonce``
         :param private_key: the private key to sign the data with
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :returns: the dictionary with the signature fields added, suitable for inclusion in a EIP-7702 transaction
         :rtype: dict
 
         .. NOTE::
-            You need to get signed one or more signed authorizations from an EOA willing to have a smart contract code associated with the EOA, this the essence of EIP-7702
+            You need to sign one or more authorizations from an EOA willing to have a smart contract code associated with the EOA for the life of the transaction.
+            The variable ``auth`` in the code below is the authorization dictionary containing the following keys:
 
-            in the code below in the variable authorization_to_sign:
-            - chainId is the chain id of the chain where the EOA is located or 0 if the authorization is for all chains
-            - address is the address of the smart contract code to be associated with the EOA, the address format is bytes
-            - nonce is the nonce of the EOA, it is used to prevent replay attacks
-            once signed, the fields are the signature of the first 3 fields by the EOA
+            - ``chainId`` is the chain id for the chain where the EOA is located. If ``0`` is specified, authorization is signed for all chains
+            - ``address`` is the address of the smart contract code to be associated with the EOA, as bytes
+            - ``nonce`` is the nonce of the EOA, used to prevent replay attacks
 
-            to create a transaction that associates the code with the EOA, you need to create a transaction with the authorizationList field, this field is a list of signed authorizations, one for each EOA willing to have the code associated with its address
+            To create a transaction that associates the code with the EOA, you need to create a transaction with an ``authorizationList``, representing a list of signed authorizations for the transaction.
 
         .. doctest:: python
 
@@ -1093,8 +1089,8 @@ class Account(AccountLocalActions):
             ...     "nonce": 0,
             ... }
 
-            >>> auth_signed = Account.sign_authorization(auth, key)
-            >>> auth_signed
+            >>> signed_auth = Account.sign_authorization(auth, key)
+            >>> signed_auth
             SignedSetCodeAuthorization(chain_id=1337,
              address=b'\\\xe9EI\tc\x9d-\x17\xa3\xf7S\xce}\x93\xfa\x0b\x9a\xb1.',
              nonce=0,
@@ -1113,7 +1109,7 @@ class Account(AccountLocalActions):
             ...     "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
             ...     "value": "0x5af3107a4000",
             ...     "accessList": (),
-            ...     "authorizationList": [auth_signed.as_rpc_object()],
+            ...     "authorizationList": [signed_auth],
             ...     "chainId": 1337,
             ... }
             >>> signed = Account.sign_transaction(tx, key)

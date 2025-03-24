@@ -33,6 +33,8 @@ from rlp.sedes import (
 )
 
 from eth_account._utils.transaction_utils import (
+    json_serialize_classes_in_transaction,
+    set_transaction_type_if_needed,
     transaction_rlp_to_rpc_structure,
     transaction_rpc_to_rlp_structure,
 )
@@ -182,10 +184,14 @@ class SetCodeTransaction(_TypedTransactionImplementation):
     ) -> "SetCodeTransaction":
         """
         Builds a SetCodeTransaction from a dictionary.
-        Verifies that the dictionary is well formed.
+        Verifies that the dictionary is well-formed.
         """
         if blobs is not None:
             raise ValueError("Blob data is not supported for `SetCodeTransaction`.")
+
+        dictionary = set_transaction_type_if_needed(dictionary)
+        # pre-process any signed authorization pydantic models into dicts
+        dictionary = json_serialize_classes_in_transaction(dictionary)
 
         # Validate fields.
         cls.assert_valid_fields(dictionary)
@@ -236,8 +242,8 @@ class SetCodeTransaction(_TypedTransactionImplementation):
         """
         Hashes this SetCodeTransaction to prepare it for signing.
         As per the EIP-7702 specifications, the signature is a secp256k1 signature over
-        ``keccak256(0x04 || rlp([chainId, nonce, gasPrice, gasLimit, to, value, data,
-        accessList, authorizationList])).``
+        ``keccak256(0x04 || rlp([chainId, nonce, max_priority_fee_per_gas,
+        max_fee_per_gas, gasLimit, to, value, data, accessList, authorizationList])).``
         """
         # Remove signature fields.
         transaction_without_signature_fields = dissoc(self.dictionary, "v", "r", "s")

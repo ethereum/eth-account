@@ -14,6 +14,9 @@ from eth_account._utils.validation import (
     is_rpc_structured_access_list,
     is_rpc_structured_authorization_list,
 )
+from eth_account.datastructures import (
+    CustomPydanticModel,
+)
 from eth_account.types import (
     AccessList,
     AuthorizationList,
@@ -69,17 +72,39 @@ def set_transaction_type_if_needed(
     return transaction_dict
 
 
+def json_serialize_classes_in_transaction(val: Any) -> Any:
+    """
+    Serialize class objects in a transaction using expected defined instructions.
+    Pydantic models are serialized with:
+
+    - ``mode="json"``           Uses the json encoder to serialize the model.
+    - ``by_alias=True``:        Uses the alias generator to turn all non-excluded fields
+                                into lowerCamelCase dicts.
+    - ``exclude=val._exclude:   Fields excluded for serialization are defined within a
+                                ``_exclude`` property on the pydantic model.
+    """
+    if isinstance(val, CustomPydanticModel):
+        return val.recursive_model_dump()
+    elif isinstance(val, dict):
+        return {k: json_serialize_classes_in_transaction(v) for k, v in val.items()}
+    elif isinstance(val, (list, tuple)):
+        return val.__class__(json_serialize_classes_in_transaction(v) for v in val)
+    else:
+        return val
+
+
 # JSON-RPC to rlp transaction structure
 def transaction_rpc_to_rlp_structure(dictionary: Dict[str, Any]) -> Dict[str, Any]:
     """
     Convert a JSON-RPC-structured transaction to an rlp-structured transaction.
     """
     access_list = dictionary.get("accessList")
-    authorization_list = dictionary.get("authorizationList")
     if access_list:
         dictionary = dissoc(dictionary, "accessList")
         rlp_structured_access_list = _access_list_rpc_to_rlp_structure(access_list)
         dictionary = assoc(dictionary, "accessList", rlp_structured_access_list)
+
+    authorization_list = dictionary.get("authorizationList")
     if authorization_list:
         dictionary = dissoc(dictionary, "authorizationList")
         rlp_structured_authorization_list = _authorization_list_rpc_to_rlp_structure(
