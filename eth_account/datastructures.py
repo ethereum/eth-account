@@ -1,10 +1,10 @@
 from typing import (
     Any,
     NamedTuple,
+    Set,
     SupportsIndex,
     Tuple,
     Union,
-    cast,
     overload,
 )
 
@@ -12,7 +12,7 @@ from eth_keys.datatypes import (
     Signature,
 )
 from eth_typing import (
-    HexStr,
+    ChecksumAddress,
 )
 from eth_utils import (
     to_checksum_address,
@@ -27,10 +27,6 @@ from pydantic import (
 )
 from pydantic.alias_generators import (
     to_camel,
-)
-
-from eth_account.types import (
-    SignedAuthorizationDict,
 )
 
 
@@ -100,7 +96,57 @@ class SignedMessage(
             raise TypeError("Index must be an integer, slice, or string")
 
 
-class SignedSetCodeAuthorization(BaseModel):
+class CustomPydanticModel(BaseModel):
+    """
+    Classes inheriting from this base model need only define any excluded fields as
+    ``_exclude: Set[str]``. This base class includes the instructions for how nested
+    pydantic models should be json-serialized.
+    """
+
+    _exclude: Set[str] = set()
+
+    model_config = ConfigDict(
+        arbitrary_types_allowed=True,
+        populate_by_name=True,
+        alias_generator=to_camel,
+    )
+
+    def recursive_model_dump(self) -> Any:
+        """
+        Recursively serialize the model, respecting nested `_exclude` fields.
+        """
+        output = {}
+        for field_name, field_value in self:
+            if field_name in self._exclude:
+                continue
+            elif isinstance(field_value, CustomPydanticModel):
+                output_key = self.model_fields[field_name].alias
+                output[output_key] = field_value.recursive_model_dump()
+            elif isinstance(field_value, list):
+                output_key = self.model_fields[field_name].alias
+                output[output_key] = [
+                    (
+                        item.recursive_model_dump()
+                        if isinstance(item, CustomPydanticModel)
+                        else item
+                    )
+                    for item in field_value
+                ]
+            else:
+                output_key = self.model_fields[field_name].alias
+                serializer = getattr(self, f"serialize_{field_name}", None)
+                if serializer:
+                    if hasattr(serializer, "wrapped"):
+                        output[output_key] = serializer.wrapped(serializer, field_value)
+                    else:
+                        output[output_key] = serializer(field_value)
+                else:
+                    output[output_key] = field_value
+
+        return output
+
+
+class SignedSetCodeAuthorization(CustomPydanticModel):
     chain_id: int
     address: bytes
     nonce: int
@@ -110,23 +156,12 @@ class SignedSetCodeAuthorization(BaseModel):
     signature: Signature
     authorization_hash: HexBytes
 
-    _excludes = {"signature", "authorization_hash", "authority"}
+    _exclude = {"signature", "authorization_hash", "authority"}
 
-    model_config = ConfigDict(
-        arbitrary_types_allowed=True,  # `Signature` is not a standard type
-        populate_by_name=True,  # populate using snake_case
-        alias_generator=to_camel,
-    )
-
-    @field_serializer("address", when_used="json")
     @classmethod
-    def serialize_address(cls, value: bytes) -> str:
+    @field_serializer("address")
+    def serialize_address(cls, value: bytes) -> ChecksumAddress:
         return to_checksum_address(value)
-
-    @field_serializer("r", "s", when_used="json")
-    @classmethod
-    def serialize_bigint_as_hex(cls, value: int) -> HexStr:
-        return HexStr(hex(value))
 
     @property
     def authority(self) -> bytes:
@@ -141,9 +176,3 @@ class SignedSetCodeAuthorization(BaseModel):
         return self.signature.recover_public_key_from_msg_hash(
             self.authorization_hash
         ).to_canonical_address()
-
-    def as_rpc_object(self) -> SignedAuthorizationDict:
-        return cast(
-            SignedAuthorizationDict,
-            self.model_dump(mode="json", by_alias=True, exclude=self._excludes),
-        )

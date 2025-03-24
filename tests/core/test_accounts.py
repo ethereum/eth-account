@@ -28,9 +28,6 @@ from hypothesis import (
 from eth_account import (
     Account,
 )
-from eth_account._utils.validation import (
-    is_rpc_structured_authorization_list,
-)
 from eth_account.messages import (
     defunct_hash_message,
     encode_defunct,
@@ -948,10 +945,6 @@ def test_sign_authorization(acct):
         signed_auth.authorization_hash, vrs=signed_auth.signature.vrs
     ) == to_checksum_address(signed_auth.authority)
 
-    # assert we can plug this into `web3.py` as a valid JSON-RPC structured
-    # authorization list
-    assert is_rpc_structured_authorization_list([signed_auth.as_rpc_object()])
-
 
 def test_sign_authorization_from_local_acct():
     local_acct = Account.from_key(PRIVATE_KEY_AS_HEXSTR)
@@ -973,7 +966,3 @@ def test_sign_authorization_from_local_acct():
     assert Account._recover_hash(
         signed_auth.authorization_hash, vrs=signed_auth.signature.vrs
     ) == to_checksum_address(signed_auth.authority)
-
-    # assert we can plug this into `web3.py` as a valid JSON-RPC structured
-    # authorization list
-    assert is_rpc_structured_authorization_list([signed_auth.as_rpc_object()])
