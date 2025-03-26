@@ -3,6 +3,21 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.13.6 (2025-03-26)
+--------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Adds logic to interpret the string values ``"False"``, ``"false"``, and ``"0"`` as ``False`` when encoding EIP712 messages. (`#303 <https://github.com/ethereum/eth-account/issues/303>`__)
+
+
+Features
+~~~~~~~~
+
+- Implement EIP-7702 ``SetCodeTransaction``. (`#315 <https://github.com/ethereum/eth-account/issues/315>`__)
+
+
 eth-account v0.13.5 (2025-02-04)
 --------------------------------
 

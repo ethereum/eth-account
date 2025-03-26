@@ -1,1 +1,0 @@
-Adds logic to interpret the string values ``"False"``, ``"false"``, and ``"0"`` as ``False`` when encoding EIP712 messages.
