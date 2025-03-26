@@ -41,7 +41,7 @@ with open("./README.md") as readme:
 setup(
     name="eth-account",
     # *IMPORTANT*: Don't manually change the version here. See Contributing docs for the release process.
-    version="0.13.5",
+    version="0.13.6",
     description="""eth-account: Sign Ethereum transactions and messages with local private keys""",
     long_description=long_description,
     long_description_content_type="text/markdown",
