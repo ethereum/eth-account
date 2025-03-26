@@ -123,13 +123,16 @@ def test_generation_with_enum(lang, num_words):
     m = Mnemonic(lang)
     mnemonic = m.generate(num_words)
     assert m.is_mnemonic_valid(mnemonic)
-    # NOTE: Sometimes traditional chinese can return characters that are also
-    # valid simplified chinese characters. In that scenario, the detection
-    # algorithm will assume simplified.
-    if lang == Language("chinese_simplified"):
-        assert "chinese" in Mnemonic.detect_language(mnemonic).value
-    else:
+    try:
         assert Mnemonic.detect_language(mnemonic) == lang
+    except AssertionError:
+        if lang != Language.CHINESE_TRADITIONAL:
+            # NOTE: Sometimes traditional chinese can return characters that are also
+            # valid simplified chinese characters. In that scenario, the detection
+            # algorithm will assume simplified.
+            raise
+        assert Mnemonic.detect_language(mnemonic) == Language.CHINESE_SIMPLIFIED
+
     assert len(Mnemonic.to_seed(mnemonic)) == 64
 
 
@@ -140,13 +143,15 @@ def test_generation_with_string(lang, num_words):
         m = Mnemonic(lang)
     mnemonic = m.generate(num_words)
     assert m.is_mnemonic_valid(mnemonic)
-    # NOTE: Sometimes traditional chinese can return characters that are also
-    # valid simplified chinese characters. In that scenario, the detection
-    # algorithm will assume simplified.
-    if lang == "chinese_traditional":
-        assert "chinese" in Mnemonic.detect_language(mnemonic).value
-    else:
+    try:
         assert Mnemonic.detect_language(mnemonic) == Language(lang)
+    except AssertionError:
+        # NOTE: Sometimes traditional chinese can return characters that are also
+        # valid simplified chinese characters. In that scenario, the detection
+        # algorithm will assume simplified.
+        if lang != "chinese_traditional":
+            raise
+        assert Mnemonic.detect_language(mnemonic) == Language.CHINESE_SIMPLIFIED
     assert len(Mnemonic.to_seed(mnemonic)) == 64
 
 
