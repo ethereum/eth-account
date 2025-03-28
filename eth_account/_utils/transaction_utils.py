@@ -84,7 +84,7 @@ def json_serialize_classes_in_transaction(val: Any) -> Any:
                                 ``_exclude`` property on the pydantic model.
     """
     if isinstance(val, CustomPydanticModel):
-        return val.recursive_model_dump()
+        return val.model_dump(by_alias=True)
     elif isinstance(val, dict):
         return {k: json_serialize_classes_in_transaction(v) for k, v in val.items()}
     elif isinstance(val, (list, tuple)):
