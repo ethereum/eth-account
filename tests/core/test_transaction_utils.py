@@ -6,6 +6,7 @@ from eth_account._utils.transaction_utils import (
     json_serialize_classes_in_transaction,
 )
 from tests.core._test_utils import (
+    PYDANTIC_TEST_CLASS_JSON,
     PydanticTestClass,
 )
 
@@ -91,22 +92,4 @@ def test_class_serializer():
         {"testPydanticModel": PydanticTestClass()}
     )
 
-    assert serialized == {
-        "testPydanticModel": {
-            "intValue": 1,
-            "nestedModel": {
-                "intValue": 2,
-                "strValue": "3",
-                "authorizationList": [
-                    {
-                        "chainId": 22,
-                        "address": "0x" + "00" * 19 + "01",
-                        "nonce": 1999,
-                        "yParity": 1,
-                        "r": 123456789,
-                        "s": 987654321,
-                    }
-                ],
-            },
-        },
-    }
+    assert serialized == {"testPydanticModel": PYDANTIC_TEST_CLASS_JSON}
