@@ -6,7 +6,9 @@ from pydantic.alias_generators import (
 )
 
 from tests.core._test_utils import (
+    PYDANTIC_TEST_CLASS_JSON,
     TEST_SIGNED_AUTHORIZATION,
+    TEST_SIGNED_AUTHORIZATION_JSON,
     PydanticTestClass,
 )
 
@@ -14,37 +16,8 @@ from tests.core._test_utils import (
 @pytest.mark.parametrize(
     "pydantic_model,expected",
     (
-        (
-            TEST_SIGNED_AUTHORIZATION,
-            {
-                "chainId": 22,
-                "address": "0x" + "00" * 19 + "01",
-                "nonce": 1999,
-                "yParity": 1,
-                "r": 123456789,
-                "s": 987654321,
-            },
-        ),
-        (
-            PydanticTestClass(),
-            {
-                "intValue": 1,
-                "nestedModel": {
-                    "intValue": 2,
-                    "strValue": "3",
-                    "authorizationList": [
-                        {
-                            "chainId": 22,
-                            "address": "0x" + "00" * 19 + "01",
-                            "nonce": 1999,
-                            "yParity": 1,
-                            "r": 123456789,
-                            "s": 987654321,
-                        }
-                    ],
-                },
-            },
-        ),
+        (TEST_SIGNED_AUTHORIZATION, TEST_SIGNED_AUTHORIZATION_JSON),
+        (PydanticTestClass(), PYDANTIC_TEST_CLASS_JSON),
     ),
 )
 def test_pydantic_model_serialization(pydantic_model, expected):

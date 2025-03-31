@@ -27,6 +27,22 @@ TEST_SIGNED_AUTHORIZATION = SignedSetCodeAuthorization(
     signature=Signature(b"\x00" * 65),
     authorization_hash=HexBytes("0x"),
 )
+TEST_SIGNED_AUTHORIZATION_JSON = {
+    "chainId": 22,
+    "address": "0x" + "00" * 19 + "01",
+    "nonce": 1999,
+    "yParity": 1,
+    "r": 123456789,
+    "s": 987654321,
+}
+PYDANTIC_TEST_CLASS_JSON = {
+    "intValue": 1,
+    "nestedModel": {
+        "intValue": 2,
+        "strValue": "3",
+        "authorizationList": [TEST_SIGNED_AUTHORIZATION_JSON],
+    },
+}
 
 
 class PydanticTestClassInner(CustomPydanticModel):
