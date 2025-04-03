@@ -1086,28 +1086,30 @@ class Account(AccountLocalActions):
             >>> auth = {
             ...     "chainId": 1337,
             ...     "address": "0x5ce9454909639d2d17a3f753ce7d93fa0b9ab12e",
-            ...     "nonce": 0,
+            ...     # If the tx sender is the same as the authority, the nonce needs to be 1 higher than the current (transaction) nonce.
+            ...     # This is because the nonce is increased before tx execution and again when processing the authorization.
+            ...     "nonce": 1,
             ... }
 
             >>> signed_auth = Account.sign_authorization(auth, key)
             >>> signed_auth
             SignedSetCodeAuthorization(chain_id=1337,
              address=b'\\\xe9EI\tc\x9d-\x17\xa3\xf7S\xce}\x93\xfa\x0b\x9a\xb1.',
-             nonce=0,
+             nonce=1,
              y_parity=0,
-             r=13559089679153465389530080958732165835506259206033627652019224547096284912193,
-             s=4909893498344689684383026337158184903862784607939660326835239278207516636646,
-             signature='0x1dfa2c3c5b3bf61e364f7ce7ed744aef498fe26c981de726b139e0461c545a410adae6b7a1ff6137fb698a9973f4706cf8fe56aba87e8241b76042af587175e600',
-             authorization_hash=HexBytes('0x5a1bfd35dee8528cbcbe2dad796fec10b7ad15fa67ecc77c427d0d57bc5e2737'))
+             r=52163433520757118830640642673035732532535423029712132518776649895118143897479,
+             s=57576671166887700066365341925867052133948674355067837907255957076179513983345,
+             signature='0x735375048fc96b87390b5a11c411fc57245d8e55038bf49e659d048a0d1a3f877f4b3db448845cb217812f23c6b345e99f2d21c44ec10e93a8f039814167417100',
+             authorization_hash=HexBytes('0x9026f77ed6740d6d08f0cdc0591a86b2232700020a816718fbf760785e9ca2f2'))
 
             >>> tx = {
             ...     "gas": 100000,
             ...     "maxFeePerGas": 2000000000,
             ...     "maxPriorityFeePerGas": 2000000000,
-            ...     "data": "0x616263646566",
-            ...     "nonce": 34,
+            ...     "data": "0x252dba42",  # replace with calldata for the contract at the auth ``address``
+            ...     "nonce": 0,
             ...     "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
-            ...     "value": "0x5af3107a4000",
+            ...     "value": 0,
             ...     "accessList": (),
             ...     "authorizationList": [signed_auth],
             ...     "chainId": 1337,
