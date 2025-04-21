@@ -1,1 +1,0 @@
-Fix issues with the json schema generation for Pydantic models (``SignedSetCodeAuthorization``) and simplify the serialization by moving a misplaced ``@field_validator`` decorator above ``@classmethod`` (not below it).

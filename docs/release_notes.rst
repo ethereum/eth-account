@@ -3,6 +3,22 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.13.7 (2025-04-21)
+--------------------------------
+
+Bugfixes
+~~~~~~~~
+
+- Fix issues with the json schema generation for Pydantic models (``SignedSetCodeAuthorization``) and simplify the serialization by moving a misplaced ``@field_validator`` decorator above ``@classmethod`` (not below it). (`#318 <https://github.com/ethereum/eth-account/issues/318>`__)
+- Remove doc warnings and unwanted generated docs (`#321 <https://github.com/ethereum/eth-account/issues/321>`__)
+
+
+Improved Documentation
+~~~~~~~~~~~~~~~~~~~~~~
+
+- Update and clarify documentation for authorization signing. (`#319 <https://github.com/ethereum/eth-account/issues/319>`__)
+
+
 eth-account v0.13.6 (2025-03-26)
 --------------------------------
 
