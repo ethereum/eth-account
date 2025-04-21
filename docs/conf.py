@@ -53,7 +53,7 @@ master_doc = "index"
 
 # General information about the project.
 project = "eth-account"
-copyright = "2018-2023, The Ethereum Foundation"
+copyright = "2018-2025, The Ethereum Foundation"
 
 __version__ = setup_version
 # The version info for the project you're documenting, acts as replacement for
@@ -82,6 +82,7 @@ exclude_patterns = [
     "modules.rst",
     "eth_account.internal.rst",
     "eth_account.typed_transactions.blob_transactions.rst",
+    "tests",
 ]
 
 # The reST default role (used for this markup: `text`) to use for all
