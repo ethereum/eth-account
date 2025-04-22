@@ -1,0 +1,1 @@
+Move ``eth-keyfile`` dependency up to ``>=0.9.0`` to account for change in typing there.
