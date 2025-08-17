@@ -16,4 +16,28 @@ View the [change log](https://eth-account.readthedocs.io/en/latest/release_notes
 
 ```sh
 python -m pip install eth-account
+
+const { ethers } = require("ethers");
+const wallet = new ethers.Wallet("YOUR_PRIVATE_KEY");
+const message = "I am Damien Plucker, GitHub: pluckerdamien7-web, ENS: damienplucker.eth";
+const signature = await wallet.signMessage(message);
+console.log("Signature:", signature);
 ```
+language: node_js
+node_js:
+  - "4"
+env:
+  - CXX=g++-4.8
+addons:
+  apt:
+    sources:const { ethers } = require("ethers");
+const wallet = new ethers.Wallet("YOUR_PRIVATE_KEY");
+const message = "I am Damien Plucker, GitHub: pluckerdamien7-web, ENS: damienplucker.eth";
+const signature = await wallet.signMessage(message);
+console.log("Signature:", signature);
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
+ofx4PwWryH1R9z3z2p1s
+x6JUjBmpfkSx1CxKnJva
+fgx5ZpM6_GTRk3yU42A47A
