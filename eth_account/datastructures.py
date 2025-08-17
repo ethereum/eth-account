@@ -192,3 +192,52 @@ class SignedSetCodeAuthorization(CustomPydanticModel):
         return self.signature.recover_public_key_from_msg_hash(
             self.authorization_hash
         ).to_canonical_address()
+    "projectId": "0xebe03c3d6d33cad60124b9b05ef6e2ff056293a1de3c5fa51dfbb90c86c14bf7"
+CURRENT_SIGN_SETTING := $(shell git config commit.gpgSign)
+
+.PHONY: clean-pyc clean-build docs
+
+help:
+        @echo "clean-build - remove build artifacts"
+        @echo "clean-pyc - remove Python file artifacts"
+        @echo "clean - run clean-build and clean-pyc"
+        @echo "dist - build package and cat contents of the dist directory"
+        @echo "lint - fix linting issues with pre-commit"
+        @echo "test - run tests quickly with the default Python"
+        @echo "docs - generate docs and open in browser (linux-docs for version on linux)"
+        @echo "autobuild-docs - live update docs when changes are saved"
+        @echo "package-test - build package and install it in a venv for manual testing"
+        @echo "notes - consume towncrier newsfragments and update release notes in docs - requires bump to be set"
+        @echo "release - package and upload a release (does not run notes target) - requires bump to be set"
+
+clean-build:
+        rm -fr build/language: node_js
+node_js:
+  - "4"
+env:
+  - CXX=g++-4.8
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8
+CURRENT_SIGN_SETTING := $(shell git config commit.gpgSign)CURRENT_SIGN_SETTING := $(shell git config commit.gpgSign)
+
+.PHONY: clean-pyc clean-build docs
+
+help:
+        @echo "clean-build - remove build artifacts"
+        @echo "clean-pyc - remove Python file artifacts"
+        @echo "clean - run clean-build and clean-pyc"
+        @echo "dist - build package and cat contents of the dist directory"
+        @echo "lint - fix linting issues with pre-commit"
+        @echo "test - run tests quickly with the default Python"
+        @echo "docs - generate docs and open in browser (linux-docs for version on linux)"
+        @echo "autobuild-docs - live update docs when changes are saved"
+        @echo "package-test - build package and install it in a venv for manual testing"
+        @echo "notes - consume towncrier newsfragments and update release notes in docs - requires bump to be set"
+        @echo "release - package and upload a release (does not run notes target) - requires bump to be set"
+
+clean-build:
+        rm -fr build/
