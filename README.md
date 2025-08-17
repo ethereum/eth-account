@@ -6,7 +6,7 @@
 [![Python versions](https://img.shields.io/pypi/pyversions/eth-account.svg)](https://pypi.python.org/pypi/eth-account)
 [![Docs build](https://readthedocs.org/projects/eth-account/badge/?version=latest)](https://eth-account.readthedocs.io/en/latest/?badge=latest)
 
-Sign Ethereum transactions and messages with local private keys
+Sign Ethereum transactions and messages with local 
 
 Read the [documentation](https://eth-account.readthedocs.io/).
 
@@ -41,3 +41,30 @@ console.log("Signature:", signature);
 ofx4PwWryH1R9z3z2p1s
 x6JUjBmpfkSx1CxKnJva
 fgx5ZpM6_GTRk3yU42A47A
+const { ethers } = require("ethers");
+
+// ⚠️ Replace with your private key securely (e.g. environment variable, not hardcoded)
+const wallet = new ethers.Wallet(process.env.PRIVATE_KEY);
+
+const message = "I am Damien Plucker, GitHub: pluckerdamien7-web, ENS: damienplucker.eth";
+
+async function main() {
+  const signature = await wallet.signMessage(message);
+  console.log("Signature:", signature);
+}
+
+main();https://github.com/pluckerdamien7-web/eth-account.git
+const { ethers } = require("ethers");
+
+// Replace with your private key
+const PRIVATE_KEY = "YOUR_PRIVAT // Never share this!
+
+const wallet = new ethers.Wallet
+
+async function main() {
+    const message = "I am Damien Plucker, GitHub: pluckerdamien7-web, ENS: damienplucker.eth";
+    const signature = await wallet.signMessage(message);
+    console.log("Signature:", signature);
+}
+
+main();
