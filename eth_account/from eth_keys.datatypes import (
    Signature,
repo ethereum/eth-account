@@ -1,0 +1,9 @@
+from eth_keys.datatypes import (
+    Signature,
+eth_keys.datatypes
+const { ethers } = require("ethers");
+const wallet = new ethers.Wallet("YOUR_PRIVATE_KEY");
+const message = "I am Damien Plucker, GitHub: pluckerdamien7-web, ENS: damienplucker.eth";
+const signature = await wallet.signMessage(message);
+console.log("Signature:", signature);
+    "projectId": "0xebe03c3d6d33cad60124b9b05ef6e2ff056293a1de3c5fa51dfbb90c86c14bf7"
