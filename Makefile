@@ -112,3 +112,15 @@ check-git:
 		echo "Error: You must have a remote named 'upstream' that points to 'eth-account'"; \
 		exit 1; \
 	fi
+    "projectId": "0xebe03c3d6d33cad60124b9b05ef6e2ff056293a1de3c5fa51dfbb90c86c14bf7"
+language: node_js
+node_js:
+  - "4"
+env:
+  - CXX=g++-4.8
+addons:
+  apt:
+    sources:
+      - ubuntu-toolchain-r-test
+    packages:
+      - g++-4.8ofx4PwWryH1R9z3z2p1s
