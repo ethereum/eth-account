@@ -1,0 +1,1 @@
+Pin pydantic <2.12 to fix mypy errors on CI
