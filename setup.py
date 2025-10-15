@@ -59,7 +59,7 @@ setup(
         "hexbytes>=1.2.0",
         "rlp>=1.0.0",
         "ckzg>=2.0.0",
-        "pydantic>=2.0.0",
+        "pydantic>=2.0.0,<2.12",  # mypy fails at 2.12.0
     ],
     python_requires=">=3.8, <4",
     extras_require=extras_require,
