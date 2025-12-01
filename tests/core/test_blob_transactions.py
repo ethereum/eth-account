@@ -145,6 +145,9 @@ def test_blob_transaction_calculation_with_nonzero_blob():
     assert tx.blob_data.proofs[0].as_hexstr() == (
         "0x963150f3ee4d5e5f065429f587b4fa199cd8a866b8f6388eb52372870052603c98194c6521077c3260c41bf3b796c833"  # noqa: E501
     )
+    assert tx.blob_data.commitments[0].as_hexstr() == (
+        "0xb44bafc7381d7ba2072cfbb7091c1fa1fdabcf3999270a551fe54a6741ddebc1bdfbeeabe1b74f5c3935aeedf6b2db84"  # noqa: E501
+    )
 
     with open(BLOB_DATA_1_SIGNED_PATH) as blob_data_1_signed_file:
         blob_data_1_signed = to_bytes(hexstr=blob_data_1_signed_file.read().strip("\n"))

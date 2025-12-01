@@ -11,6 +11,7 @@ from typing import (
 from ckzg import (
     blob_to_kzg_commitment,
     compute_blob_kzg_proof,
+    compute_cells_and_kzg_proofs,
     load_trusted_setup,
 )
 from eth_typing import (
@@ -61,14 +62,18 @@ TYPED_TRANSACTION_FORMATTERS = merge(
                             (is_bytes, identity),
                         )
                     ),
-                    "storageKeys": apply_formatter_to_array(hexstr_if_str(to_int)),
+                    "storageKeys": apply_formatter_to_array(
+                        hexstr_if_str(to_int)
+                    ),
                 }
             ),
         ),
         "maxPriorityFeePerGas": hexstr_if_str(to_int),
         "maxFeePerGas": hexstr_if_str(to_int),
         "maxFeePerBlobGas": hexstr_if_str(to_int),
-        "blobVersionedHashes": apply_formatter_to_array(hexstr_if_str(to_bytes)),
+        "blobVersionedHashes": apply_formatter_to_array(
+            hexstr_if_str(to_bytes)
+        ),
         "authorizationList": apply_formatter_to_array(
             apply_formatters_to_dict(
                 {
@@ -133,7 +138,7 @@ class BlobKZGCommitment(_BlobDataElement):
     @field_validator("data")
     def validate_commitment(cls, v: HexBytes | bytes) -> HexBytes | bytes:
         if len(v) != 48:
-            raise ValidationError("Blob KZG Commitment must be 48 bytes long.")
+            raise ValidationError("Blob kzg commitment must be 48 bytes long.")
         return v
 
 
@@ -145,7 +150,21 @@ class BlobProof(_BlobDataElement):
     @field_validator("data")
     def validate_proof(cls, v: HexBytes | bytes) -> HexBytes | bytes:
         if len(v) != 48:
-            raise ValidationError("Blob Proof must be 48 bytes long.")
+            raise ValidationError("Blob proof must be 48 bytes long.")
+        return v
+
+
+class BlobCellProof(_BlobDataElement):
+    """
+    Represents a Blob Cell Proof.
+    """
+
+    @field_validator("data")
+    def validate_proof(
+        cls, v: Union[HexBytes, bytes]
+    ) -> Union[HexBytes, bytes]:
+        if len(v) != 48:
+            raise ValidationError("Blob cell proof must be 48 bytes long.")
         return v
 
 
@@ -157,10 +176,10 @@ class BlobVersionedHash(_BlobDataElement):
     @field_validator("data")
     def validate_versioned_hash(cls, v: HexBytes | bytes) -> HexBytes | bytes:
         if len(v) != 32:
-            raise ValidationError("Blob Versioned Hash must be 32 bytes long.")
+            raise ValidationError("Blob versioned hash must be 32 bytes long.")
         if v[:1] != VERSIONED_HASH_VERSION_KZG:
             raise ValidationError(
-                "Blob Versioned Hash must start with the KZG version byte."
+                "Blob versioned hash must start with the kzg version byte."
             )
         return v
 
@@ -176,10 +195,13 @@ class BlobPooledTransactionData(BaseModel):
     _versioned_hashes: list[BlobVersionedHash] | None = None
     _commitments: list[BlobKZGCommitment] | None = None
     _proofs: list[BlobProof] | None = None
+    _cell_proofs: Optional[List[BlobCellProof]] = None
 
     blobs: list[Blob]
 
-    def _kzg_to_versioned_hash(self, kzg_commitment: BlobKZGCommitment) -> bytes:
+    def _kzg_to_versioned_hash(
+        self, kzg_commitment: BlobKZGCommitment
+    ) -> bytes:
         return (
             self._versioned_hash_version_kzg
             + hashlib.sha256(kzg_commitment.data).digest()[1:]
@@ -188,9 +210,13 @@ class BlobPooledTransactionData(BaseModel):
     @field_validator("blobs")
     def validate_blobs(cls, v: list[Blob]) -> list[Blob]:
         if len(v) == 0:
-            raise ValidationError("Blob transactions must contain at least 1 blob.")
+            raise ValidationError(
+                "Blob transactions must contain at least 1 blob."
+            )
         elif len(v) > 6:
-            raise ValidationError("Blob transactions cannot contain more than 6 blobs.")
+            raise ValidationError(
+                "Blob transactions cannot contain more than 6 blobs."
+            )
         return v
 
     # type ignored bc mypy does not support decorated properties
@@ -244,6 +270,23 @@ class BlobPooledTransactionData(BaseModel):
                 for blob, commitment in zip(self.blobs, self.commitments)
             ]
         return self._proofs
+
+    # type ignored bc mypy does not support decorated properties
+    # https://github.com/python/mypy/issues/1362
+    @computed_field  # type: ignore
+    @property
+    def cell_proofs(self) -> List[BlobCellProof]:
+        if self._cell_proofs is None:
+            self._cell_proofs = []
+            for blob in self.blobs:
+                cells, cell_proofs = compute_cells_and_kzg_proofs(
+                    blob.data, load_trusted_setup(TRUSTED_SETUP, 0)
+                )
+                self._cell_proofs.extend(
+                    BlobCellProof(data=HexBytes(cell_proof))
+                    for cell_proof in cell_proofs
+                )
+        return self._cell_proofs
 
 
 class _TypedTransactionImplementation(ABC):
