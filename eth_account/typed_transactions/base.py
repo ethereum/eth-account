@@ -62,18 +62,14 @@ TYPED_TRANSACTION_FORMATTERS = merge(
                             (is_bytes, identity),
                         )
                     ),
-                    "storageKeys": apply_formatter_to_array(
-                        hexstr_if_str(to_int)
-                    ),
+                    "storageKeys": apply_formatter_to_array(hexstr_if_str(to_int)),
                 }
             ),
         ),
         "maxPriorityFeePerGas": hexstr_if_str(to_int),
         "maxFeePerGas": hexstr_if_str(to_int),
         "maxFeePerBlobGas": hexstr_if_str(to_int),
-        "blobVersionedHashes": apply_formatter_to_array(
-            hexstr_if_str(to_bytes)
-        ),
+        "blobVersionedHashes": apply_formatter_to_array(hexstr_if_str(to_bytes)),
         "authorizationList": apply_formatter_to_array(
             apply_formatters_to_dict(
                 {
@@ -160,9 +156,7 @@ class BlobCellProof(_BlobDataElement):
     """
 
     @field_validator("data")
-    def validate_proof(
-        cls, v: Union[HexBytes, bytes]
-    ) -> Union[HexBytes, bytes]:
+    def validate_proof(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
         if len(v) != 48:
             raise ValidationError("Blob cell proof must be 48 bytes long.")
         return v
@@ -187,8 +181,8 @@ class BlobVersionedHash(_BlobDataElement):
 class BlobPooledTransactionData(BaseModel):
     """
     Represents the blob data for a type 3 `PooledTransaction` as defined by
-    EIP-4844. This class takes blobs as bytes and computes the corresponding
-    commitments, proofs, and versioned hashes.
+    EIP-4844 and EIP-7594. This class takes blobs as bytes and computes the
+    corresponding commitments, proofs, cell_proofs, and versioned hashes.
     """
 
     _versioned_hash_version_kzg: bytes = VERSIONED_HASH_VERSION_KZG
@@ -199,9 +193,7 @@ class BlobPooledTransactionData(BaseModel):
 
     blobs: list[Blob]
 
-    def _kzg_to_versioned_hash(
-        self, kzg_commitment: BlobKZGCommitment
-    ) -> bytes:
+    def _kzg_to_versioned_hash(self, kzg_commitment: BlobKZGCommitment) -> bytes:
         return (
             self._versioned_hash_version_kzg
             + hashlib.sha256(kzg_commitment.data).digest()[1:]
@@ -210,13 +202,9 @@ class BlobPooledTransactionData(BaseModel):
     @field_validator("blobs")
     def validate_blobs(cls, v: list[Blob]) -> list[Blob]:
         if len(v) == 0:
-            raise ValidationError(
-                "Blob transactions must contain at least 1 blob."
-            )
+            raise ValidationError("Blob transactions must contain at least 1 blob.")
         elif len(v) > 6:
-            raise ValidationError(
-                "Blob transactions cannot contain more than 6 blobs."
-            )
+            raise ValidationError("Blob transactions cannot contain more than 6 blobs.")
         return v
 
     # type ignored bc mypy does not support decorated properties
