@@ -505,7 +505,9 @@ class Account(AccountLocalActions):
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
         """  # noqa: E501
         message_hash = _hash_eip191_message(signable_message)
-        return cast(ChecksumAddress, self._recover_hash(message_hash, vrs, signature))
+        return cast(
+            ChecksumAddress, self._recover_hash(message_hash, vrs, signature)
+        )
 
     @combomethod
     def _recover_hash(
@@ -523,12 +525,16 @@ class Account(AccountLocalActions):
             signature_obj = self._keys.Signature(vrs=(v_standard, r, s))
         elif signature is not None:
             signature_bytes = HexBytes(signature)
-            signature_bytes_standard = to_standard_signature_bytes(signature_bytes)
+            signature_bytes_standard = to_standard_signature_bytes(
+                signature_bytes
+            )
             signature_obj = self._keys.Signature(
                 signature_bytes=signature_bytes_standard
             )
         else:
-            raise TypeError("You must supply the vrs tuple or the signature bytes")
+            raise TypeError(
+                "You must supply the vrs tuple or the signature bytes"
+            )
         pubkey = signature_obj.recover_public_key_from_msg_hash(hash_bytes)
         return pubkey.to_checksum_address()
 
@@ -560,9 +566,13 @@ class Account(AccountLocalActions):
 
         txn = Transaction.from_bytes(txn_bytes)
         msg_hash = hash_of_signed_transaction(txn)
-        return cast(ChecksumAddress, self._recover_hash(msg_hash, vrs=vrs_from(txn)))
+        return cast(
+            ChecksumAddress, self._recover_hash(msg_hash, vrs=vrs_from(txn))
+        )
 
-    def set_key_backend(self, backend: CoinCurveECCBackend | NativeECCBackend) -> None:
+    def set_key_backend(
+        self, backend: CoinCurveECCBackend | NativeECCBackend
+    ) -> None:
         """
         Change the backend used by the underlying eth-keys library.
 
@@ -817,8 +827,8 @@ class Account(AccountLocalActions):
             >>> # The `blobVersionedHashes` transaction field is calculated from the `blobs` kwarg
             >>> signed_blob_tx = Account.sign_transaction(blob_transaction, key, blobs=[empty_blob])
             >>> signed_blob_tx
-            SignedTransaction(raw_transaction=HexBytes('0x03fa020147f8d98205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d97766098...00000000'),
-             hash=HexBytes('0xf9dc8867c4324fd7f4506622aa700989562770f01d7d681cef74a1a1deb9fea9'),
+            SignedTransaction(raw_transaction=HexBytes('0x03fa021999f8d98205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d97766098...00000000'),
+             hash=HexBytes('0x9b997e49d596e6f9ca50a47f35da508f575cd23cb822885872fca9444bc8739c'),
              r=14319949980593194209648175507603206696573324965145502821772573913457715875718,
              s=9129184742597516615341309773045281461399831333162885393648678700392065987233,
              v=1)
@@ -854,7 +864,9 @@ class Account(AccountLocalActions):
             r,
             s,
             encoded_transaction,
-        ) = sign_transaction_dict(account._key_obj, sanitized_transaction, blobs=blobs)
+        ) = sign_transaction_dict(
+            account._key_obj, sanitized_transaction, blobs=blobs
+        )
         transaction_hash = keccak(encoded_transaction)
 
         return SignedTransaction(
