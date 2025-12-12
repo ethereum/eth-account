@@ -343,6 +343,12 @@ jobs:
       - image: cimg/python:3.13
         environment:
           TOXENV: py313-integration
+  py314-integration:
+    <<: *integration
+    docker:
+      - image: cimg/python:3.14
+        environment:
+          TOXENV: py314-integration
 
 define: &all_jobs
   - docs
