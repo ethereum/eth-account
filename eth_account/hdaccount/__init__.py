@@ -21,7 +21,7 @@ from .mnemonic import (
 ETHEREUM_DEFAULT_PATH = "m/44'/60'/0'/0/0"
 
 
-def generate_mnemonic(num_words: int, lang: Union[Language, str]) -> str:
+def generate_mnemonic(num_words: int, lang: Language | str) -> str:
     return Mnemonic(lang).generate(num_words)
 
 

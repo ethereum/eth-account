@@ -1,7 +1,3 @@
-from typing import (
-    List,
-)
-
 from eth_keys.datatypes import (
     Signature,
 )
@@ -48,7 +44,7 @@ PYDANTIC_TEST_CLASS_JSON = {
 class PydanticTestClassInner(CustomPydanticModel):
     int_value: int = 2
     str_value: str = "3"
-    authorization_list: List[SignedSetCodeAuthorization] = [TEST_SIGNED_AUTHORIZATION]
+    authorization_list: list[SignedSetCodeAuthorization] = [TEST_SIGNED_AUTHORIZATION]
     excluded_field1: str = Field(default="4", exclude=True)
     excluded_field2: int = Field(default=5, exclude=True)
 

@@ -1,6 +1,4 @@
 from typing import (
-    Optional,
-    Tuple,
     cast,
 )
 
@@ -44,8 +42,8 @@ STRUCTURED_DATA_SIGN_VERSION = b"\x01"  # Hex value 0x01
 def sign_transaction_dict(
     eth_key: PrivateKey,
     transaction_dict: TransactionDictType,
-    blobs: Optional[Blobs] = None,
-) -> Tuple[int, int, int, bytes]:
+    blobs: Blobs | None = None,
+) -> tuple[int, int, int, bytes]:
     # generate RLP-serializable transaction, with defaults filled
     unsigned_transaction = serializable_unsigned_transaction_from_dict(
         transaction_dict, blobs=blobs
@@ -100,7 +98,7 @@ def hash_of_signed_transaction(txn_obj: Transaction) -> Bytes32:
     return signable_transaction.hash()
 
 
-def extract_chain_id(raw_v: int) -> Tuple[Optional[int], int]:
+def extract_chain_id(raw_v: int) -> tuple[int | None, int]:
     """
     Extracts chain ID, according to EIP-155.
 
@@ -135,7 +133,7 @@ def to_standard_v(enhanced_v: int) -> int:
     return v_standard
 
 
-def to_eth_v(v_raw: int, chain_id: Optional[int] = None) -> int:
+def to_eth_v(v_raw: int, chain_id: int | None = None) -> int:
     if chain_id is None:
         v = v_raw + V_OFFSET
     else:
@@ -144,8 +142,8 @@ def to_eth_v(v_raw: int, chain_id: Optional[int] = None) -> int:
 
 
 def sign_transaction_hash(
-    account: PrivateKey, transaction_hash: Bytes32, chain_id: Optional[int] = None
-) -> Tuple[int, int, int]:
+    account: PrivateKey, transaction_hash: Bytes32, chain_id: int | None = None
+) -> tuple[int, int, int]:
     signature = account.sign_msg_hash(transaction_hash)
     (v_raw, r, s) = signature.vrs
     v = to_eth_v(v_raw, chain_id)
@@ -169,7 +167,7 @@ def to_bytes32(val: int) -> Bytes32:
 
 def sign_message_hash(
     key: PrivateKey, msg_hash: Bytes32
-) -> Tuple[int, int, int, bytes]:
+) -> tuple[int, int, int, bytes]:
     signature = key.sign_msg_hash(msg_hash)
     (v_raw, r, s) = signature.vrs
     v = to_eth_v(v_raw)

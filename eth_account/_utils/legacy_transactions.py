@@ -1,12 +1,9 @@
+from collections.abc import (
+    Generator,
+)
 import itertools
 from typing import (
     Any,
-    Dict,
-    Generator,
-    List,
-    Optional,
-    Tuple,
-    Union,
     cast,
 )
 
@@ -69,8 +66,8 @@ class UnsignedTransaction(HashableRLP):
 
 
 def serializable_unsigned_transaction_from_dict(
-    transaction_dict: TransactionDictType, blobs: Optional[Blobs] = None
-) -> Union[TypedTransaction, Transaction, UnsignedTransaction]:
+    transaction_dict: TransactionDictType, blobs: Blobs | None = None
+) -> TypedTransaction | Transaction | UnsignedTransaction:
     transaction_dict = set_transaction_type_if_needed(transaction_dict)
     if "type" in transaction_dict:
         # We delegate to TypedTransaction, which will carry out validation & formatting.
@@ -96,8 +93,8 @@ def serializable_unsigned_transaction_from_dict(
 
 
 def encode_transaction(
-    unsigned_transaction: Union[UnsignedTransaction, TypedTransaction],
-    vrs: Tuple[int, int, int],
+    unsigned_transaction: UnsignedTransaction | TypedTransaction,
+    vrs: tuple[int, int, int],
 ) -> bytes:
     (v, r, s) = vrs
     chain_naive_transaction = dissoc(unsigned_transaction.as_dict(), "v", "r", "s")
@@ -157,7 +154,7 @@ def assert_valid_fields(transaction_dict: TransactionDictType) -> None:
         )
 
     # check for valid types in each field
-    valid_fields: Dict[str, bool]
+    valid_fields: dict[str, bool]
     valid_fields = apply_formatters_to_dict(
         LEGACY_TRANSACTION_VALID_VALUES, transaction_dict
     )
@@ -170,7 +167,7 @@ def assert_valid_fields(transaction_dict: TransactionDictType) -> None:
         raise TypeError(f"Transaction had invalid fields: {repr(invalid)}")
 
 
-def chain_id_to_v(transaction_dict: TransactionDictType) -> Dict[str, Any]:
+def chain_id_to_v(transaction_dict: TransactionDictType) -> dict[str, Any]:
     # See EIP 155
     chain_id = transaction_dict.pop("chainId")
     if chain_id is None:
@@ -190,7 +187,7 @@ def fill_transaction_defaults(
 ChainAwareUnsignedTransaction = Transaction
 
 
-def strip_signature(transaction: Transaction) -> List[Union[int, bytes]]:
+def strip_signature(transaction: Transaction) -> list[int | bytes]:
     unsigned_parts = itertools.islice(transaction, len(UNSIGNED_TRANSACTION_FIELDS))
     return list(unsigned_parts)
 

@@ -8,11 +8,7 @@ import json
 import os
 from typing import (
     Any,
-    Dict,
-    Optional,
-    Tuple,
     TypeVar,
-    Union,
     cast,
 )
 
@@ -136,7 +132,7 @@ class Account(AccountLocalActions):
         cls._use_unaudited_hdwallet_features = True
 
     @combomethod
-    def create(self, extra_entropy: Union[str, bytes, int] = "") -> LocalAccount:
+    def create(self, extra_entropy: str | bytes | int = "") -> LocalAccount:
         r"""
         Creates a new private key, and returns it as a
         :class:`~eth_account.local.LocalAccount`.
@@ -165,7 +161,7 @@ class Account(AccountLocalActions):
         return cast(LocalAccount, self.from_key(key_bytes))
 
     @staticmethod
-    def decrypt(keyfile_json: Union[str, Dict[str, Any]], password: str) -> HexBytes:
+    def decrypt(keyfile_json: str | dict[str, Any], password: str) -> HexBytes:
         """
         Decrypts a private key.
 
@@ -218,9 +214,9 @@ class Account(AccountLocalActions):
         cls,
         private_key: PrivateKeyType,
         password: str,
-        kdf: Optional[KDFType] = None,
-        iterations: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        kdf: KDFType | None = None,
+        iterations: int | None = None,
+    ) -> dict[str, Any]:
         """
         Creates a dictionary with an encrypted version of your private key.
         To import this keyfile into Ethereum clients like geth and parity:
@@ -388,9 +384,9 @@ class Account(AccountLocalActions):
         self,
         passphrase: str = "",
         num_words: int = 12,
-        language: Union[Language, str] = Language.ENGLISH,
+        language: Language | str = Language.ENGLISH,
         account_path: str = ETHEREUM_DEFAULT_PATH,
-    ) -> Tuple[LocalAccount, str]:
+    ) -> tuple[LocalAccount, str]:
         r"""
         Create a new private key and related mnemonic.
 
@@ -443,8 +439,8 @@ class Account(AccountLocalActions):
     def recover_message(
         self,
         signable_message: SignableMessage,
-        vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
-        signature: Optional[bytes] = None,
+        vrs: tuple[VRS, VRS, VRS] | None = None,
+        signature: bytes | None = None,
     ) -> ChecksumAddress:
         r"""
         Get the address of the account that signed the given message.
@@ -515,8 +511,8 @@ class Account(AccountLocalActions):
     def _recover_hash(
         self,
         message_hash: Hash32,
-        vrs: Optional[Tuple[VRS, VRS, VRS]] = None,
-        signature: Optional[bytes] = None,
+        vrs: tuple[VRS, VRS, VRS] | None = None,
+        signature: bytes | None = None,
     ) -> ChecksumAddress:
         hash_bytes = HexBytes(message_hash)
         if len(hash_bytes) != 32:
@@ -538,7 +534,7 @@ class Account(AccountLocalActions):
 
     @combomethod
     def recover_transaction(
-        self, serialized_transaction: Union[HexStr, bytes, int]
+        self, serialized_transaction: HexStr | bytes | int
     ) -> ChecksumAddress:
         """
         Get the address of the account that signed this transaction.
@@ -566,9 +562,7 @@ class Account(AccountLocalActions):
         msg_hash = hash_of_signed_transaction(txn)
         return cast(ChecksumAddress, self._recover_hash(msg_hash, vrs=vrs_from(txn)))
 
-    def set_key_backend(
-        self, backend: Union[CoinCurveECCBackend, NativeECCBackend]
-    ) -> None:
+    def set_key_backend(self, backend: CoinCurveECCBackend | NativeECCBackend) -> None:
         """
         Change the backend used by the underlying eth-keys library.
 
@@ -633,7 +627,7 @@ class Account(AccountLocalActions):
 
     @combomethod
     def unsafe_sign_hash(
-        self, message_hash: Union[HexStr, bytes, int], private_key: PrivateKeyType
+        self, message_hash: HexStr | bytes | int, private_key: PrivateKeyType
     ) -> SignedMessage:
         """
         Sign the provided hash.
@@ -680,7 +674,7 @@ class Account(AccountLocalActions):
         self,
         transaction_dict: TransactionDictType,
         private_key: PrivateKeyType,
-        blobs: Optional[Blobs] = None,
+        blobs: Blobs | None = None,
     ) -> SignedTransaction:
         r"""
         Sign a transaction using a local private key.
@@ -905,10 +899,10 @@ class Account(AccountLocalActions):
     def sign_typed_data(
         self,
         private_key: PrivateKeyType,
-        domain_data: Optional[Dict[str, Any]] = None,
-        message_types: Optional[Dict[str, Any]] = None,
-        message_data: Optional[Dict[str, Any]] = None,
-        full_message: Optional[Dict[str, Any]] = None,
+        domain_data: dict[str, Any] | None = None,
+        message_types: dict[str, Any] | None = None,
+        message_data: dict[str, Any] | None = None,
+        full_message: dict[str, Any] | None = None,
     ) -> SignedMessage:
         r"""
         Sign the provided EIP-712 message with the provided key.

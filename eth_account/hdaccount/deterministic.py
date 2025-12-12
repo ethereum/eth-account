@@ -46,8 +46,6 @@ Definitions
 #   This presents a simplified API, and no expectation is given for `xpub/xpriv`
 #   key derivation.
 from typing import (
-    Tuple,
-    Type,
     Union,
 )
 
@@ -100,7 +98,7 @@ class Node(int):
         if len(node) < 1:
             raise ValidationError("Cannot use empty string")
 
-        node_class: Union[Type["SoftNode"], Type["HardNode"]]
+        node_class: type["SoftNode"] | type["HardNode"]
         if node[-1] in HARD_NODE_SUFFIXES:
             node_class = HardNode
             node_index = node[:-1]
@@ -138,7 +136,7 @@ def derive_child_key(
     parent_key: bytes,
     parent_chain_code: bytes,
     node: Node,
-) -> Tuple[bytes, bytes]:
+) -> tuple[bytes, bytes]:
     """
     Compute a derivative key from the parent key.
 

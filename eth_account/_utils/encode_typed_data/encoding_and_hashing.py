@@ -1,11 +1,5 @@
 from typing import (
     Any,
-    Dict,
-    List,
-    Optional,
-    Set,
-    Tuple,
-    Union,
 )
 
 from eth_abi import (
@@ -26,7 +20,7 @@ from eth_account._utils.encode_typed_data.helpers import (
 )
 
 
-def get_primary_type(types: Dict[str, List[Dict[str, str]]]) -> str:
+def get_primary_type(types: dict[str, list[dict[str, str]]]) -> str:
     custom_types = set(types.keys())
     custom_types_that_are_deps = set()
 
@@ -45,11 +39,11 @@ def get_primary_type(types: Dict[str, List[Dict[str, str]]]) -> str:
 
 
 def encode_field(
-    types: Dict[str, List[Dict[str, str]]],
+    types: dict[str, list[dict[str, str]]],
     name: str,
     type_: str,
     value: Any,
-) -> Tuple[str, Union[int, bytes]]:
+) -> tuple[str, int | bytes]:
     if type_ in types.keys():
         # type is a custom type
         if value is None:
@@ -130,9 +124,9 @@ def encode_field(
 
 def find_type_dependencies(
     type_: str,
-    types: Dict[str, List[Dict[str, str]]],
-    results: Optional[Set[str]] = None,
-) -> Set[str]:
+    types: dict[str, list[dict[str, str]]],
+    results: set[str] | None = None,
+) -> set[str]:
     if results is None:
         results = set()
 
@@ -164,7 +158,7 @@ def find_type_dependencies(
     return results
 
 
-def encode_type(type_: str, types: Dict[str, List[Dict[str, str]]]) -> str:
+def encode_type(type_: str, types: dict[str, list[dict[str, str]]]) -> str:
     result = ""
     unsorted_deps = find_type_dependencies(type_, types)
     if type_ in unsorted_deps:
@@ -183,17 +177,17 @@ def encode_type(type_: str, types: Dict[str, List[Dict[str, str]]]) -> str:
     return result
 
 
-def hash_type(type_: str, types: Dict[str, List[Dict[str, str]]]) -> bytes:
+def hash_type(type_: str, types: dict[str, list[dict[str, str]]]) -> bytes:
     return bytes(keccak(text=encode_type(type_, types)))
 
 
 def encode_data(
     type_: str,
-    types: Dict[str, List[Dict[str, str]]],
-    data: Dict[str, Any],
+    types: dict[str, list[dict[str, str]]],
+    data: dict[str, Any],
 ) -> bytes:
-    encoded_types: List[str] = ["bytes32"]
-    encoded_values: List[Union[bytes, int]] = [hash_type(type_, types)]
+    encoded_types: list[str] = ["bytes32"]
+    encoded_values: list[bytes | int] = [hash_type(type_, types)]
 
     for field in types[type_]:
         type, value = encode_field(
@@ -207,8 +201,8 @@ def encode_data(
 
 def hash_struct(
     type_: str,
-    types: Dict[str, List[Dict[str, str]]],
-    data: Dict[str, Any],
+    types: dict[str, list[dict[str, str]]],
+    data: dict[str, Any],
 ) -> bytes:
     encoded = encode_data(type_, types, data)
     return bytes(keccak(encoded))
@@ -216,14 +210,14 @@ def hash_struct(
 
 def hash_eip712_message(
     # returns the same hash as `hash_struct`, but automatically determines primary type
-    message_types: Dict[str, List[Dict[str, str]]],
-    message_data: Dict[str, Any],
+    message_types: dict[str, list[dict[str, str]]],
+    message_data: dict[str, Any],
 ) -> bytes:
     primary_type = get_primary_type(message_types)
     return bytes(keccak(encode_data(primary_type, message_types, message_data)))
 
 
-def hash_domain(domain_data: Dict[str, Any]) -> bytes:
+def hash_domain(domain_data: dict[str, Any]) -> bytes:
     eip712_domain_map = {
         "name": {"name": "name", "type": "string"},
         "version": {"name": "version", "type": "string"},

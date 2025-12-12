@@ -6,11 +6,6 @@ import hashlib
 import os
 from typing import (
     Any,
-    Dict,
-    List,
-    Optional,
-    Tuple,
-    Union,
 )
 
 from ckzg import (
@@ -121,7 +116,7 @@ class Blob(_BlobDataElement):
     """
 
     @field_validator("data")
-    def validate_data(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
+    def validate_data(cls, v: HexBytes | bytes) -> HexBytes | bytes:
         if len(v) != 4096 * 32:
             raise ValidationError(
                 "Invalid Blob size. Blob data must be comprised of 4096 32-byte "
@@ -136,7 +131,7 @@ class BlobKZGCommitment(_BlobDataElement):
     """
 
     @field_validator("data")
-    def validate_commitment(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
+    def validate_commitment(cls, v: HexBytes | bytes) -> HexBytes | bytes:
         if len(v) != 48:
             raise ValidationError("Blob KZG Commitment must be 48 bytes long.")
         return v
@@ -148,7 +143,7 @@ class BlobProof(_BlobDataElement):
     """
 
     @field_validator("data")
-    def validate_proof(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
+    def validate_proof(cls, v: HexBytes | bytes) -> HexBytes | bytes:
         if len(v) != 48:
             raise ValidationError("Blob Proof must be 48 bytes long.")
         return v
@@ -160,9 +155,7 @@ class BlobVersionedHash(_BlobDataElement):
     """
 
     @field_validator("data")
-    def validate_versioned_hash(
-        cls, v: Union[HexBytes, bytes]
-    ) -> Union[HexBytes, bytes]:
+    def validate_versioned_hash(cls, v: HexBytes | bytes) -> HexBytes | bytes:
         if len(v) != 32:
             raise ValidationError("Blob Versioned Hash must be 32 bytes long.")
         if v[:1] != VERSIONED_HASH_VERSION_KZG:
@@ -180,11 +173,11 @@ class BlobPooledTransactionData(BaseModel):
     """
 
     _versioned_hash_version_kzg: bytes = VERSIONED_HASH_VERSION_KZG
-    _versioned_hashes: Optional[List[BlobVersionedHash]] = None
-    _commitments: Optional[List[BlobKZGCommitment]] = None
-    _proofs: Optional[List[BlobProof]] = None
+    _versioned_hashes: list[BlobVersionedHash] | None = None
+    _commitments: list[BlobKZGCommitment] | None = None
+    _proofs: list[BlobProof] | None = None
 
-    blobs: List[Blob]
+    blobs: list[Blob]
 
     def _kzg_to_versioned_hash(self, kzg_commitment: BlobKZGCommitment) -> bytes:
         return (
@@ -193,7 +186,7 @@ class BlobPooledTransactionData(BaseModel):
         )
 
     @field_validator("blobs")
-    def validate_blobs(cls, v: List[Blob]) -> List[Blob]:
+    def validate_blobs(cls, v: list[Blob]) -> list[Blob]:
         if len(v) == 0:
             raise ValidationError("Blob transactions must contain at least 1 blob.")
         elif len(v) > 6:
@@ -204,7 +197,7 @@ class BlobPooledTransactionData(BaseModel):
     # https://github.com/python/mypy/issues/1362
     @computed_field  # type: ignore
     @property
-    def versioned_hashes(self) -> List[BlobVersionedHash]:
+    def versioned_hashes(self) -> list[BlobVersionedHash]:
         if self._versioned_hashes is None:
             self._versioned_hashes = [
                 BlobVersionedHash(
@@ -218,7 +211,7 @@ class BlobPooledTransactionData(BaseModel):
     # https://github.com/python/mypy/issues/1362
     @computed_field  # type: ignore
     @property
-    def commitments(self) -> List[BlobKZGCommitment]:
+    def commitments(self) -> list[BlobKZGCommitment]:
         if self._commitments is None:
             self._commitments = [
                 BlobKZGCommitment(
@@ -236,7 +229,7 @@ class BlobPooledTransactionData(BaseModel):
     # https://github.com/python/mypy/issues/1362
     @computed_field  # type: ignore
     @property
-    def proofs(self) -> List[BlobProof]:
+    def proofs(self) -> list[BlobProof]:
         if self._proofs is None:
             self._proofs = [
                 BlobProof(
@@ -259,7 +252,7 @@ class _TypedTransactionImplementation(ABC):
     Should not be imported or used by clients of the library.
     """
 
-    blob_data: Optional[BlobPooledTransactionData] = None
+    blob_data: BlobPooledTransactionData | None = None
 
     @abstractmethod
     def hash(self) -> bytes:
@@ -270,9 +263,9 @@ class _TypedTransactionImplementation(ABC):
         pass
 
     @abstractmethod
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         pass
 
     @abstractmethod
-    def vrs(self) -> Tuple[int, int, int]:
+    def vrs(self) -> tuple[int, int, int]:
         pass

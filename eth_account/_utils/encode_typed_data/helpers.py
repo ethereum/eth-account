@@ -1,6 +1,5 @@
 from typing import (
     Any,
-    List,
 )
 
 from eth_utils import (
@@ -8,7 +7,7 @@ from eth_utils import (
 )
 
 
-def _get_eip712_solidity_types() -> List[str]:
+def _get_eip712_solidity_types() -> list[str]:
     types = ["bool", "address", "string", "bytes", "uint", "int"]
     ints = [f"int{(x + 1) * 8}" for x in range(32)]
     uints = [f"uint{(x + 1) * 8}" for x in range(32)]

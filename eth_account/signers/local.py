@@ -1,7 +1,5 @@
 from typing import (
     Any,
-    Dict,
-    Optional,
     cast,
 )
 
@@ -90,9 +88,9 @@ class LocalAccount(BaseAccount):
     def encrypt(
         self,
         password: str,
-        kdf: Optional[KDFType] = None,
-        iterations: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        kdf: KDFType | None = None,
+        iterations: int | None = None,
+    ) -> dict[str, Any]:
         """
         Generate a string with the encrypted key.
 
@@ -127,7 +125,7 @@ class LocalAccount(BaseAccount):
         )
 
     def sign_transaction(
-        self, transaction_dict: TransactionDictType, blobs: Optional[Blobs] = None
+        self, transaction_dict: TransactionDictType, blobs: Blobs | None = None
     ) -> SignedTransaction:
         return cast(
             SignedTransaction,
@@ -136,10 +134,10 @@ class LocalAccount(BaseAccount):
 
     def sign_typed_data(
         self,
-        domain_data: Optional[Dict[str, Any]] = None,
-        message_types: Optional[Dict[str, Any]] = None,
-        message_data: Optional[Dict[str, Any]] = None,
-        full_message: Optional[Dict[str, Any]] = None,
+        domain_data: dict[str, Any] | None = None,
+        message_types: dict[str, Any] | None = None,
+        message_data: dict[str, Any] | None = None,
+        full_message: dict[str, Any] | None = None,
     ) -> SignedMessage:
         """
         Sign the provided EIP-712 message with the local private key.
@@ -159,7 +157,7 @@ class LocalAccount(BaseAccount):
             ),
         )
 
-    def sign_authorization(self, authorization: Dict[str, Any]) -> SignedMessage:
+    def sign_authorization(self, authorization: dict[str, Any]) -> SignedMessage:
         return cast(
             SignedMessage,
             self._publicapi.sign_authorization(authorization, private_key=self.key),

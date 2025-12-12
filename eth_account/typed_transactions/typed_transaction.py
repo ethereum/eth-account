@@ -1,8 +1,5 @@
 from typing import (
     Any,
-    Dict,
-    Optional,
-    Tuple,
     Union,
 )
 
@@ -72,13 +69,13 @@ class TypedTransaction:
         self.transaction = transaction
 
     @property
-    def blob_data(self) -> Optional[BlobPooledTransactionData]:
+    def blob_data(self) -> BlobPooledTransactionData | None:
         """Returns the blobs associated with this transaction."""
         return self.transaction.blob_data
 
     @classmethod
     def from_dict(
-        cls, dictionary: Dict[str, Any], blobs: Optional[Blobs] = None
+        cls, dictionary: dict[str, Any], blobs: Blobs | None = None
     ) -> "TypedTransaction":
         """
         Builds a TypedTransaction from a dictionary.
@@ -167,10 +164,10 @@ class TypedTransaction:
         """
         return bytes([self.transaction_type]) + self.transaction.payload()
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """Returns this transaction as a dictionary."""
         return normalize_transaction_dict(self.transaction.as_dict())
 
-    def vrs(self) -> Tuple[int, int, int]:
+    def vrs(self) -> tuple[int, int, int]:
         """Returns (v, r, s) if they exist."""
         return self.transaction.vrs()
