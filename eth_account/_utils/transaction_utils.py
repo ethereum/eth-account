@@ -1,6 +1,5 @@
 from typing import (
     Any,
-    Dict,
 )
 
 from toolz import (
@@ -26,7 +25,7 @@ from eth_account.types import (
 )
 
 
-def normalize_transaction_dict(txn_dict: Dict[str, Any]) -> Dict[str, Any]:
+def normalize_transaction_dict(txn_dict: dict[str, Any]) -> dict[str, Any]:
     """
     Normalizes a transaction dictionary.
     """
@@ -94,7 +93,7 @@ def json_serialize_classes_in_transaction(val: Any) -> Any:
 
 
 # JSON-RPC to rlp transaction structure
-def transaction_rpc_to_rlp_structure(dictionary: Dict[str, Any]) -> Dict[str, Any]:
+def transaction_rpc_to_rlp_structure(dictionary: dict[str, Any]) -> dict[str, Any]:
     """
     Convert a JSON-RPC-structured transaction to an rlp-structured transaction.
     """
@@ -128,7 +127,7 @@ def _access_list_rpc_to_rlp_structure(
     return tuple(
         (
             d["address"],  # value of address
-            tuple(_ for _ in d["storageKeys"]),  # tuple of storage key values
+            tuple(d["storageKeys"]),  # tuple of storage key values
         )
         for d in access_list
     )
@@ -156,7 +155,7 @@ def _authorization_list_rpc_to_rlp_structure(
 
 
 # rlp to JSON-RPC transaction structure
-def transaction_rlp_to_rpc_structure(dictionary: Dict[str, Any]) -> Dict[str, Any]:
+def transaction_rlp_to_rpc_structure(dictionary: dict[str, Any]) -> dict[str, Any]:
     """
     Convert an rlp-structured transaction to a JSON-RPC-structured transaction.
     """

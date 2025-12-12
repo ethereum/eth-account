@@ -1,9 +1,6 @@
 from typing import (
     Any,
-    Dict,
     NamedTuple,
-    Optional,
-    Union,
 )
 
 from eth_typing import (
@@ -72,11 +69,11 @@ def _hash_eip191_message(signable_message: SignableMessage) -> Hash32:
 
 # watch for updates to signature format
 def encode_intended_validator(
-    validator_address: Union[Address, str],
-    primitive: Optional[bytes] = None,
+    validator_address: Address | str,
+    primitive: bytes | None = None,
     *,
-    hexstr: Optional[str] = None,
-    text: Optional[str] = None,
+    hexstr: str | None = None,
+    text: str | None = None,
 ) -> SignableMessage:
     """
     Encode a message using the "intended validator" approach (ie~ version 0)
@@ -115,10 +112,10 @@ def encode_intended_validator(
 
 
 def encode_defunct(
-    primitive: Optional[bytes] = None,
+    primitive: bytes | None = None,
     *,
-    hexstr: Optional[str] = None,
-    text: Optional[str] = None,
+    hexstr: str | None = None,
+    text: str | None = None,
 ) -> SignableMessage:
     r"""
     Encode a message for signing, using an old, unrecommended approach.
@@ -189,10 +186,10 @@ def encode_defunct(
 
 
 def defunct_hash_message(
-    primitive: Optional[bytes] = None,
+    primitive: bytes | None = None,
     *,
-    hexstr: Optional[str] = None,
-    text: Optional[str] = None,
+    hexstr: str | None = None,
+    text: str | None = None,
 ) -> HexBytes:
     """
     Convert the provided message into a message hash, to be signed.
@@ -214,10 +211,10 @@ def defunct_hash_message(
 
 
 def encode_typed_data(
-    domain_data: Optional[Dict[str, Any]] = None,
-    message_types: Optional[Dict[str, Any]] = None,
-    message_data: Optional[Dict[str, Any]] = None,
-    full_message: Optional[Dict[str, Any]] = None,
+    domain_data: dict[str, Any] | None = None,
+    message_types: dict[str, Any] | None = None,
+    message_data: dict[str, Any] | None = None,
+    full_message: dict[str, Any] | None = None,
 ) -> SignableMessage:
     r"""
     Encode an EIP-712_ message in a manner compatible with other implementations

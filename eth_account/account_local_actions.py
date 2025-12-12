@@ -4,9 +4,6 @@ from abc import (
 )
 from typing import (
     Any,
-    Dict,
-    Optional,
-    Union,
 )
 
 from eth_keyfile.keyfile import (
@@ -43,16 +40,16 @@ class AccountLocalActions(ABC):
         self,
         private_key: PrivateKeyType,
         password: str,
-        kdf: Optional[KDFType] = None,
-        iterations: Optional[int] = None,
-    ) -> Dict[str, Any]:
+        kdf: KDFType | None = None,
+        iterations: int | None = None,
+    ) -> dict[str, Any]:
         pass
 
     @combomethod
     @abstractmethod
     def unsafe_sign_hash(
         self,
-        message_hash: Union[HexStr, bytes, int],
+        message_hash: HexStr | bytes | int,
         private_key: PrivateKeyType,
     ) -> SignedMessage:
         pass
@@ -72,7 +69,7 @@ class AccountLocalActions(ABC):
         self,
         transaction_dict: TransactionDictType,
         private_key: PrivateKeyType,
-        blobs: Optional[Blobs] = None,
+        blobs: Blobs | None = None,
     ) -> SignedTransaction:
         pass
 
@@ -81,10 +78,10 @@ class AccountLocalActions(ABC):
     def sign_typed_data(
         self,
         private_key: PrivateKeyType,
-        domain_data: Optional[Dict[str, Any]] = None,
-        message_types: Optional[Dict[str, Any]] = None,
-        message_data: Optional[Dict[str, Any]] = None,
-        full_message: Optional[Dict[str, Any]] = None,
+        domain_data: dict[str, Any] | None = None,
+        message_types: dict[str, Any] | None = None,
+        message_data: dict[str, Any] | None = None,
+        full_message: dict[str, Any] | None = None,
     ) -> SignedMessage:
         pass
 
@@ -93,6 +90,6 @@ class AccountLocalActions(ABC):
     def sign_authorization(
         self,
         private_key: PrivateKeyType,
-        authorization: Dict[str, Any],
+        authorization: dict[str, Any],
     ) -> SignedAuthorization:
         pass

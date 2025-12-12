@@ -1,11 +1,7 @@
 from typing import (
     Any,
-    Dict,
     NamedTuple,
     SupportsIndex,
-    Tuple,
-    Type,
-    Union,
     overload,
 )
 import warnings
@@ -60,14 +56,14 @@ class SignedTransaction(
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> Tuple[Any, ...]:
+    def __getitem__(self, index: slice) -> tuple[Any, ...]:
         ...
 
     @overload
     def __getitem__(self, index: str) -> Any:
         ...
 
-    def __getitem__(self, index: Union[SupportsIndex, slice, str]) -> Any:
+    def __getitem__(self, index: SupportsIndex | slice | str) -> Any:
         if isinstance(index, (int, slice)):
             return super().__getitem__(index)
         elif isinstance(index, str):
@@ -93,14 +89,14 @@ class SignedMessage(
         ...
 
     @overload
-    def __getitem__(self, index: slice) -> Tuple[Any, ...]:
+    def __getitem__(self, index: slice) -> tuple[Any, ...]:
         ...
 
     @overload
     def __getitem__(self, index: str) -> Any:
         ...
 
-    def __getitem__(self, index: Union[SupportsIndex, slice, str]) -> Any:
+    def __getitem__(self, index: SupportsIndex | slice | str) -> Any:
         if isinstance(index, (int, slice)):
             return super().__getitem__(index)
         elif isinstance(index, str):
@@ -149,10 +145,10 @@ class CustomPydanticModel(BaseModel):
         by_alias: bool = True,
         ref_template: str = DEFAULT_REF_TEMPLATE,
         # default to ``OmitJsonSchema`` to prevent errors from excluded fields
-        schema_generator: Type[GenerateJsonSchema] = OmitJsonSchema,
+        schema_generator: type[GenerateJsonSchema] = OmitJsonSchema,
         mode: JsonSchemaMode = "validation",
         **kwargs: Any,
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Omits excluded fields from the JSON schema, preventing errors that would
         otherwise be raised by the default schema generator.

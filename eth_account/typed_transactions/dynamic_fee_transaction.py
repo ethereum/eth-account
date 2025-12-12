@@ -1,8 +1,5 @@
 from typing import (
     Any,
-    Dict,
-    Optional,
-    Tuple,
     cast,
 )
 
@@ -104,11 +101,11 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         },
     )
 
-    def __init__(self, dictionary: Dict[str, Any]):
+    def __init__(self, dictionary: dict[str, Any]):
         self.dictionary = dictionary
 
     @classmethod
-    def assert_valid_fields(cls, dictionary: Dict[str, Any]) -> None:
+    def assert_valid_fields(cls, dictionary: dict[str, Any]) -> None:
         transaction_valid_values = merge(
             LEGACY_TRANSACTION_VALID_VALUES,
             {
@@ -128,7 +125,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         valid_fields = apply_formatters_to_dict(
             transaction_valid_values,
             dictionary,
-        )  # type: Dict[str, Any]
+        )
         if not all(valid_fields.values()):
             invalid = {
                 key: dictionary[key] for key, valid in valid_fields.items() if not valid
@@ -137,7 +134,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
 
     @classmethod
     def from_dict(
-        cls, dictionary: Dict[str, Any], blobs: Optional[Blobs] = None
+        cls, dictionary: dict[str, Any], blobs: Blobs | None = None
     ) -> "DynamicFeeTransaction":
         """
         Builds a DynamicFeeTransaction from a dictionary.
@@ -189,7 +186,7 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         rpc_structured_dict["type"] = cls.transaction_type
         return cls.from_dict(rpc_structured_dict)
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """Returns this transaction as a dictionary."""
         dictionary = self.dictionary.copy()
         dictionary["type"] = self.__class__.transaction_type
@@ -237,8 +234,12 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         )
         return cast(bytes, payload)
 
-    def vrs(self) -> Tuple[int, int, int]:
+    def vrs(self) -> tuple[int, int, int]:
         """Returns (v, r, s) if they exist."""
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")
-        return (self.dictionary["v"], self.dictionary["r"], self.dictionary["s"])
+        return (
+            self.dictionary["v"],
+            self.dictionary["r"],
+            self.dictionary["s"],
+        )

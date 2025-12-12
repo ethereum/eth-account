@@ -1,9 +1,5 @@
 from typing import (
     Any,
-    Dict,
-    List,
-    Optional,
-    Tuple,
     cast,
 )
 
@@ -65,7 +61,7 @@ class BlobTransaction(_TypedTransactionImplementation):
     """
 
     transaction_type = 3  # '0x03'
-    blob_data: Optional[BlobPooledTransactionData] = None
+    blob_data: BlobPooledTransactionData | None = None
 
     unsigned_transaction_fields = (
         ("chainId", big_endian_int),
@@ -136,8 +132,8 @@ class BlobTransaction(_TypedTransactionImplementation):
 
     def __init__(
         self,
-        dictionary: Dict[str, Any],
-        blobs: Optional[Blobs] = None,
+        dictionary: dict[str, Any],
+        blobs: Blobs | None = None,
     ):
         self.dictionary = dictionary
 
@@ -154,7 +150,7 @@ class BlobTransaction(_TypedTransactionImplementation):
     @classmethod
     def assert_valid_fields(
         cls,
-        dictionary: Dict[str, Any],
+        dictionary: dict[str, Any],
         has_blobs: bool = False,
     ) -> None:
         transaction_valid_values = merge(
@@ -177,7 +173,7 @@ class BlobTransaction(_TypedTransactionImplementation):
         valid_fields = apply_formatters_to_dict(
             transaction_valid_values,
             dictionary,
-        )  # type: Dict[str, Any]
+        )
         if not all(valid_fields.values()):
             invalid = {
                 key: dictionary[key] for key, valid in valid_fields.items() if not valid
@@ -187,8 +183,8 @@ class BlobTransaction(_TypedTransactionImplementation):
     @classmethod
     def from_dict(
         cls,
-        dictionary: Dict[str, Any],
-        blobs: Optional[Blobs] = None,
+        dictionary: dict[str, Any],
+        blobs: Blobs | None = None,
     ) -> "BlobTransaction":
         """
         Builds a BlobTransaction from a dictionary.
@@ -267,7 +263,7 @@ class BlobTransaction(_TypedTransactionImplementation):
         blobs = dictionary.get("blobs")
         return cls.from_dict(rpc_structured_dict, blobs=blobs)
 
-    def as_dict(self) -> Dict[str, Any]:
+    def as_dict(self) -> dict[str, Any]:
         """Returns this transaction as a dictionary."""
         dictionary = self.dictionary.copy()
         dictionary["type"] = self.__class__.transaction_type
@@ -370,15 +366,19 @@ class BlobTransaction(_TypedTransactionImplementation):
 
         return cast(bytes, payload)
 
-    def vrs(self) -> Tuple[int, int, int]:
+    def vrs(self) -> tuple[int, int, int]:
         """Returns (v, r, s) if they exist."""
         if not all(k in self.dictionary for k in "vrs"):
             raise ValueError("attempting to encode an unsigned transaction")
-        return (self.dictionary["v"], self.dictionary["r"], self.dictionary["s"])
+        return (
+            self.dictionary["v"],
+            self.dictionary["r"],
+            self.dictionary["s"],
+        )
 
     @staticmethod
     def _validate_versioned_hashes_against_blob_data(
-        blob_versioned_hashes: List[bytes],
+        blob_versioned_hashes: list[bytes],
         blob_data: BlobPooledTransactionData,
     ) -> None:
         diff = set(blob_versioned_hashes).difference(

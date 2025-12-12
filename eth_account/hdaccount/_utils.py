@@ -1,8 +1,5 @@
 import hashlib
 import hmac
-from typing import (
-    Union,
-)
 import unicodedata
 
 from eth_keys import (
@@ -21,7 +18,7 @@ SECP256K1_N = int(
 )
 
 
-def unicode_decompose_string(txt: Union[str, bytes]) -> str:
+def unicode_decompose_string(txt: str | bytes) -> str:
     if isinstance(txt, bytes):
         utxt = txt.decode("utf8")
     elif isinstance(txt, str):
@@ -32,7 +29,7 @@ def unicode_decompose_string(txt: Union[str, bytes]) -> str:
     return unicodedata.normalize("NFKD", utxt)
 
 
-def unicode_compose_string(txt: Union[str, bytes]) -> str:
+def unicode_compose_string(txt: str | bytes) -> str:
     if isinstance(txt, bytes):
         utxt = txt.decode("utf8")
     elif isinstance(txt, str):

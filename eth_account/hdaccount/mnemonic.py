@@ -25,11 +25,6 @@ from pathlib import (
     Path,
 )
 import secrets
-from typing import (
-    Dict,
-    List,
-    Union,
-)
 import warnings
 
 from bitarray import (
@@ -58,10 +53,10 @@ VALID_WORD_COUNTS = [12, 15, 18, 21, 24]
 WORDLIST_DIR = Path(__file__).parent / "wordlist"
 WORDLIST_LEN = 2048
 
-_cached_wordlists: Dict[str, List[str]] = dict()
+_cached_wordlists: dict[str, list[str]] = dict()
 
 
-def get_wordlist(language: str) -> List[str]:
+def get_wordlist(language: str) -> list[str]:
     if language in _cached_wordlists.keys():
         return _cached_wordlists[language]
     with open(WORDLIST_DIR / f"{language}.txt", encoding="utf-8") as f:
@@ -115,7 +110,7 @@ class Mnemonic:
         b'\x97ii\x07\x12\xf0$\x81\x98\xb6?\x07\x08t7\x18d\x87\xe1\x7f\xbe\xbaL\xb4i%\xeb\x12\xce\xe2h\x1c\xb2\x19\x13\xfb9wtoV\x9c\xb8\xdf;5\xba4X\xa3\xd6b`|\xdc\xb1\x10\xb0\xeeS\x86\x95\xd75'
     """  # noqa: E501
 
-    def __init__(self, raw_language: Union[Language, str] = Language.ENGLISH):
+    def __init__(self, raw_language: Language | str = Language.ENGLISH):
         if isinstance(raw_language, str):
             warnings.warn(
                 "The language parameter should be a Language enum, not a string. "
@@ -136,14 +131,14 @@ class Mnemonic:
         self.wordlist = get_wordlist(self.language)
 
     @staticmethod
-    def list_languages() -> List[str]:
+    def list_languages() -> list[str]:
         """
         Returns a list of languages available for the seed phrase
         """
         return sorted(Path(f).stem for f in WORDLIST_DIR.rglob("*.txt"))
 
     @staticmethod
-    def list_languages_enum() -> List[Language]:
+    def list_languages_enum() -> list[Language]:
         """
         Returns a list of Language objects available for the seed phrase
         """
@@ -261,7 +256,7 @@ class Mnemonic:
         if prefix in self.wordlist:
             return prefix
         else:
-            matches: List[str] = [
+            matches: list[str] = [
                 word for word in self.wordlist if word.startswith(prefix)
             ]
             if len(matches) == 1:  # matched exactly one word in the wordlist
