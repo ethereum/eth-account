@@ -1,1 +1,0 @@
-Fix mypy errors with BaseModel.model_json_schema introduced with Pydantic 2.12

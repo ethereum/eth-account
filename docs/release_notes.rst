@@ -3,6 +3,28 @@ Release Notes
 
 .. towncrier release notes start
 
+eth-account v0.14.0-beta.1 (2025-12-18)
+---------------------------------------
+
+Breaking Changes
+~~~~~~~~~~~~~~~~
+
+- Drop support for Python 3.8 and 3.9 (`#328 <https://github.com/ethereum/eth-account/issues/328>`__)
+- Bump eth-utils requirement to >=5.3.0 to allow for CamelModel usage (`#329 <https://github.com/ethereum/eth-account/issues/329>`__)
+
+
+Features
+~~~~~~~~
+
+- Add support for Python 3.14 (`#328 <https://github.com/ethereum/eth-account/issues/328>`__)
+
+
+Internal Changes - for eth-account Contributors
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+- Fix mypy errors with BaseModel.model_json_schema introduced with Pydantic 2.12 (`#326 <https://github.com/ethereum/eth-account/issues/326>`__)
+
+
 eth-account v0.13.7 (2025-04-21)
 --------------------------------
 
