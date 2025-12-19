@@ -156,7 +156,7 @@ class BlobCellProof(_BlobDataElement):
     """
 
     @field_validator("data")
-    def validate_proof(cls, v: Union[HexBytes, bytes]) -> Union[HexBytes, bytes]:
+    def validate_proof(cls, v: HexBytes | bytes) -> HexBytes | bytes:
         if len(v) != 48:
             raise ValidationError("Blob cell proof must be 48 bytes long.")
         return v
@@ -189,7 +189,7 @@ class BlobPooledTransactionData(BaseModel):
     _versioned_hashes: list[BlobVersionedHash] | None = None
     _commitments: list[BlobKZGCommitment] | None = None
     _proofs: list[BlobProof] | None = None
-    _cell_proofs: Optional[List[BlobCellProof]] = None
+    _cell_proofs: list[BlobCellProof] | None = None
 
     blobs: list[Blob]
 
@@ -263,7 +263,7 @@ class BlobPooledTransactionData(BaseModel):
     # https://github.com/python/mypy/issues/1362
     @computed_field  # type: ignore
     @property
-    def cell_proofs(self) -> List[BlobCellProof]:
+    def cell_proofs(self) -> list[BlobCellProof]:
         if self._cell_proofs is None:
             self._cell_proofs = []
             for blob in self.blobs:

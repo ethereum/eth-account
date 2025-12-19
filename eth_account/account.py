@@ -505,9 +505,7 @@ class Account(AccountLocalActions):
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
         """  # noqa: E501
         message_hash = _hash_eip191_message(signable_message)
-        return cast(
-            ChecksumAddress, self._recover_hash(message_hash, vrs, signature)
-        )
+        return cast(ChecksumAddress, self._recover_hash(message_hash, vrs, signature))
 
     @combomethod
     def _recover_hash(
@@ -525,16 +523,12 @@ class Account(AccountLocalActions):
             signature_obj = self._keys.Signature(vrs=(v_standard, r, s))
         elif signature is not None:
             signature_bytes = HexBytes(signature)
-            signature_bytes_standard = to_standard_signature_bytes(
-                signature_bytes
-            )
+            signature_bytes_standard = to_standard_signature_bytes(signature_bytes)
             signature_obj = self._keys.Signature(
                 signature_bytes=signature_bytes_standard
             )
         else:
-            raise TypeError(
-                "You must supply the vrs tuple or the signature bytes"
-            )
+            raise TypeError("You must supply the vrs tuple or the signature bytes")
         pubkey = signature_obj.recover_public_key_from_msg_hash(hash_bytes)
         return pubkey.to_checksum_address()
 
@@ -566,13 +560,9 @@ class Account(AccountLocalActions):
 
         txn = Transaction.from_bytes(txn_bytes)
         msg_hash = hash_of_signed_transaction(txn)
-        return cast(
-            ChecksumAddress, self._recover_hash(msg_hash, vrs=vrs_from(txn))
-        )
+        return cast(ChecksumAddress, self._recover_hash(msg_hash, vrs=vrs_from(txn)))
 
-    def set_key_backend(
-        self, backend: CoinCurveECCBackend | NativeECCBackend
-    ) -> None:
+    def set_key_backend(self, backend: CoinCurveECCBackend | NativeECCBackend) -> None:
         """
         Change the backend used by the underlying eth-keys library.
 
@@ -864,9 +854,7 @@ class Account(AccountLocalActions):
             r,
             s,
             encoded_transaction,
-        ) = sign_transaction_dict(
-            account._key_obj, sanitized_transaction, blobs=blobs
-        )
+        ) = sign_transaction_dict(account._key_obj, sanitized_transaction, blobs=blobs)
         transaction_hash = keccak(encoded_transaction)
 
         return SignedTransaction(
