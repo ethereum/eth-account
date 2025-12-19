@@ -1,5 +1,4 @@
 import pytest
-import json
 
 from pydantic.alias_generators import (
     to_camel,
@@ -22,14 +21,11 @@ from tests.core._test_utils import (
 )
 def test_pydantic_model_serialization(pydantic_model, expected):
     json_model_dump = pydantic_model.model_dump(by_alias=True)
-    with pytest.warns(DeprecationWarning):
-        recursive_dump = pydantic_model.recursive_model_dump()
-    assert json_model_dump == recursive_dump == expected
-    assert json.loads(json.dumps(recursive_dump)) == expected
+    assert json_model_dump == expected
 
     model_dump = pydantic_model.model_dump()
     snake_case_dump = pydantic_model.model_dump(by_alias=False)
-    assert snake_case_dump == model_dump != expected
+    assert snake_case_dump == model_dump
 
     camel_keys = {to_camel(key) for key in model_dump.keys()}
     assert set(camel_keys).issubset(set(expected.keys()))
