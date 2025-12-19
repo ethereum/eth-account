@@ -89,7 +89,7 @@ def test_expand_word():
 
 @pytest.mark.parametrize(
     "lang",
-    {
+    [
         Language(lang)
         for lang in Mnemonic.list_languages()
         if lang
@@ -100,7 +100,7 @@ def test_expand_word():
             "chinese_simplified",
             "chinese_traditional",
         )
-    },
+    ],
 )
 def test_expand(lang):
     m = Mnemonic(lang)
