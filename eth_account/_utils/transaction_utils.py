@@ -2,6 +2,9 @@ from typing import (
     Any,
 )
 
+from eth_utils import (
+    CamelModel,
+)
 from toolz import (
     assoc,
     dissoc,
@@ -12,9 +15,6 @@ from eth_account._utils.validation import (
     is_rlp_structured_authorization_list,
     is_rpc_structured_access_list,
     is_rpc_structured_authorization_list,
-)
-from eth_account.datastructures import (
-    CustomPydanticModel,
 )
 from eth_account.types import (
     AccessList,
@@ -82,7 +82,7 @@ def json_serialize_classes_in_transaction(val: Any) -> Any:
     - ``exclude=val._exclude:   Fields excluded for serialization are defined within a
                                 ``_exclude`` property on the pydantic model.
     """
-    if isinstance(val, CustomPydanticModel):
+    if isinstance(val, CamelModel):
         return val.model_dump(by_alias=True)
     elif isinstance(val, dict):
         return {k: json_serialize_classes_in_transaction(v) for k, v in val.items()}
