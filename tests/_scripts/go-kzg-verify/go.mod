@@ -6,7 +6,7 @@ toolchain go1.24.10
 
 require (
 	github.com/crate-crypto/go-eth-kzg v1.4.0
-	github.com/ethereum/go-ethereum v1.16.7
+	github.com/ethereum/go-ethereum v1.16.8
 	github.com/holiman/uint256 v1.3.2
 	gopkg.in/yaml.v3 v3.0.1
 )
