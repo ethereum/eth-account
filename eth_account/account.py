@@ -207,7 +207,7 @@ class Account(AccountLocalActions):
         # type ignored because eth_keyfile appears to be using the wrong type for
         # the password arg.
         # once fixed there, this should error and can be removed
-        return HexBytes(decode_keyfile_json(keyfile, password_bytes))  # type: ignore[arg-type]  # noqa: E501
+        return HexBytes(decode_keyfile_json(keyfile, password_bytes))  # noqa: E501
 
     @classmethod
     def encrypt(
@@ -277,7 +277,7 @@ class Account(AccountLocalActions):
         # the password arg.
         # once fixed there, this should error and can be removed
         return create_keyfile_json(
-            key_bytes, password_bytes, kdf=kdf, iterations=iterations  # type: ignore[arg-type]  # noqa: E501
+            key_bytes, password_bytes, kdf=kdf, iterations=iterations  # noqa: E501
         )
 
     @combomethod
@@ -384,7 +384,7 @@ class Account(AccountLocalActions):
         self,
         passphrase: str = "",
         num_words: int = 12,
-        language: Language | str = Language.ENGLISH,
+        language: Language = Language.ENGLISH,
         account_path: str = ETHEREUM_DEFAULT_PATH,
     ) -> tuple[LocalAccount, str]:
         r"""
