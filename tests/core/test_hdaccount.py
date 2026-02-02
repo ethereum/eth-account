@@ -92,22 +92,3 @@ def test_bad_account_path1():
 def test_bad_account_path2():
     with pytest.raises(ValidationError, match="Path.*is not valid.*"):
         Account.create_with_mnemonic(account_path="m/not/an/account/path")
-
-
-def test_unknown_language():
-    with pytest.raises(
-        ValidationError, match="Invalid language choice 'pig_latin', must be one of.*"
-    ):
-        with pytest.warns(
-            DeprecationWarning,
-            match="The language parameter should be a Language enum, not a string*.",
-        ):
-            Account.create_with_mnemonic(language="pig latin")
-
-
-def test_known_language_as_string_warns():
-    with pytest.warns(
-        DeprecationWarning,
-        match="The language parameter should be a Language enum, not a string*.",
-    ):
-        Account.create_with_mnemonic(language="spanish")

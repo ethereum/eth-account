@@ -67,12 +67,6 @@ def test_detection(language, word):
 def test_undetected_language():
     with pytest.raises(ValidationError):
         Mnemonic.detect_language("xxxxxxx")
-    with pytest.raises(ValidationError):
-        with pytest.warns(
-            DeprecationWarning,
-            match="The language parameter should be a Language enum, not a string",
-        ):
-            Mnemonic("xxxxxxx")
 
 
 def test_expand_word():
@@ -133,25 +127,6 @@ def test_generation_with_enum(lang, num_words):
             raise
         assert Mnemonic.detect_language(mnemonic) == Language.CHINESE_SIMPLIFIED
 
-    assert len(Mnemonic.to_seed(mnemonic)) == 64
-
-
-@pytest.mark.parametrize("lang", Mnemonic.list_languages())
-@pytest.mark.parametrize("num_words", [12, 15, 18, 21, 24])
-def test_generation_with_string(lang, num_words):
-    with pytest.warns(DeprecationWarning):
-        m = Mnemonic(lang)
-    mnemonic = m.generate(num_words)
-    assert m.is_mnemonic_valid(mnemonic)
-    try:
-        assert Mnemonic.detect_language(mnemonic) == Language(lang)
-    except AssertionError:
-        # NOTE: Sometimes traditional chinese can return characters that are also
-        # valid simplified chinese characters. In that scenario, the detection
-        # algorithm will assume simplified.
-        if lang != "chinese_traditional":
-            raise
-        assert Mnemonic.detect_language(mnemonic) == Language.CHINESE_SIMPLIFIED
     assert len(Mnemonic.to_seed(mnemonic)) == 64
 
 

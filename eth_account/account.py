@@ -400,9 +400,7 @@ class Account(AccountLocalActions):
         :param int num_words: Number of words to use with seed phrase.
                               Default is 12 words.
                               Must be one of [12, 15, 18, 21, 24].
-        :param (Language, str) language: Language to use for BIP39 mnemonic seed phrase.
-                                         The use of a string is deprecated and will be
-                                         removed in a future version.
+        :param Language language: Language to use for BIP39 mnemonic seed phrase.
         :param str account_path: Specify an alternate HD path for deriving the
             seed using BIP32 HD wallet key derivation.
         :returns: A tuple consisting of an object with private key and
