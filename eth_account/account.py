@@ -1,3 +1,4 @@
+import binascii
 from collections.abc import (
     Mapping,
 )
@@ -885,11 +886,25 @@ class Account(AccountLocalActions):
         if isinstance(key, self._keys.PrivateKey):
             return key
 
-        hb_key = HexBytes(key)
+        try:
+            hb_key = HexBytes(key)
+        except binascii.Error as original_exception:
+            if isinstance(key, str):
+                raise ValueError(
+                    "The private key must be a valid hex string representing "
+                    "exactly 32 bytes."
+                ) from original_exception
+            raise
 
         try:
             return self._keys.PrivateKey(hb_key)
         except ValidationError as original_exception:
+            if isinstance(key, str):
+                raise ValueError(
+                    "The private key must be a hex string representing exactly "
+                    f"32 bytes, but the provided hex string represents {len(hb_key)} "
+                    "bytes."
+                ) from original_exception
             raise ValueError(
                 "The private key must be exactly 32 bytes long, instead of "
                 f"{len(hb_key)} bytes."
