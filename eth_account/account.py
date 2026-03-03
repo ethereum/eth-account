@@ -290,6 +290,8 @@ class Account(AccountLocalActions):
         :type private_key: hex str, bytes, int or :class:`eth_keys.datatypes.PrivateKey`
         :return: object with methods for signing and encrypting
         :rtype: LocalAccount
+        :raises ValueError: If the private key is not valid hex or does not
+            represent exactly 32 bytes.
 
         .. doctest:: python
 
