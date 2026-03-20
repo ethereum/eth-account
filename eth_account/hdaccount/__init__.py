@@ -1,8 +1,3 @@
-from typing import (
-    Union,
-)
-import warnings
-
 from eth_utils import (
     ValidationError,
 )
