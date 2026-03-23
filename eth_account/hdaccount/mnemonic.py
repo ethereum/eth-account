@@ -25,7 +25,6 @@ from pathlib import (
     Path,
 )
 import secrets
-import warnings
 
 from bitarray import (
     bitarray,
@@ -110,23 +109,8 @@ class Mnemonic:
         b'\x97ii\x07\x12\xf0$\x81\x98\xb6?\x07\x08t7\x18d\x87\xe1\x7f\xbe\xbaL\xb4i%\xeb\x12\xce\xe2h\x1c\xb2\x19\x13\xfb9wtoV\x9c\xb8\xdf;5\xba4X\xa3\xd6b`|\xdc\xb1\x10\xb0\xeeS\x86\x95\xd75'
     """  # noqa: E501
 
-    def __init__(self, raw_language: Language | str = Language.ENGLISH):
-        if isinstance(raw_language, str):
-            warnings.warn(
-                "The language parameter should be a Language enum, not a string. "
-                "This will be enforced in a future version.",
-                DeprecationWarning,
-                stacklevel=2,
-            )
-
-            language = raw_language.lower().replace(" ", "_")
-            languages = Mnemonic.list_languages()
-            if language not in languages:
-                raise ValidationError(
-                    f"Invalid language choice '{language}', must be one of {languages}"
-                )
-        else:
-            language = raw_language.value
+    def __init__(self, raw_language: Language = Language.ENGLISH):
+        language = raw_language.value
         self.language = language
         self.wordlist = get_wordlist(self.language)
 

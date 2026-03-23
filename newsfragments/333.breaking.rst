@@ -1,0 +1,1 @@
+Bump ``eth-keyfile`` lower pin for new major version. Remove deprecated ``str`` support for mnemonic, opt for enum support only.
