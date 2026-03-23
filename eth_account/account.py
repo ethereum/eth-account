@@ -207,7 +207,7 @@ class Account(AccountLocalActions):
         # type ignored because eth_keyfile appears to be using the wrong type for
         # the password arg.
         # once fixed there, this should error and can be removed
-        return HexBytes(decode_keyfile_json(keyfile, password_bytes))  # noqa: E501
+        return HexBytes(decode_keyfile_json(keyfile, password_bytes))
 
     @classmethod
     def encrypt(
@@ -277,7 +277,10 @@ class Account(AccountLocalActions):
         # the password arg.
         # once fixed there, this should error and can be removed
         return create_keyfile_json(
-            key_bytes, password_bytes, kdf=kdf, iterations=iterations  # noqa: E501
+            key_bytes,
+            password_bytes,
+            kdf=kdf,
+            iterations=iterations,
         )
 
     @combomethod
