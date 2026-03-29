@@ -162,5 +162,7 @@ class LocalAccount(BaseAccount):
     def sign_authorization(self, authorization: dict[str, Any]) -> SignedMessage:
         return cast(
             SignedMessage,
-            self._publicapi.sign_authorization(authorization, private_key=self._key_obj),
+            self._publicapi.sign_authorization(
+                authorization, private_key=self._key_obj
+            ),
         )
