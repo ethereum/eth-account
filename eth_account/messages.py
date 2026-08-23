@@ -157,19 +157,19 @@ def encode_defunct(
                         header=b'thereum Signed Message:\n6',
                         body=b'I\xe2\x99\xa5SF')
 
-        >>> encode_defunct(bytes(message_text, encoding='utf-8'))
+        >>> encode_defunct(bytes(message_text, encoding="utf-8"))
         SignableMessage(version=b'E',
                         header=b'thereum Signed Message:\n6',
                         body=b'I\xe2\x99\xa5SF')
 
         >>> to_hex(text=message_text)
         '0x49e299a55346'
-        >>> encode_defunct(hexstr='0x49e299a55346')
+        >>> encode_defunct(hexstr="0x49e299a55346")
         SignableMessage(version=b'E',
                         header=b'thereum Signed Message:\n6',
                         body=b'I\xe2\x99\xa5SF')
 
-        >>> encode_defunct(0x49e299a55346)
+        >>> encode_defunct(0x49E299A55346)
         SignableMessage(version=b'E',
                         header=b'thereum Signed Message:\n6',
                         body=b'I\xe2\x99\xa5SF')
@@ -308,12 +308,16 @@ def encode_typed_data(
         ...     "contents": "Hello, Bob!",
         ... }
         >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-        >>> signable_message = encode_typed_data(domain_data, message_types, message_data)
+        >>> signable_message = encode_typed_data(
+        ...     domain_data, message_types, message_data
+        ... )
         >>> signed_message = Account.sign_message(signable_message, key)
         >>> signed_message.message_hash
         HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
         >>> # the message can be signed in one step using Account.sign_typed_data
-        >>> signed_typed_data = Account.sign_typed_data(key, domain_data, message_types, message_data)
+        >>> signed_typed_data = Account.sign_typed_data(
+        ...     key, domain_data, message_types, message_data
+        ... )
         >>> signed_typed_data == signed_message
         True
 
@@ -345,16 +349,16 @@ def encode_typed_data(
         ...         "version": "1",
         ...         "chainId": 1,
         ...         "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
-        ...         "salt": b"decafbeef"
+        ...         "salt": b"decafbeef",
         ...     },
         ...     "message": {
         ...         "from": {
         ...             "name": "Cow",
-        ...             "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+        ...             "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
         ...         },
         ...         "to": {
         ...             "name": "Bob",
-        ...             "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+        ...             "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
         ...         },
         ...         "contents": "Hello, Bob!",
         ...     },
@@ -366,7 +370,9 @@ def encode_typed_data(
         >>> signed_message_2 == signed_message
         True
         >>> # the full_message can be signed in one step using Account.sign_typed_data
-        >>> signed_typed_data_2 = Account.sign_typed_data(key, domain_data, message_types, message_data)
+        >>> signed_typed_data_2 = Account.sign_typed_data(
+        ...     key, domain_data, message_types, message_data
+        ... )
         >>> signed_typed_data_2 == signed_message_2
         True
 

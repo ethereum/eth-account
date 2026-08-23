@@ -177,21 +177,26 @@ class Account(AccountLocalActions):
         .. doctest:: python
 
             >>> encrypted = {
-            ... 'address': '5ce9454909639D2D17A3F753ce7d93fa0b9aB12E',
-            ... 'crypto': {'cipher': 'aes-128-ctr',
-            ...  'cipherparams': {'iv': '482ef54775b0cc59f25717711286f5c8'},
-            ...  'ciphertext': 'cb636716a9fd46adbb31832d964df2082536edd5399a3393327dc89b0193a2be',
-            ...  'kdf': 'scrypt',
-            ...  'kdfparams': {},
-            ...  'kdfparams': {'dklen': 32,
-            ...                'n': 262144,
-            ...                'p': 8,
-            ...                'r': 1,
-            ...                'salt': 'd3c9a9945000fcb6c9df0f854266d573'},
-            ...  'mac': '4f626ec5e7fea391b2229348a65bfef532c2a4e8372c0a6a814505a350a7689d'},
-            ... 'id': 'b812f3f9-78cc-462a-9e89-74418aa27cb0',
-            ... 'version': 3}
-            >>> Account.decrypt(encrypted, 'password')
+            ...     "address": "5ce9454909639D2D17A3F753ce7d93fa0b9aB12E",
+            ...     "crypto": {
+            ...         "cipher": "aes-128-ctr",
+            ...         "cipherparams": {"iv": "482ef54775b0cc59f25717711286f5c8"},
+            ...         "ciphertext": "cb636716a9fd46adbb31832d964df2082536edd5399a3393327dc89b0193a2be",
+            ...         "kdf": "scrypt",
+            ...         "kdfparams": {},
+            ...         "kdfparams": {
+            ...             "dklen": 32,
+            ...             "n": 262144,
+            ...             "p": 8,
+            ...             "r": 1,
+            ...             "salt": "d3c9a9945000fcb6c9df0f854266d573",
+            ...         },
+            ...         "mac": "4f626ec5e7fea391b2229348a65bfef532c2a4e8372c0a6a814505a350a7689d",
+            ...     },
+            ...     "id": "b812f3f9-78cc-462a-9e89-74418aa27cb0",
+            ...     "version": 3,
+            ... }
+            >>> Account.decrypt(encrypted, "password")
             HexBytes('0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364')
 
         """  # noqa: E501
@@ -241,8 +246,8 @@ class Account(AccountLocalActions):
 
             >>> from pprint import pprint
             >>> encrypted = Account.encrypt(
-            ...     0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364,
-            ...     'password'
+            ...     0xB25C7DB31FEED9122727BF0939DC769A96564B2DE4C4726D035B36ECF1E5B364,
+            ...     "password",
             ... )
             >>> pprint(encrypted)
             {'address': '5ce9454909639D2D17A3F753ce7d93fa0b9aB12E',
@@ -259,8 +264,8 @@ class Account(AccountLocalActions):
              'id': '...',
              'version': 3}
 
-            >>> with open('my-keyfile', 'w') as f: # doctest: +SKIP
-            ...    f.write(json.dumps(encrypted))
+            >>> with open("my-keyfile", "w") as f:  # doctest: +SKIP
+            ...     f.write(json.dumps(encrypted))
         """
         if isinstance(private_key, keys.PrivateKey):
             key_bytes = private_key.to_bytes()
@@ -296,7 +301,8 @@ class Account(AccountLocalActions):
         .. doctest:: python
 
             >>> acct = Account.from_key(
-            ... 0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364)
+            ...     0xB25C7DB31FEED9122727BF0939DC769A96564B2DE4C4726D035B36ECF1E5B364
+            ... )
             >>> acct.address
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> acct.key
@@ -333,9 +339,10 @@ class Account(AccountLocalActions):
             >>> from eth_account import Account
             >>> Account.enable_unaudited_hdwallet_features()
             >>> acct = Account.from_mnemonic(
-            ...  "coral allow abandon recipe top tray caught video climb similar "
-            ...  "prepare bracket antenna rubber announce gauge volume "
-            ...  "hub hood burden skill immense add acid")
+            ...     "coral allow abandon recipe top tray caught video climb similar "
+            ...     "prepare bracket antenna rubber announce gauge volume "
+            ...     "hub hood burden skill immense add acid"
+            ... )
             >>> acct.address
             '0x9AdA5dAD14d925f4df1378409731a9B71Bc8569d'
 
@@ -352,7 +359,8 @@ class Account(AccountLocalActions):
              ...     acct = Account.from_mnemonic(
              ...         "health embark april buyer eternal leopard "
              ...         "want before nominee head thing tackle",
-             ...         account_path=f"m/44'/60'/0'/0/{iterator}")
+             ...         account_path=f"m/44'/60'/0'/0/{iterator}",
+             ...     )
              ...     iterator = iterator + 1
              ...     acct.address
              '0x61Cc15522D06983Ac7aADe23f9d5433d38e78195'
@@ -416,7 +424,7 @@ class Account(AccountLocalActions):
             >>> from eth_account import Account
             >>> Account.enable_unaudited_hdwallet_features()
             >>> acct, mnemonic = Account.create_with_mnemonic()
-            >>> acct.address # doctest: +SKIP
+            >>> acct.address  # doctest: +SKIP
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> acct == Account.from_mnemonic(mnemonic)
             True
@@ -461,9 +469,10 @@ class Account(AccountLocalActions):
             >>> from eth_account import Account
             >>> message = encode_defunct(text="I♥SF")
             >>> vrs = (
-            ...   28,
-            ...   '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
-            ...   '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
+            ...     28,
+            ...     "0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3",
+            ...     "0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce",
+            ... )
             >>> Account.recover_message(message, vrs=vrs)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
 
@@ -472,36 +481,39 @@ class Account(AccountLocalActions):
 
             # variations on vrs
             >>> vrs = (
-            ...   '0x1c',
-            ...   '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3',
-            ...   '0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce')
+            ...     "0x1c",
+            ...     "0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3",
+            ...     "0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce",
+            ... )
             >>> Account.recover_message(message, vrs=vrs)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
 
             >>> # Caution about this approach: likely problems if there are leading 0s
             >>> vrs = (
-            ...   0x1c,
-            ...   0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb3,
-            ...   0x3e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce)
+            ...     0x1C,
+            ...     0xE6CA9BBA58C88611FAD66A6CE8F996908195593807C4B38BD528D2CFF09D4EB3,
+            ...     0x3E5BFBBF4D3E39B1A2FD816A7680C19EBEBAF3A141B239934AD43CB33FCEC8CE,
+            ... )
             >>> Account.recover_message(message, vrs=vrs)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
 
             >>> vrs = (
-            ...   b'\x1c',
-            ...   b'\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3',
-            ...   b'>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce')
+            ...     b"\x1c",
+            ...     b"\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3",
+            ...     b">[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce",
+            ... )
             >>> Account.recover_message(message, vrs=vrs)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
 
             # variations on signature
-            >>> signature = '0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c'
+            >>> signature = "0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c"
             >>> Account.recover_message(message, signature=signature)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
-            >>> signature = b'\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce\x1c'
+            >>> signature = b"\xe6\xca\x9b\xbaX\xc8\x86\x11\xfa\xd6jl\xe8\xf9\x96\x90\x81\x95Y8\x07\xc4\xb3\x8b\xd5(\xd2\xcf\xf0\x9dN\xb3>[\xfb\xbfM>9\xb1\xa2\xfd\x81jv\x80\xc1\x9e\xbe\xba\xf3\xa1A\xb29\x93J\xd4<\xb3?\xce\xc8\xce\x1c"
             >>> Account.recover_message(message, signature=signature)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
             >>> # Caution about this approach: likely problems if there are leading 0s
-            >>> signature = 0xe6ca9bba58c88611fad66a6ce8f996908195593807c4b38bd528d2cff09d4eb33e5bfbbf4d3e39b1a2fd816a7680c19ebebaf3a141b239934ad43cb33fcec8ce1c
+            >>> signature = 0xE6CA9BBA58C88611FAD66A6CE8F996908195593807C4B38BD528D2CFF09D4EB33E5BFBBF4D3E39B1A2FD816A7680C19EBEBAF3A141B239934AD43CB33FCEC8CE1C
             >>> Account.recover_message(message, signature=signature)
             '0x5ce9454909639D2D17A3F753ce7d93fa0b9aB12E'
         """  # noqa: E501
@@ -547,7 +559,7 @@ class Account(AccountLocalActions):
 
         .. doctest:: python
 
-            >>> raw_transaction = '0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428'
+            >>> raw_transaction = "0xf86a8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca008025a009ebb6ca057a0535d6186462bc0b465b561c94a295bdb0621fc19208ab149a9ca0440ffd775ce91a833ab410777204d5341a6f9fa91216a6f3ee2c051fea6a0428"
             >>> Account.recover_transaction(raw_transaction)
             '0x2c7536E3605D9C16a7a3D7b1898e529396a65c23'
         """  # noqa: E501
@@ -611,7 +623,9 @@ class Account(AccountLocalActions):
              header=b'thereum Signed Message:\n6',
              body=b'I\xe2\x99\xa5SF')
             >>> # If you're curious about the internal fields of SignableMessage, take a look at EIP-191, linked above
-            >>> key = "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
+            >>> key = (
+            ...     "0xb25c7db31feed9122727bf0939dc769a96564b2de4c4726d035b36ecf1e5b364"
+            ... )
             >>> Account.sign_message(msghash, key)
             SignedMessage(message_hash=HexBytes('0x1476abb745d423bf09273f1afd887d951181d25adc66c4834a70491911b7f750'),
              r=104389933075820307925104709181714897380569894203213074526835978196648170704563,
@@ -720,12 +734,14 @@ class Account(AccountLocalActions):
             ...             "address": "0x0000000000000000000000000000000000000001",
             ...             "storageKeys": (
             ...                 "0x0100000000000000000000000000000000000000000000000000000000000000",
-            ...             )
+            ...             ),
             ...         },
             ...     ),
             ...     "chainId": 1337,
             ... }
-            >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+            >>> key = (
+            ...     "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
+            ... )
             >>> signed_df_tx = Account.sign_transaction(dynamic_fee_transaction, key)
             >>> signed_df_tx
             SignedTransaction(raw_transaction=HexBytes('0x02f8b28205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107...d58b85d5'),
@@ -733,7 +749,9 @@ class Account(AccountLocalActions):
              r=48949965662841329840326477994465373664672499148507933176648302825256944281697,
              s=1123041608316060268133200864147951676126406077675157976022772782796802590165,
              v=1)
-            >>> w3.eth.send_raw_transaction(signed_df_tx.raw_transaction)  # doctest: +SKIP
+            >>> w3.eth.send_raw_transaction(
+            ...     signed_df_tx.raw_transaction
+            ... )  # doctest: +SKIP
 
         .. doctest:: python
 
@@ -741,14 +759,16 @@ class Account(AccountLocalActions):
             >>> from eth_account import Account
             >>> legacy_transaction = {
             ...     # Note that the address must be in checksum format or native bytes:
-            ...     'to': '0xF0109fC8DF283027b6285cc889F5aA624EaC1F55',
-            ...     'value': 1000000000,
-            ...     'gas': 2000000,
-            ...     'gasPrice': 234567897654321,
-            ...     'nonce': 0,
-            ...     'chainId': 1337
+            ...     "to": "0xF0109fC8DF283027b6285cc889F5aA624EaC1F55",
+            ...     "value": 1000000000,
+            ...     "gas": 2000000,
+            ...     "gasPrice": 234567897654321,
+            ...     "nonce": 0,
+            ...     "chainId": 1337,
             ... }
-            >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+            >>> key = (
+            ...     "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
+            ... )
             >>> signed_legacy_tx = Account.sign_transaction(legacy_transaction, key)
             >>> signed_legacy_tx
             SignedTransaction(raw_transaction=HexBytes('0xf86c8086d55698372431831e848094f0109fc8df283027b6285cc889f5aa624eac1f55843b9aca0080820a95a01a7...c0bfdb52'),
@@ -756,7 +776,9 @@ class Account(AccountLocalActions):
              r=11971260903864915610009019893820767192081275151191539081612245320300335068143,
              s=35365272040292958794699923036506252105590820339897221552886630515981233937234,
              v=2709)
-            >>> w3.eth.send_raw_transaction(signed_legacy_tx.raw_transaction)  # doctest: +SKIP
+            >>> w3.eth.send_raw_transaction(
+            ...     signed_legacy_tx.raw_transaction
+            ... )  # doctest: +SKIP
 
         .. doctest:: python
 
@@ -774,12 +796,14 @@ class Account(AccountLocalActions):
             ...             "address": "0x0000000000000000000000000000000000000001",
             ...             "storageKeys": (
             ...                 "0x0100000000000000000000000000000000000000000000000000000000000000",
-            ...             )
+            ...             ),
             ...         },
             ...     ),
             ...     "chainId": 1337,
             ... }
-            >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+            >>> key = (
+            ...     "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
+            ... )
             >>> signed_al_tx = Account.sign_transaction(access_list_transaction, key)
             >>> signed_al_tx
             SignedTransaction(raw_transaction=HexBytes('0x01f8ad82053922843b9aca00830186a09409616c3d61b3331fc4109a9e41a8bdb7d9776609865af3107a400086616...2b5043ea'),
@@ -787,43 +811,51 @@ class Account(AccountLocalActions):
              r=107355854401379915513092408112372039746594668141865279802319959599514133709188,
              s=6729502936685237038651223791038758905953302464070244934323623239104475448298,
              v=1)
-            >>> w3.eth.send_raw_transaction(signed_al_tx.raw_transaction)  # doctest: +SKIP
+            >>> w3.eth.send_raw_transaction(
+            ...     signed_al_tx.raw_transaction
+            ... )  # doctest: +SKIP
 
         .. doctest:: python
 
             >>> from eth_account import Account
             >>> blob_transaction = {
-            ...    "type": 3,  # optional - can be implicitly determined based on `maxFeePerBlobGas` param
-            ...    "gas": 100000,
-            ...    "maxFeePerGas": 2000000000,
-            ...    "maxPriorityFeePerGas": 2000000000,
-            ...    "maxFeePerBlobGas": 2000000000,
-            ...    "data": "0x616263646566",
-            ...    "nonce": 34,
-            ...    "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
-            ...    "value": "0x5af3107a4000",
-            ...    "accessList": (  # optional
-            ...        {
-            ...            "address": "0x0000000000000000000000000000000000000001",
-            ...            "storageKeys": (
-            ...                "0x0100000000000000000000000000000000000000000000000000000000000000",
-            ...            )
-            ...        },
-            ...    ),
-            ...    "chainId": 1337,
+            ...     "type": 3,  # optional - can be implicitly determined based on `maxFeePerBlobGas` param
+            ...     "gas": 100000,
+            ...     "maxFeePerGas": 2000000000,
+            ...     "maxPriorityFeePerGas": 2000000000,
+            ...     "maxFeePerBlobGas": 2000000000,
+            ...     "data": "0x616263646566",
+            ...     "nonce": 34,
+            ...     "to": "0x09616C3d61b3331fc4109a9E41a8BDB7d9776609",
+            ...     "value": "0x5af3107a4000",
+            ...     "accessList": (  # optional
+            ...         {
+            ...             "address": "0x0000000000000000000000000000000000000001",
+            ...             "storageKeys": (
+            ...                 "0x0100000000000000000000000000000000000000000000000000000000000000",
+            ...             ),
+            ...         },
+            ...     ),
+            ...     "chainId": 1337,
             ... }
             >>> empty_blob = b"\x00" * 32 * 4096  # 4096 empty 32-byte field elements
-            >>> key = '0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318'
+            >>> key = (
+            ...     "0x4c0883a69102937d6231471b5dbb6204fe5129617082792ae468d01a3f362318"
+            ... )
 
             >>> # The `blobVersionedHashes` transaction field is calculated from the `blobs` kwarg
-            >>> signed_blob_tx = Account.sign_transaction(blob_transaction, key, blobs=[empty_blob])
+            >>> signed_blob_tx = Account.sign_transaction(
+            ...     blob_transaction, key, blobs=[empty_blob]
+            ... )
             >>> signed_blob_tx
             SignedTransaction(raw_transaction=HexBytes('0x03fa021999f8d98205392284773594008477359400830186a09409616c3d61b3331fc4109a9e41a8bdb7d97766098...00000000'),
              hash=HexBytes('0x9b997e49d596e6f9ca50a47f35da508f575cd23cb822885872fca9444bc8739c'),
              r=14319949980593194209648175507603206696573324965145502821772573913457715875718,
              s=9129184742597516615341309773045281461399831333162885393648678700392065987233,
              v=1)
-            >>> w3.eth.send_raw_transaction(signed_blob_tx.raw_transaction)  # doctest: +SKIP
+            >>> w3.eth.send_raw_transaction(
+            ...     signed_blob_tx.raw_transaction
+            ... )  # doctest: +SKIP
         """  # noqa: E501
         if not isinstance(transaction_dict, Mapping):
             raise TypeError(
@@ -984,8 +1016,12 @@ class Account(AccountLocalActions):
             ...     },
             ...     "contents": "Hello, Bob!",
             ... }
-            >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
-            >>> signed_message = Account.sign_typed_data(key, domain_data, message_types, message_data)
+            >>> key = (
+            ...     "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ... )
+            >>> signed_message = Account.sign_typed_data(
+            ...     key, domain_data, message_types, message_data
+            ... )
             >>> signed_message.message_hash
             HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
 
@@ -1017,21 +1053,23 @@ class Account(AccountLocalActions):
             ...         "version": "1",
             ...         "chainId": 1,
             ...         "verifyingContract": "0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC",
-            ...         "salt": b"decafbeef"
+            ...         "salt": b"decafbeef",
             ...     },
             ...     "message": {
             ...         "from": {
             ...             "name": "Cow",
-            ...             "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826"
+            ...             "wallet": "0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826",
             ...         },
             ...         "to": {
             ...             "name": "Bob",
-            ...             "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB"
+            ...             "wallet": "0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB",
             ...         },
             ...         "contents": "Hello, Bob!",
             ...     },
             ... }
-            >>> signed_message_2 = Account.sign_typed_data(key, full_message=full_message)
+            >>> signed_message_2 = Account.sign_typed_data(
+            ...     key, full_message=full_message
+            ... )
             >>> signed_message_2.message_hash
             HexBytes('0xc5bb16ccc59ae9a3ad1cb8343d4e3351f057c994a97656e1aff8c134e56f7530')
             >>> signed_message_2 == signed_message
@@ -1077,7 +1115,9 @@ class Account(AccountLocalActions):
 
             >>> from eth_account import Account
 
-            >>> key = "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            >>> key = (
+            ...     "0xaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+            ... )
             >>> auth = {
             ...     "chainId": 1337,
             ...     "address": "0x5ce9454909639d2d17a3f753ce7d93fa0b9ab12e",

@@ -156,7 +156,7 @@ def test_generation_with_enum(lang, num_words):
         ),
         (
             "ffffffffffffffffffffffffffffffff",
-            "zoo zoo zoo zoo zoo zoo " "zoo zoo zoo zoo zoo wrong",
+            "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo wrong",
             "ac27495480225222079d7be181583751e86f571027b0497b5b5d11218e0a8a13"
             "332572917f0f8e5a589620c6f15b11c61dee327651a14c34e18231052e48c069",
         ),
@@ -186,9 +186,7 @@ def test_generation_with_enum(lang, num_words):
         ),
         (
             "ffffffffffffffffffffffffffffffffffffffffffffffff",
-            "zoo zoo zoo zoo zoo zoo "
-            "zoo zoo zoo zoo zoo zoo "
-            "zoo zoo zoo zoo zoo when",
+            "zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo zoo when",
             "0cd6e5d827bb62eb8fc1e262254223817fd068a74b5b449cc2f667c3f1f985a7"
             "6379b43348d952e2265b4cd129090758b3e3c2c49103b5051aac2eaeb890a528",
         ),
@@ -254,8 +252,7 @@ def test_generation_with_enum(lang, num_words):
         ),
         (
             "c0ba5a8e914111210f2bd131f3d5e08d",
-            "scheme spot photo card baby mountain "
-            "device kick cradle pact join borrow",
+            "scheme spot photo card baby mountain device kick cradle pact join borrow",
             "ea725895aaae8d4c1cf682c1bfd2d358d52ed9f0f0591131b559e2724bb234fc"
             "a05aa9c02c57407e04ee9dc3b454aa63fbff483a8b11de949624b9f1831a9612",
         ),
@@ -349,21 +346,24 @@ def test_english_mnemonics(entropy, expected_mnemonic, expected_seed):
         ),
         (
             "7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f7f",
-            "そつう　れきだい　ほんやく　わかす　りくつ　ばいか　" "ろせん　やちん　そつう　れきだい　ほんやく　わかめ",
+            "そつう　れきだい　ほんやく　わかす　りくつ　ばいか　"
+            "ろせん　やちん　そつう　れきだい　ほんやく　わかめ",
             "㍍ガバヴァぱばぐゞちぢ十人十色",
             "aee025cbe6ca256862f889e48110a6a382365142f7d16f2b9545285b3af64e54"
             "2143a577e9c144e101a6bdca18f8d97ec3366ebf5b088b1c1af9bc31346e60d9",
         ),
         (
             "80808080808080808080808080808080",
-            "そとづら　あまど　おおう　あこがれる　いくぶん　けいけん　" "あたえる　いよく　そとづら　あまど　おおう　あかちゃん",
+            "そとづら　あまど　おおう　あこがれる　いくぶん　けいけん　"
+            "あたえる　いよく　そとづら　あまど　おおう　あかちゃん",
             "㍍ガバヴァぱばぐゞちぢ十人十色",
             "e51736736ebdf77eda23fa17e31475fa1d9509c78f1deb6b4aacfbd760a7e2ad"
             "769c714352c95143b5c1241985bcb407df36d64e75dd5a2b78ca5d2ba82a3544",
         ),
         (
             "ffffffffffffffffffffffffffffffff",
-            "われる　われる　われる　われる　われる　われる　" "われる　われる　われる　われる　われる　ろんぶん",
+            "われる　われる　われる　われる　われる　われる　"
+            "われる　われる　われる　われる　われる　ろんぶん",
             "㍍ガバヴァぱばぐゞちぢ十人十色",
             "4cd2ef49b479af5e1efbbd1e0bdc117f6a29b1010211df4f78e2ed4008286579"
             "3e57949236c43b9fe591ec70e5bb4298b8b71dc4b267bb96ed4ed282c8f7761c",
@@ -446,7 +446,8 @@ def test_english_mnemonics(entropy, expected_mnemonic, expected_seed):
         ),
         (
             "77c2b00716cec7213839159e404db50d",
-            "せまい　うちがわ　あずき　かろう　めずらしい　だんち　" "ますく　おさめる　ていぼう　あたる　すあな　えしゃく",
+            "せまい　うちがわ　あずき　かろう　めずらしい　だんち　"
+            "ますく　おさめる　ていぼう　あたる　すあな　えしゃく",
             "㍍ガバヴァぱばぐゞちぢ十人十色",
             "344cef9efc37d0cb36d89def03d09144dd51167923487eec42c487f742890854"
             "6fa31a3c26b7391a2b3afe7db81b9f8c5007336b58e269ea0bd10749a87e0193",
@@ -472,7 +473,8 @@ def test_english_mnemonics(entropy, expected_mnemonic, expected_seed):
         ),
         (
             "0460ef47585604c5660618db2e6a7e7f",
-            "あみもの　いきおい　ふいうち　にげる　ざんしょ　じかん　" "ついか　はたん　ほあん　すんぽう　てちがい　わかめ",
+            "あみもの　いきおい　ふいうち　にげる　ざんしょ　じかん　"
+            "ついか　はたん　ほあん　すんぽう　てちがい　わかめ",
             "㍍ガバヴァぱばぐゞちぢ十人十色",
             "0acf902cd391e30f3f5cb0605d72a4c849342f62bd6a360298c7013d714d7e58"
             "ddf9c7fdf141d0949f17a2c9c37ced1d8cb2edabab97c4199b142c829850154b",
@@ -498,7 +500,8 @@ def test_english_mnemonics(entropy, expected_mnemonic, expected_seed):
         ),
         (
             "eaebabb2383351fd31d703840b32e9e2",
-            "めいえん　さのう　めだつ　すてる　きぬごし　ろんぱ　" "はんこ　まける　たいおう　さかいし　ねんいり　はぶらし",
+            "めいえん　さのう　めだつ　すてる　きぬごし　ろんぱ　"
+            "はんこ　まける　たいおう　さかいし　ねんいり　はぶらし",
             "㍍ガバヴァぱばぐゞちぢ十人十色",
             "06e1d5289a97bcc95cb4a6360719131a786aba057d8efd603a547bd254261c2a"
             "97fcd3e8a4e766d5416437e956b388336d36c7ad2dba4ee6796f0249b10ee961",
@@ -524,7 +527,8 @@ def test_english_mnemonics(entropy, expected_mnemonic, expected_seed):
         ),
         (
             "18ab19a9f54a9274f03e5209a2ac8a91",
-            "うりきれ　さいせい　じゆう　むろん　とどける　ぐうたら　" "はいれつ　ひけつ　いずれ　うちあわせ　おさめる　おたく",
+            "うりきれ　さいせい　じゆう　むろん　とどける　ぐうたら　"
+            "はいれつ　ひけつ　いずれ　うちあわせ　おさめる　おたく",
             "㍍ガバヴァぱばぐゞちぢ十人十色",
             "3d711f075ee44d8b535bb4561ad76d7d5350ea0b1f5d2eac054e869ff7963cdc"
             "e9581097a477d697a2a9433a0c6884bea10a2193647677977c9820dd0921cbde",

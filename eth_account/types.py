@@ -5,7 +5,6 @@ import enum
 from typing import (
     Any,
     TypedDict,
-    Union,
 )
 
 from eth_keys.datatypes import (
@@ -19,9 +18,9 @@ from hexbytes import (
     HexBytes,
 )
 
-Blobs = Sequence[Union[bytes, HexBytes]]
+Blobs = Sequence[bytes | HexBytes]
 Bytes32 = bytes
-PrivateKeyType = Union[Bytes32, int, HexStr, PrivateKey]
+PrivateKeyType = Bytes32 | int | HexStr | PrivateKey
 
 
 class AccessListEntry(TypedDict):
@@ -50,7 +49,7 @@ RLPStructuredAuthorizationList = Sequence[
     tuple[int, HexAddress, int, int, HexStr, HexStr]
 ]
 
-TransactionDictType = dict[str, Union[AccessList, bytes, HexStr, int]]
+TransactionDictType = dict[str, AccessList | bytes | HexStr | int]
 
 
 class Language(enum.Enum):

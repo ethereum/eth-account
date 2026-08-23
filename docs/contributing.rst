@@ -15,16 +15,15 @@ development machine:
 
     git clone git@github.com:your-github-username/eth-account.git
 
-Next, install the development dependencies. We recommend using a virtual environment,
-such as `virtualenv <https://virtualenv.pypa.io/en/stable/>`_.
+Next, install the development dependencies with
+`uv <https://docs.astral.sh/uv/>`_. The ``dev`` dependency group is installed
+by default, so ``uv sync`` is enough for a local development environment.
 
 .. code:: sh
 
     cd eth-account
-    virtualenv -p python venv
-    . venv/bin/activate
-    python -m pip install -e ".[dev]"
-    pre-commit install
+    uv sync
+    uv run prek install
 
 Running the tests
 ~~~~~~~~~~~~~~~~~
@@ -57,7 +56,7 @@ We can then run all tests with:
 Code Style
 ~~~~~~~~~~
 
-We use `pre-commit <https://pre-commit.com/>`_ to enforce a consistent code style across
+We use `prek <https://prek.j178.dev>`_ to enforce a consistent code style across
 the library. This tool runs automatically with every commit, but you can also run it
 manually with:
 
@@ -65,11 +64,11 @@ manually with:
 
     make lint
 
-If you need to make a commit that skips the ``pre-commit`` checks, you can do so with
+If you need to make a commit that skips the ``prek`` checks, you can do so with
 ``git commit --no-verify``.
 
 This library uses type hints, which are enforced by the ``mypy`` tool (part of the
-``pre-commit`` checks). All new code is required to land with type hints, with the
+``prek`` checks). All new code is required to land with type hints, with the
 exception of code within the ``tests`` directory.
 
 Documentation
@@ -109,72 +108,27 @@ released from said branch).
 Final review before each release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Before releasing a new version, build and test the package that will be released:
+Before releasing a new version, run the test suite from the release branch:
 
 .. code:: sh
 
     git checkout main && git pull
-    make package-test
-
-This will build the package and install it in a temporary virtual environment. Follow
-the instructions to activate the venv and test whatever you think is important.
+    uv run --group test pytest tests/core
 
 Review the documentation that will get published:
 
 .. code:: sh
 
-    make docs
+    uv run --group docs sphinx-apidoc -o docs/ . "conftest*" "tests" "tests/*"
+    uv run --group docs sphinx-build -W -b html docs docs/_build/html
+    uv run --group docs sphinx-build -W -b doctest docs docs/_build/doctest
 
-Validate and preview the release notes:
-
-.. code:: sh
-
-    make validate-newsfragments
-
-Build the release notes
+Publish a release
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
-Before bumping the version number, build the release notes. You must include the part of
-the version to bump (see below), which changes how the version number will show in the
-release notes.
+After confirming that the release package looks okay, create a GitHub Release for the
+version being published. The release tag is the canonical version source:
+``setuptools-scm`` derives the package version from that tag, and the release workflow
+builds and publishes the package to PyPI using trusted publishing.
 
-.. code:: sh
-
-    make notes bump=$$VERSION_PART_TO_BUMP$$
-
-If there are any errors, be sure to re-run make notes until it works.
-
-Push the release to github & pypi
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-After confirming that the release package looks okay, release a new version:
-
-.. code:: sh
-
-    make release bump=$$VERSION_PART_TO_BUMP$$
-
-This command will:
-
-- Bump the version number as specified in ``.pyproject.toml`` and ``setup.py``.
-- Create a git commit and tag for the new version.
-- Build the package.
-- Push the commit and tag to github.
-- Push the new package files to pypi.
-
-Which version part to bump
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-
-``$$VERSION_PART_TO_BUMP$$`` must be one of: ``major``, ``minor``, ``patch``, ``stage``,
-or ``devnum``.
-
-The version format for this repo is ``{major}.{minor}.{patch}`` for stable, and
-``{major}.{minor}.{patch}-{stage}.{devnum}`` for unstable (``stage`` can be alpha or
-beta).
-
-If you are in a beta version, ``make release bump=stage`` will switch to a stable.
-
-To issue an unstable version when the current version is stable, specify the new version
-explicitly, like ``make release bump="--new-version 4.0.0-alpha.1"``
-
-You can see what the result of bumping any particular version part would be with
-``bump-my-version show-bump``
+Release notes are maintained through GitHub Releases.

@@ -35,6 +35,7 @@ Definitions
   byte first.
 
 """  # blocklint: URL pragma
+
 # Additional notes:
 # - This module currently only implements private parent key => private child key
 #   CKD function, as it is not necessary to the HD key derivation functions used
@@ -98,7 +99,7 @@ class Node(int):
         if len(node) < 1:
             raise ValidationError("Cannot use empty string")
 
-        node_class: type["SoftNode"] | type["HardNode"]
+        node_class: type[SoftNode] | type[HardNode]
         if node[-1] in HARD_NODE_SUFFIXES:
             node_class = HardNode
             node_index = node[:-1]

@@ -77,7 +77,7 @@ def encode_field(
                 b"\xc5\xd2F\x01\x86\xf7#<\x92~}\xb2\xdc\xc7\x03\xc0\xe5\x00\xb6S\xca\x82';{\xfa\xd8\x04]\x85\xa4p",  # noqa: E501
             )
 
-        data_types, data_hashes = zip(*type_value_pairs)
+        data_types, data_hashes = zip(*type_value_pairs, strict=False)
         return ("bytes32", keccak(encode(data_types, data_hashes)))
 
     elif type_ == "bool":

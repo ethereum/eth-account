@@ -95,7 +95,7 @@ class Mnemonic:
 
         >>> # Generate a new mnemonic phrase
         >>> mnemonic_phrase = en_mnemonic.generate()
-        >>> print(mnemonic_phrase) # doctest: +SKIP
+        >>> print(mnemonic_phrase)  # doctest: +SKIP
         'cabin raise oven oven knock fantasy flock letter click empty skate volcano'
 
         >>> # Validate a mnemonic phrase
@@ -104,8 +104,10 @@ class Mnemonic:
         True
 
         >>> # Convert mnemonic phrase to seed
-        >>> seed = en_mnemonic.to_seed(mnemonic_phrase, passphrase="optional passphrase")
-        >>> print(seed) # doctest: +SKIP
+        >>> seed = en_mnemonic.to_seed(
+        ...     mnemonic_phrase, passphrase="optional passphrase"
+        ... )
+        >>> print(seed)  # doctest: +SKIP
         b'\x97ii\x07\x12\xf0$\x81\x98\xb6?\x07\x08t7\x18d\x87\xe1\x7f\xbe\xbaL\xb4i%\xeb\x12\xce\xe2h\x1c\xb2\x19\x13\xfb9wtoV\x9c\xb8\xdf;5\xba4X\xa3\xd6b`|\xdc\xb1\x10\xb0\xeeS\x86\x95\xd75'
     """  # noqa: E501
 

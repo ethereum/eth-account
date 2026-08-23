@@ -15,14 +15,18 @@
 # documentation root, use os.path.abspath to make it absolute, like shown here.
 # sys.path.insert(0, os.path.abspath('.'))
 
-import os
+import doctest
+from importlib.metadata import (
+    PackageNotFoundError,
+    version as get_version,
+)
 
-DIR = os.path.dirname(__file__)
-with open(os.path.join(DIR, "../setup.py"), "r") as f:
-    for line in f:
-        if "version=" in line:
-            setup_version = line.split('"')[1]
-            break
+from setuptools_scm import get_version as get_scm_version
+
+try:
+    setup_version = get_version("eth-account")
+except PackageNotFoundError:
+    setup_version = get_scm_version(root="..", relative_to=__file__)
 
 # -- General configuration ------------------------------------------------
 
@@ -84,6 +88,7 @@ exclude_patterns = [
     "eth_account.typed_transactions.blob_transactions.rst",
     "tests",
 ]
+suppress_warnings = ["ref.python"]
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -297,8 +302,6 @@ intersphinx_mapping = {
 }
 
 # -- Doctest configuration ----------------------------------------
-
-import doctest
 
 doctest_default_flags = (
     0

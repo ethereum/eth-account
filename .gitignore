@@ -50,6 +50,9 @@ docs/*.internal.rst
 docs/*.utils.rst
 docs/*._utils.*
 
+# uv pkg mngr
+uv.lock
+
 # Blockchain
 chains
 
@@ -112,4 +115,3 @@ fabric.properties
 # END JetBrains section
 
 # uv
-uv.lock

@@ -209,8 +209,9 @@ class DynamicFeeTransaction(_TypedTransactionImplementation):
         hash = pipe(
             rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore  # noqa: E501
             lambda val: rlp.encode(val),  # rlp([...])
-            lambda val: bytes([self.__class__.transaction_type])
-            + val,  # (0x02 || rlp([...]))
+            lambda val: (
+                bytes([self.__class__.transaction_type]) + val
+            ),  # (0x02 || rlp([...]))
             keccak,  # keccak256(0x02 || rlp([...]))
         )
         return cast(bytes, hash)

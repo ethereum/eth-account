@@ -188,9 +188,9 @@ class BlobTransaction(_TypedTransactionImplementation):
             },
         )
         if not has_blobs:
-            transaction_valid_values[
-                "blobVersionedHashes"
-            ] = is_sequence_of_bytes_or_hexstr(item_bytes_size=32, can_be_empty=False)
+            transaction_valid_values["blobVersionedHashes"] = (
+                is_sequence_of_bytes_or_hexstr(item_bytes_size=32, can_be_empty=False)
+            )
 
         if "v" in dictionary and dictionary["v"] == 0:
             dictionary["v"] = "0x0"
@@ -225,6 +225,7 @@ class BlobTransaction(_TypedTransactionImplementation):
                         + cls.signature_fields
                     ),
                     dictionary["tx_payload_body"],
+                    strict=False,
                 )
             )
             dictionary["type"] = cls.transaction_type
@@ -285,9 +286,11 @@ class BlobTransaction(_TypedTransactionImplementation):
         except rlp.exceptions.ObjectDeserializationError:
             # Try legacy EIP-4844 format (without wrapper_version, with proofs)
             try:
-                dictionary = cls._legacy_signed_pooled_transaction_serializer.from_bytes(  # type: ignore  # noqa: E501
-                    transaction_payload
-                ).as_dict()
+                dictionary = (
+                    cls._legacy_signed_pooled_transaction_serializer.from_bytes(  # type: ignore  # noqa: E501
+                        transaction_payload
+                    ).as_dict()
+                )
             except rlp.exceptions.ObjectDeserializationError:
                 # Fall back to transaction without blob data
                 dictionary = cls._signed_transaction_serializer.from_bytes(  # type: ignore  # noqa: E501
@@ -354,8 +357,9 @@ class BlobTransaction(_TypedTransactionImplementation):
         hash_ = pipe(
             rlp_serializer.from_dict(rlp_structured_txn_without_sig_fields),  # type: ignore  # noqa: E501
             lambda val: rlp.encode(val),  # rlp([...])
-            lambda val: bytes([self.__class__.transaction_type])
-            + val,  # (0x03 || rlp([...]))
+            lambda val: (
+                bytes([self.__class__.transaction_type]) + val
+            ),  # (0x03 || rlp([...]))
             keccak,  # keccak256(0x03 || rlp([...]))
         )
         return cast(bytes, hash_)

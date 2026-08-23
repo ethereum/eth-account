@@ -227,7 +227,7 @@ def test_cell_proofs_match_consensus_spec_vectors(test_name, test_file):
     assert len(tx.blob_data.cell_proofs) == 128
 
     for _i, (computed_proof, expected_proof) in enumerate(
-        zip(tx.blob_data.cell_proofs, expected_proofs)
+        zip(tx.blob_data.cell_proofs, expected_proofs, strict=False)
     ):
         assert computed_proof.as_hexstr() == expected_proof.lower()
 
@@ -269,7 +269,11 @@ def test_blob_transaction_roundtrip_with_cell_proofs():
     )
 
     for _i, (original, deserialized) in enumerate(
-        zip(tx.blob_data.cell_proofs, tx_from_bytes.blob_data.cell_proofs)
+        zip(
+            tx.blob_data.cell_proofs,
+            tx_from_bytes.blob_data.cell_proofs,
+            strict=False,
+        )
     ):
         assert original.as_hexstr() == deserialized.as_hexstr()
 

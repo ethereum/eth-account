@@ -7,9 +7,9 @@ A Go utility that generates signed EIP-7594 blob transaction test vectors using 
 This tool reads blob test data from the [consensus-spec-tests](https://github.com/ethereum/consensus-spec-tests) repository and:
 
 1. Computes KZG commitments and versioned hashes for each blob
-1. Computes cell proofs using EIP-7594's `compute_cells_and_kzg_proofs`
-1. Creates and signs a blob transaction (type 3) with the computed data
-1. Outputs the results as JSON for comparison with eth-account's output
+2. Computes cell proofs using EIP-7594's `compute_cells_and_kzg_proofs`
+3. Creates and signs a blob transaction (type 3) with the computed data
+4. Outputs the results as JSON for comparison with eth-account's output
 
 ## Usage
 

@@ -255,7 +255,7 @@ class BlobPooledTransactionData(BaseModel):
                         )
                     )
                 )
-                for blob, commitment in zip(self.blobs, self.commitments)
+                for blob, commitment in zip(self.blobs, self.commitments, strict=False)
             ]
         return self._proofs
 

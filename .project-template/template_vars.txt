@@ -1,6 +1,0 @@
-eth_account
-eth-account
-eth-account
-eth-account
-eth-account
-Sign Ethereum transactions and messages with local private keys

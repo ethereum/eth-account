@@ -37,16 +37,13 @@ class SignedTransaction(
     )
 ):
     @overload
-    def __getitem__(self, index: SupportsIndex) -> Any:
-        ...
+    def __getitem__(self, index: SupportsIndex) -> Any: ...
 
     @overload
-    def __getitem__(self, index: slice) -> tuple[Any, ...]:
-        ...
+    def __getitem__(self, index: slice) -> tuple[Any, ...]: ...
 
     @overload
-    def __getitem__(self, index: str) -> Any:
-        ...
+    def __getitem__(self, index: str) -> Any: ...
 
     def __getitem__(self, index: SupportsIndex | slice | str) -> Any:
         if isinstance(index, (int, slice)):
@@ -70,16 +67,13 @@ class SignedMessage(
     )
 ):
     @overload
-    def __getitem__(self, index: SupportsIndex) -> Any:
-        ...
+    def __getitem__(self, index: SupportsIndex) -> Any: ...
 
     @overload
-    def __getitem__(self, index: slice) -> tuple[Any, ...]:
-        ...
+    def __getitem__(self, index: slice) -> tuple[Any, ...]: ...
 
     @overload
-    def __getitem__(self, index: str) -> Any:
-        ...
+    def __getitem__(self, index: str) -> Any: ...
 
     def __getitem__(self, index: SupportsIndex | slice | str) -> Any:
         if isinstance(index, (int, slice)):

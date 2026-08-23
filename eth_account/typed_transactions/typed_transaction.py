@@ -1,6 +1,5 @@
 from typing import (
     Any,
-    Union,
 )
 
 from eth_utils.curried import (
@@ -111,12 +110,12 @@ class TypedTransaction:
         if not (len(encoded_transaction) > 0 and encoded_transaction[0] <= 0x7F):
             raise ValueError("unexpected input")
 
-        transaction: Union[
-            "DynamicFeeTransaction",
-            "AccessListTransaction",
-            "BlobTransaction",
-            "SetCodeTransaction",
-        ]
+        transaction: (
+            DynamicFeeTransaction
+            | AccessListTransaction
+            | BlobTransaction
+            | SetCodeTransaction
+        )
 
         encoded_tx_type = encoded_transaction[0]
         if encoded_tx_type == AccessListTransaction.transaction_type:
