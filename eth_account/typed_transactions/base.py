@@ -8,12 +8,6 @@ from typing import (
     Any,
 )
 
-from ckzg import (
-    blob_to_kzg_commitment,
-    compute_blob_kzg_proof,
-    compute_cells_and_kzg_proofs,
-    load_trusted_setup,
-)
 from eth_typing import (
     HexStr,
 )
@@ -227,6 +221,11 @@ class BlobPooledTransactionData(BaseModel):
     @property
     def commitments(self) -> list[BlobKZGCommitment]:
         if self._commitments is None:
+            from ckzg import (
+                blob_to_kzg_commitment,
+                load_trusted_setup,
+            )
+
             self._commitments = [
                 BlobKZGCommitment(
                     data=HexBytes(
@@ -245,6 +244,11 @@ class BlobPooledTransactionData(BaseModel):
     @property
     def proofs(self) -> list[BlobProof]:
         if self._proofs is None:
+            from ckzg import (
+                compute_blob_kzg_proof,
+                load_trusted_setup,
+            )
+
             self._proofs = [
                 BlobProof(
                     data=HexBytes(
@@ -265,6 +269,11 @@ class BlobPooledTransactionData(BaseModel):
     @property
     def cell_proofs(self) -> list[BlobCellProof]:
         if self._cell_proofs is None:
+            from ckzg import (
+                compute_cells_and_kzg_proofs,
+                load_trusted_setup,
+            )
+
             self._cell_proofs = []
             for blob in self.blobs:
                 cells, cell_proofs = compute_cells_and_kzg_proofs(

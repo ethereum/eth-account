@@ -18,7 +18,7 @@ jobs:
     - name: Setup Python
       uses: astral-sh/setup-uv@v7
       with:
-        python-version: "3.10"
+        python-version: "3.14"
 
     - name: Generate API Docs
       run: uv run --group docs sphinx-apidoc -o docs/ . "conftest*" "tests" "tests/*"

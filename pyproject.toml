@@ -34,12 +34,14 @@ dependencies = [
     "eth-keyfile>=0.10",
     "eth-keys>=0.5",
     "eth-rlp>=3",
-    "eth-utils>=6",
+    "eth-utils>=5.3.1",
     "hexbytes>=2",
     "rlp>=2",
-    "ckzg>=2",
     "pydantic>=2",
 ]
+
+[project.optional-dependencies]
+ckzg = ["ckzg>=2"]
 
 [project.urls]
 Homepage = "https://github.com/ApeWorX/eth-account"
@@ -53,6 +55,7 @@ test = [
     "pytest-xdist>=2.4.0",
     "hypothesis>=6.22.0,<6.108.7",
     "coverage",
+    "ckzg>=2",
 ]
 lint = [
     "ruff>=0.12.0",
